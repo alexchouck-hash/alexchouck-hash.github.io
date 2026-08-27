@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Local AI — what it means, what it costs, when it is right</title><meta name="description" content="What running AI on your own hardware actually involves for a device company: the honest trade-offs against frontier cloud models, what we deploy on-prem, and when it is the wrong answer."><link rel="canonical" href="https://10xand.com/local-ai/"><meta name="robots" content="noindex,nofollow"><!--
+      No author, generator, or organisation metadata is emitted anywhere on
+      this site. See TODO.md, "Attribution discipline".
+    --><meta property="og:type" content="website"><meta property="og:title" content="Local AI — what it means, what it costs, when it is right"><meta property="og:description" content="What running AI on your own hardware actually involves for a device company: the honest trade-offs against frontier cloud models, what we deploy on-prem, and when it is the wrong answer."><meta property="og:url" content="https://10xand.com/local-ai/"><meta property="og:image" content="https://10xand.com/og/home.png"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon-32.png" type="image/png"><link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin><!--
+      ANALYTICS GUARD (Phase 2 §1.4.1).
+
+      Plausible is injected, and custom events are allowed to fire, ONLY when
+      the browser is actually on the production host. Anything else — a
+      localhost build, a preview host, a stale github.io visit — loads no
+      analytics script at all and fires nothing.
+
+      This exists because a preview surface silently polluting the production
+      property is worse than having no analytics: the numbers still look
+      plausible, so nobody investigates. The guard is host-based rather than
+      build-based on purpose, so a production bundle opened anywhere else is
+      still inert.
+
+      It introduces no cookies. Plausible remains cookieless (Phase 1 §13).
+    --><script>(function(){const analyticsHost = "10xand.com";
+const plausibleDomain = "10xand.com";
+const plausibleSrc = "https://plausible.io/js/script.manual.tagged-events.js";
+
+      (function () {
+        var h = window.location.hostname;
+        var ok = h === analyticsHost || h === 'www.' + analyticsHost;
+        window.__ANALYTICS_OK__ = ok;
+        if (!ok) return;
+
+        window.plausible =
+          window.plausible ||
+          function () {
+            (window.plausible.q = window.plausible.q || []).push(arguments);
+          };
+
+        var s = document.createElement('script');
+        s.defer = true;
+        s.setAttribute('data-domain', plausibleDomain);
+        s.src = plausibleSrc;
+        document.head.appendChild(s);
+      })();
+    })();</script><link rel="stylesheet" href="/_astro/ai-data-privacy.B1VSfiio.css">
+<style>.doc__head[data-astro-cid-vhelnamd]{padding-block:clamp(2.5rem,6vw,5rem) var(--sp-5)}.doc__headline[data-astro-cid-vhelnamd]{max-width:22ch}.doc__standfirst[data-astro-cid-vhelnamd]{max-width:60ch}.doc__updated[data-astro-cid-vhelnamd]{font-size:var(--step--1);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--gray);margin-top:var(--sp-5)}.doc__body[data-astro-cid-vhelnamd]{padding-bottom:var(--sp-8)}.doc__body[data-astro-cid-vhelnamd] h2{font-size:var(--step-2);margin-top:var(--sp-8);padding-top:var(--sp-4);border-top:var(--border-hair);max-width:34ch}.doc__body[data-astro-cid-vhelnamd] h3{font-size:var(--step-1);margin-top:var(--sp-6);max-width:40ch}.doc__body[data-astro-cid-vhelnamd] p,.doc__body[data-astro-cid-vhelnamd] li{color:var(--fg-muted)}.doc__body[data-astro-cid-vhelnamd] p{max-width:68ch}.doc__body[data-astro-cid-vhelnamd] ul,.doc__body[data-astro-cid-vhelnamd] ol{max-width:68ch;padding-left:1.15rem}.doc__body[data-astro-cid-vhelnamd] li{margin-bottom:var(--sp-3)}.doc__body[data-astro-cid-vhelnamd] strong{color:var(--ink)}.doc__body[data-astro-cid-vhelnamd] a{color:var(--ink);text-decoration-color:var(--amber)}.doc__body[data-astro-cid-vhelnamd] .pull{border-left:3px solid var(--amber);padding:var(--sp-3) 0 var(--sp-3) var(--sp-5);margin:var(--sp-6) 0;font-size:var(--step-1);color:var(--ink);max-width:56ch}.doc__body[data-astro-cid-vhelnamd] .verify{display:block;border:1.5px dashed var(--red);padding:var(--sp-4);margin:var(--sp-5) 0;font-family:var(--font-mono);font-size:var(--step--1);color:var(--red);max-width:68ch}.doc__body[data-astro-cid-vhelnamd] table{width:100%;border-collapse:collapse;margin:var(--sp-5) 0;font-size:var(--step--1)}.doc__body[data-astro-cid-vhelnamd] th,.doc__body[data-astro-cid-vhelnamd] td{text-align:left;padding:var(--sp-3);border-bottom:var(--border-hair);vertical-align:top;color:var(--fg-muted)}.doc__body[data-astro-cid-vhelnamd] th{color:var(--ink);font-family:var(--font-mono);font-size:.7rem;letter-spacing:var(--tracking-label);text-transform:uppercase}.doc__cta[data-astro-cid-vhelnamd]{background:var(--ink);color:var(--paper);padding-block:var(--sp-6)}.doc__cta-inner[data-astro-cid-vhelnamd]{display:flex;flex-wrap:wrap;gap:var(--sp-5);align-items:center;justify-content:space-between}.doc__cta-body[data-astro-cid-vhelnamd]{color:#afb8c6;margin:0;max-width:52ch}
+</style></head> <body data-page="local-ai"> <a class="skip-link" href="#main">Skip to content</a> <header class="site-header" data-astro-cid-3ef6ksr2> <div class="wrap site-header__inner" data-astro-cid-3ef6ksr2> <a class="wordmark" href="/" aria-label="10xAnd home" data-astro-cid-3ef6ksr2> <span class="wordmark__x" data-astro-cid-3ef6ksr2>10x</span><span class="wordmark__and" data-astro-cid-3ef6ksr2>And</span> </a> <a class="btn btn--ghost btn--sm" href="#capture" data-book="header"> Scoping review <span class="visually-hidden"> (booking link not configured)</span> </a> </div> </header>  <main id="main">  <article class="doc" data-astro-cid-vhelnamd> <header class="doc__head" data-astro-cid-vhelnamd> <div class="wrap" data-astro-cid-vhelnamd> <p class="eyebrow" data-astro-cid-vhelnamd>Local AI</p> <h1 class="doc__headline" data-astro-cid-vhelnamd>AI that never leaves your building.</h1> <p class="lede doc__standfirst" data-astro-cid-vhelnamd>For programs where the answer to “where does our data go” has to be “nowhere”. Here is what that actually buys you, and what it costs — including the parts that make it the wrong choice for most work.</p>  </div> </header> <div class="wrap doc__body" data-astro-cid-vhelnamd>  <h2>What "local" actually means</h2> <p>
+A model runs on hardware you own, inside your network. Your documents,
+    drawings, and production images are read by that machine and by nothing
+    else. There is no API call, no vendor, no retention policy to negotiate,
+    and no subprocessor list — because there is no third party in the chain at
+    all.
+</p> <p>
+The data-handling question stops being a contract question and becomes a
+    network question. That matters more than it sounds: your IT and quality
+    functions already know how to answer network questions, and have a
+    procedure for it.
+</p> <p class="pull">
+Local AI is not more secure because it is better technology. It is more
+    secure because there is no one to trust.
+</p> <h2>The honest trade-offs</h2> <p>
+Anyone selling you local AI without this section is selling you something.
+</p> <table> <thead> <tr> <th></th> <th>Frontier cloud model</th> <th>Local model</th> </tr> </thead> <tbody> <tr> <td>Raw capability</td> <td>Meaningfully better, and the gap is largest on exactly the hard reasoning you would most want help with</td> <td>Good enough for extraction, classification, structured drafting, and comparison — the bulk of document work</td> </tr> <tr> <td>Data exposure</td> <td>Governed by contract</td> <td>None. Nothing transits.</td> </tr> <tr> <td>Cost shape</td> <td>Per use, no capital, scales down to zero</td> <td>Capital up front, then near-zero marginal cost. Cheaper at volume, wasteful at low volume.</td> </tr> <tr> <td>Maintenance</td> <td>Someone else's problem</td> <td>Yours: hardware, updates, and the model going stale relative to what is current</td> </tr> <tr> <td>Getting better over time</td> <td>Automatically, without you doing anything</td> <td>Only when someone deliberately upgrades it</td> </tr> </tbody> </table> <p>
+The last row is the one most people miss. A cloud model quietly improves
+    underneath you; a local deployment is a snapshot that ages. That is a real
+    operating cost, not a footnote, and it is why we do not recommend local
+    deployment for work that does not need it.
+</p> <h2>When it is the right answer</h2> <ul> <li> <strong>The mechanism is not filed yet.</strong> Pre-filing invention
+      disclosures and novel-mechanism design inputs are the clearest case:
+      the loss is irreversible and no contract undoes it.
+</li> <li> <strong>Production images from the line.</strong> Vision inspection
+      generates images of your process continuously. Nobody wants that leaving
+      the building, and at that volume the capital cost is the cheaper option
+      anyway.
+</li> <li> <strong>A customer or partner agreement forbids third-party processing.</strong>
+Sometimes the question is already answered and the job is to comply with
+      it, not to relitigate it.
+</li> <li> <strong>The volume makes it cheaper.</strong> Continuous document analysis
+      across a large file estate reaches the crossover point where per-use
+      pricing stops being the economical choice.
+</li> </ul> <h2>When it is the wrong answer</h2> <p>
+For work on published standards, cleared labelling, generic procedure
+    structure, or anything already public, local deployment buys you nothing
+    and costs you capability. Using it there is the expensive kind of caution:
+    it looks rigorous, protects nothing, and slows down the work that would
+    have benefited most from a stronger model.
+</p> <p>
+Most device companies need a governed cloud tier for most work and a local
+    option for a narrow band of it. A vendor telling you it is all one or all
+    the other has not asked what your content is.
+</p> <h2>What we deploy</h2> <ul> <li> <strong>Document analysis on your hardware.</strong> The same gap-scanning
+      and drafting tooling used in our documentation and verification lines,
+      running inside your network, so design history files, requirements, and
+      drawings are read locally and stay local.
+</li> <li> <strong>Inspection models at the line.</strong> Machine-vision final test
+      with the models running on hardware in the building. Production images
+      never leave, which removes a whole class of question from your quality
+      agreement rather than answering it.
+</li> <li> <strong>The documentation that makes it auditable.</strong> Whatever runs
+      locally still produces the review record and, for inspection, the
+      test-method validation package. Running on your own hardware changes where
+      the compute happens, not whether a named human signed for the output.
+</li> </ul> <h2>How to find out if it fits</h2> <p>
+A local-AI feasibility consult is a scoping review like any other: we look
+    at what content you actually need processed, what volume, and what your
+    constraint really is — because it is often narrower than the blanket policy
+    suggests, and the narrow version is much cheaper to satisfy. If a governed
+    cloud tier would serve you better, that is what the review will say.
+</p>  </div> <aside class="doc__cta" aria-label="Related service" data-astro-cid-vhelnamd> <div class="wrap doc__cta-inner" data-astro-cid-vhelnamd> <p class="doc__cta-body" data-astro-cid-vhelnamd>Local AI is the right answer for a narrow set of content. The honest framework for deciding which content that is sits on the data page.</p> <a class="btn btn--primary" href="/ai-data-privacy" data-astro-cid-vhelnamd>Read the data assessment</a> </div> </aside> </article>  </main> <footer class="site-footer" data-astro-cid-sz7xmlte> <div class="wrap site-footer__inner" data-astro-cid-sz7xmlte> <div class="site-footer__id" data-astro-cid-sz7xmlte> <p class="mono site-footer__entity" data-astro-cid-sz7xmlte>{{LEGAL_ENTITY_NAME}}</p> <address class="site-footer__address" data-astro-cid-sz7xmlte>{{MAILING_ADDRESS}}</address>  </div> <nav class="site-footer__links" aria-label="Footer" data-astro-cid-sz7xmlte> <a href="/" data-astro-cid-sz7xmlte>Home</a> <a href="/learn" data-astro-cid-sz7xmlte>AI Academy</a><a href="/ai-data-privacy" data-astro-cid-sz7xmlte>AI and your data</a><a href="/local-ai" data-astro-cid-sz7xmlte>Local AI</a> <a href="/newsletter" data-astro-cid-sz7xmlte>Newsletter</a> <a href="/privacy" data-astro-cid-sz7xmlte>Privacy</a> </nav> <p class="site-footer__note" data-astro-cid-sz7xmlte>
+This site describes engineering and regulatory services. Nothing here is a
+      claim about the clinical or technical performance of any medical device.
+      Your documents are never used to train any model —
+<a href="/ai-data-privacy" data-astro-cid-sz7xmlte>how we handle your data</a>.
+<span class="site-footer__copy" data-astro-cid-sz7xmlte>© 2026 {{LEGAL_ENTITY_NAME}}</span> </p> </div> </footer>  <script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.Di3Q8By8.js"></script> </body> </html> 

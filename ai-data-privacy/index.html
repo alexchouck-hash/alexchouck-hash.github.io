@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AI and your company data — an honest assessment</title><meta name="description" content="What actually happens to your documents when AI-assisted work touches them, which risks are real, which are misplaced, and how to decide. Written for device companies."><link rel="canonical" href="https://10xand.com/ai-data-privacy/"><meta name="robots" content="noindex,nofollow"><!--
+      No author, generator, or organisation metadata is emitted anywhere on
+      this site. See TODO.md, "Attribution discipline".
+    --><meta property="og:type" content="website"><meta property="og:title" content="AI and your company data — an honest assessment"><meta property="og:description" content="What actually happens to your documents when AI-assisted work touches them, which risks are real, which are misplaced, and how to decide. Written for device companies."><meta property="og:url" content="https://10xand.com/ai-data-privacy/"><meta property="og:image" content="https://10xand.com/og/home.png"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon-32.png" type="image/png"><link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin><!--
+      ANALYTICS GUARD (Phase 2 §1.4.1).
+
+      Plausible is injected, and custom events are allowed to fire, ONLY when
+      the browser is actually on the production host. Anything else — a
+      localhost build, a preview host, a stale github.io visit — loads no
+      analytics script at all and fires nothing.
+
+      This exists because a preview surface silently polluting the production
+      property is worse than having no analytics: the numbers still look
+      plausible, so nobody investigates. The guard is host-based rather than
+      build-based on purpose, so a production bundle opened anywhere else is
+      still inert.
+
+      It introduces no cookies. Plausible remains cookieless (Phase 1 §13).
+    --><script>(function(){const analyticsHost = "10xand.com";
+const plausibleDomain = "10xand.com";
+const plausibleSrc = "https://plausible.io/js/script.manual.tagged-events.js";
+
+      (function () {
+        var h = window.location.hostname;
+        var ok = h === analyticsHost || h === 'www.' + analyticsHost;
+        window.__ANALYTICS_OK__ = ok;
+        if (!ok) return;
+
+        window.plausible =
+          window.plausible ||
+          function () {
+            (window.plausible.q = window.plausible.q || []).push(arguments);
+          };
+
+        var s = document.createElement('script');
+        s.defer = true;
+        s.setAttribute('data-domain', plausibleDomain);
+        s.src = plausibleSrc;
+        document.head.appendChild(s);
+      })();
+    })();</script><link rel="stylesheet" href="/_astro/ai-data-privacy.B1VSfiio.css">
+<style>.doc__head[data-astro-cid-vhelnamd]{padding-block:clamp(2.5rem,6vw,5rem) var(--sp-5)}.doc__headline[data-astro-cid-vhelnamd]{max-width:22ch}.doc__standfirst[data-astro-cid-vhelnamd]{max-width:60ch}.doc__updated[data-astro-cid-vhelnamd]{font-size:var(--step--1);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--gray);margin-top:var(--sp-5)}.doc__body[data-astro-cid-vhelnamd]{padding-bottom:var(--sp-8)}.doc__body[data-astro-cid-vhelnamd] h2{font-size:var(--step-2);margin-top:var(--sp-8);padding-top:var(--sp-4);border-top:var(--border-hair);max-width:34ch}.doc__body[data-astro-cid-vhelnamd] h3{font-size:var(--step-1);margin-top:var(--sp-6);max-width:40ch}.doc__body[data-astro-cid-vhelnamd] p,.doc__body[data-astro-cid-vhelnamd] li{color:var(--fg-muted)}.doc__body[data-astro-cid-vhelnamd] p{max-width:68ch}.doc__body[data-astro-cid-vhelnamd] ul,.doc__body[data-astro-cid-vhelnamd] ol{max-width:68ch;padding-left:1.15rem}.doc__body[data-astro-cid-vhelnamd] li{margin-bottom:var(--sp-3)}.doc__body[data-astro-cid-vhelnamd] strong{color:var(--ink)}.doc__body[data-astro-cid-vhelnamd] a{color:var(--ink);text-decoration-color:var(--amber)}.doc__body[data-astro-cid-vhelnamd] .pull{border-left:3px solid var(--amber);padding:var(--sp-3) 0 var(--sp-3) var(--sp-5);margin:var(--sp-6) 0;font-size:var(--step-1);color:var(--ink);max-width:56ch}.doc__body[data-astro-cid-vhelnamd] .verify{display:block;border:1.5px dashed var(--red);padding:var(--sp-4);margin:var(--sp-5) 0;font-family:var(--font-mono);font-size:var(--step--1);color:var(--red);max-width:68ch}.doc__body[data-astro-cid-vhelnamd] table{width:100%;border-collapse:collapse;margin:var(--sp-5) 0;font-size:var(--step--1)}.doc__body[data-astro-cid-vhelnamd] th,.doc__body[data-astro-cid-vhelnamd] td{text-align:left;padding:var(--sp-3);border-bottom:var(--border-hair);vertical-align:top;color:var(--fg-muted)}.doc__body[data-astro-cid-vhelnamd] th{color:var(--ink);font-family:var(--font-mono);font-size:.7rem;letter-spacing:var(--tracking-label);text-transform:uppercase}.doc__cta[data-astro-cid-vhelnamd]{background:var(--ink);color:var(--paper);padding-block:var(--sp-6)}.doc__cta-inner[data-astro-cid-vhelnamd]{display:flex;flex-wrap:wrap;gap:var(--sp-5);align-items:center;justify-content:space-between}.doc__cta-body[data-astro-cid-vhelnamd]{color:#afb8c6;margin:0;max-width:52ch}
+</style></head> <body data-page="ai-data-privacy"> <a class="skip-link" href="#main">Skip to content</a> <header class="site-header" data-astro-cid-3ef6ksr2> <div class="wrap site-header__inner" data-astro-cid-3ef6ksr2> <a class="wordmark" href="/" aria-label="10xAnd home" data-astro-cid-3ef6ksr2> <span class="wordmark__x" data-astro-cid-3ef6ksr2>10x</span><span class="wordmark__and" data-astro-cid-3ef6ksr2>And</span> </a> <a class="btn btn--ghost btn--sm" href="#capture" data-book="header"> Scoping review <span class="visually-hidden"> (booking link not configured)</span> </a> </div> </header>  <main id="main">  <article class="doc" data-astro-cid-vhelnamd> <header class="doc__head" data-astro-cid-vhelnamd> <div class="wrap" data-astro-cid-vhelnamd> <p class="eyebrow" data-astro-cid-vhelnamd>AI and your data</p> <h1 class="doc__headline" data-astro-cid-vhelnamd>What actually happens to your files.</h1> <p class="lede doc__standfirst" data-astro-cid-vhelnamd>The question every device company asks first, answered without the reassurance reflex. Some of the worry is misplaced. One part of it is worse than most people think — and it is not the part anyone asks about.</p> <p class="doc__updated mono" data-astro-cid-vhelnamd>LAST REVIEWED: {{PRIVACY_LAST_UPDATED}}</p> </div> </header> <div class="wrap doc__body" data-astro-cid-vhelnamd>  <h2>Start with our answer, not the essay</h2> <p>
+If you are here because you are about to send us a design history file, this
+    is the part you need:
+</p> <ul> <li> <strong>Your documents are not used to train any model.</strong> Not ours,
+      not a vendor's. This is contractual, in the statement of work, before you
+      send anything.
+</li> <li> <strong>Your files live in an access-controlled workspace for the
+      engagement</strong>, and are deleted or returned on your instruction at
+      the end. The retention and deletion terms are written down before
+      transfer, not described afterwards.
+</li> <li> <strong>Your work is never shared with another client</strong>, and never
+      used as an example, a case study, or a demo. The demonstrations on this
+      site run on synthetic data against fictional devices for exactly this
+      reason.
+</li> <li> <strong>For sensitive programs, the AI layer can run on hardware you
+      control</strong>, so the documents never leave your network at all. That
+      is <a href="/local-ai">local AI</a>, and it is a real option rather than a
+      brochure line.
+</li> </ul> <p class="pull">
+The rest of this page is why those four commitments are the right ones, and
+    where the genuine risk actually sits.
+</p> <h2>The fear, stated fairly</h2> <p>
+The concern goes like this: we paste a design input specification into an
+    AI assistant, the vendor keeps it, trains on it, and some fragment of our
+    novel mechanism surfaces in a competitor's answer eighteen months later.
+    For a company whose entire enterprise value is a mechanism and a clearance,
+    that is not a paranoid worry. It is a correctly identified category of
+    harm — irreversible, undetectable, and uninsurable.
+</p> <p>
+It deserves a real answer rather than a reassuring one, because the
+    reassuring version — "enterprise AI is secure" — is the kind of sentence
+    that makes a careful reader trust you less.
+</p> <h2>The honest assessment</h2> <p>
+The single most important distinction is the one almost nobody makes
+    explicitly: <strong>consumer-tier and business-tier access to the same model
+    are governed by different contracts.</strong> They are not the same product
+    with a different price. The consumer tier is generally governed by terms
+    that permit the provider to use submitted content to improve their systems.
+    The business and API tiers are generally governed by terms that do not.
+</p> <p>
+That distinction is the whole ballgame, and it is why "is AI safe for our
+    data" is an unanswerable question as posed. Safe under which agreement?
+</p> <p class="verify"> {{VERIFY_BEFORE_PUBLISH}} — Any statement naming a specific vendor's
+    training, retention, or zero-retention terms must be verified against that
+    vendor's current agreement for the specific tier and region before this
+    page publishes. Vendor terms change, differ by tier, and differ by
+    jurisdiction. Do not publish a vendor-specific claim from memory. See
+    TODO.md.
+</p> <p>
+What you should require, in writing, from any AI-assisted vendor — including
+    us:
+</p> <ul> <li>A contractual statement that your content is not used to train models.</li> <li>A stated retention period, and a deletion mechanism you can invoke.</li> <li>Named subprocessors, so you know who is actually in the chain.</li> <li>Which tier and which agreement they are operating under. "We use AI responsibly" is not an answer to this.</li> </ul> <p>
+If a vendor cannot answer the fourth question quickly, they have not thought
+    about it, and the first three answers are worth less than they appear.
+</p> <h2>The comparison nobody makes</h2> <p>
+Almost every device company reading this already keeps its design history
+    file in a cloud eQMS, its CAD in a cloud PDM, its email with a hyperscaler,
+    and its clinical data in a cloud EDC. Each of those is a third party
+    holding the same intellectual property, under a contract, with a retention
+    policy and a subprocessor list.
+</p> <p>
+That does not make AI safe by association. It makes the standard clear:
+<strong>AI tooling should be evaluated the same way you evaluated your
+    eQMS</strong> — contract, retention, subprocessors, deletion, audit
+    rights — rather than as a new category requiring either blanket refusal or
+    blanket trust. Device companies are unusually good at this evaluation. It
+    is the same muscle as supplier qualification.
+</p> <h2>The risk that actually deserves the worry</h2> <p class="pull">
+The realistic exposure in most device companies is not the vendor's
+    contract. It is that an engineer under deadline pasted a requirements
+    document into a personal account on a consumer tier, and nobody knows.
+</p> <p>
+Shadow AI is the first-order problem and it is chronically under-weighted,
+    because it is embarrassing rather than technical. A procurement-blocked
+    company with no sanctioned tool does not become a company where nobody uses
+    AI. It becomes a company where AI use is invisible, unlogged, on personal
+    accounts, under consumer terms — which is precisely the tier whose contract
+    permits training on submitted content.
+</p> <p>
+The uncomfortable conclusion: <strong>a blanket ban usually increases
+    exposure.</strong> It moves usage from a governed tier to an ungoverned one
+    and removes your ability to see any of it. If you take one operational
+    thing from this page, make it that.
+</p> <p>Second-order risks, in the order they actually bite:</p> <ul> <li> <strong>Output quality accepted uncritically.</strong> A confidently wrong
+      AI-drafted rationale that nobody checked is a worse day than a data-handling
+      question, and it is far more likely. This is why every deliverable we
+      produce carries a named human reviewer and a record of what they changed.
+</li> <li> <strong>Prompt content in logs and integrations.</strong> The AI vendor is
+      often not the only party in the chain — the plugin, the browser extension,
+      and the workflow tool each have their own terms.
+</li> <li> <strong>Model-generated content entering the DHF unlabelled.</strong> Not a
+      privacy risk, a records-integrity one, and an auditor will find it.
+</li> </ul> <h2>A decision framework</h2> <p>
+Classify by consequence-if-leaked rather than by document type. The
+    question is not "is this confidential" — everything is — but "what happens
+    if this specific content is exposed."
+</p> <table> <thead> <tr> <th>Content</th> <th>If it leaked</th> <th>Reasonable posture</th> </tr> </thead> <tbody> <tr> <td>Published standards, cleared labelling, public clearance summaries</td> <td>Nothing — it is already public</td> <td>Any governed tier. Treating this as secret wastes the control budget.</td> </tr> <tr> <td>Internal procedures, templates, generic protocol structure</td> <td>Mild competitive discomfort</td> <td>Business tier under contract, logged.</td> </tr> <tr> <td>Design inputs, verification data, risk files for a cleared device</td> <td>Real competitive harm</td> <td>Business tier with contractual no-training and stated retention, named subprocessors, deletion on request.</td> </tr> <tr> <td>The novel mechanism before filing; unfiled invention disclosures</td> <td>Irreversible loss of position</td> <td>Local or on-prem only, or no AI at all until filed.</td> </tr> </tbody> </table> <p>
+Most organisations apply the fourth row's caution to all four rows, which
+    sounds conservative and is actually just expensive: it blocks the safe uses,
+    delivers no protection on the genuinely sensitive ones, and pushes everyone
+    to shadow tools.
+</p> <h2>Where local AI enters</h2> <p>
+For the bottom row — and for organisations whose customers or regulators
+    make the question moot — the answer is that the model runs on hardware you
+    control. Nothing transits, nothing is retained elsewhere, and the
+    data-handling question stops being a contract question and becomes a
+    network question, which your IT function already knows how to answer.
+</p> <p>
+That is not free. Local models are meaningfully less capable than frontier
+    cloud models, the hardware is real capital, and someone has to maintain it.
+    We say so plainly on <a href="/local-ai">the local AI page</a> rather than
+    selling it as a strictly better option, because for most content in the
+    table above it is not.
+</p> <h2>What we do, concretely</h2> <ul> <li>Contractual no-training on your content, in the SOW, before transfer.</li> <li>An access-controlled workspace per engagement, with retention and deletion terms agreed in writing up front.</li> <li>Named subprocessors on request, before you send anything.</li> <li>A named human reviewer on every AI-assisted deliverable, with a record of what they corrected — the control for the output-quality risk, which is the one most likely to actually hurt you.</li> <li>A local-deployment option for programs where nothing may leave the building.</li> <li>Demonstrations on this site that run on synthetic data against fictional devices, because using a client's file as a demo is exactly the behaviour this page argues against.</li> </ul> <p>
+If you want the specifics for your program, ask at the scoping review. It is
+    a reasonable thing to interrogate, and a vendor who gets defensive about the
+    question has answered it.
+</p>  </div> <aside class="doc__cta" aria-label="Related service" data-astro-cid-vhelnamd> <div class="wrap doc__cta-inner" data-astro-cid-vhelnamd> <p class="doc__cta-body" data-astro-cid-vhelnamd>For programs where nothing may leave the building, our document-analysis and inspection tooling runs on hardware you control.</p> <a class="btn btn--primary" href="/local-ai" data-astro-cid-vhelnamd>How local AI works</a> </div> </aside> </article>  </main> <footer class="site-footer" data-astro-cid-sz7xmlte> <div class="wrap site-footer__inner" data-astro-cid-sz7xmlte> <div class="site-footer__id" data-astro-cid-sz7xmlte> <p class="mono site-footer__entity" data-astro-cid-sz7xmlte>{{LEGAL_ENTITY_NAME}}</p> <address class="site-footer__address" data-astro-cid-sz7xmlte>{{MAILING_ADDRESS}}</address>  </div> <nav class="site-footer__links" aria-label="Footer" data-astro-cid-sz7xmlte> <a href="/" data-astro-cid-sz7xmlte>Home</a> <a href="/learn" data-astro-cid-sz7xmlte>AI Academy</a><a href="/ai-data-privacy" data-astro-cid-sz7xmlte>AI and your data</a><a href="/local-ai" data-astro-cid-sz7xmlte>Local AI</a> <a href="/newsletter" data-astro-cid-sz7xmlte>Newsletter</a> <a href="/privacy" data-astro-cid-sz7xmlte>Privacy</a> </nav> <p class="site-footer__note" data-astro-cid-sz7xmlte>
+This site describes engineering and regulatory services. Nothing here is a
+      claim about the clinical or technical performance of any medical device.
+      Your documents are never used to train any model —
+<a href="/ai-data-privacy" data-astro-cid-sz7xmlte>how we handle your data</a>.
+<span class="site-footer__copy" data-astro-cid-sz7xmlte>© 2026 {{LEGAL_ENTITY_NAME}}</span> </p> </div> </footer>  <script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.Di3Q8By8.js"></script> </body> </html> 
