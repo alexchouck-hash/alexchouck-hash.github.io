@@ -1,0 +1,96 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>About the Device Atlas — sources, neutrality, and how listing works</title><meta name="description" content="Where the data comes from, the neutrality policy, how manufacturers get listed, and what this concept build is and is not."><link rel="canonical" href="https://10xand.com/devices/about/"><meta name="robots" content="noindex,nofollow"><!--
+      No author, generator, or organisation metadata is emitted anywhere on
+      this site. See TODO.md, "Attribution discipline".
+    --><meta property="og:type" content="website"><meta property="og:title" content="About the Device Atlas — sources, neutrality, and how listing works"><meta property="og:description" content="Where the data comes from, the neutrality policy, how manufacturers get listed, and what this concept build is and is not."><meta property="og:url" content="https://10xand.com/devices/about/"><meta property="og:image" content="https://10xand.com/og/home.png"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon-32.png" type="image/png"><link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/sora-var.woff2" as="font" type="font/woff2" crossorigin><!--
+      ANALYTICS GUARD (Phase 2 §1.4.1).
+
+      Plausible is injected, and custom events are allowed to fire, ONLY when
+      the browser is actually on the production host. Anything else — a
+      localhost build, a preview host, a stale github.io visit — loads no
+      analytics script at all and fires nothing.
+
+      This exists because a preview surface silently polluting the production
+      property is worse than having no analytics: the numbers still look
+      plausible, so nobody investigates. The guard is host-based rather than
+      build-based on purpose, so a production bundle opened anywhere else is
+      still inert.
+
+      It introduces no cookies. Plausible remains cookieless (Phase 1 §13).
+    --><script>(function(){const analyticsHost = "10xand.com";
+const plausibleDomain = "10xand.com";
+const plausibleSrc = "https://plausible.io/js/script.manual.tagged-events.js";
+
+      (function () {
+        var h = window.location.hostname;
+        var ok = h === analyticsHost || h === 'www.' + analyticsHost;
+        window.__ANALYTICS_OK__ = ok;
+        if (!ok) return;
+
+        window.plausible =
+          window.plausible ||
+          function () {
+            (window.plausible.q = window.plausible.q || []).push(arguments);
+          };
+
+        var s = document.createElement('script');
+        s.defer = true;
+        s.setAttribute('data-domain', plausibleDomain);
+        s.src = plausibleSrc;
+        document.head.appendChild(s);
+      })();
+    })();</script><link rel="stylesheet" href="/_astro/ai-data-privacy.f6xyWU7O.css">
+<style>.doc__head[data-astro-cid-vhelnamd]{padding-block:clamp(2.5rem,6vw,5rem) var(--sp-5)}.doc__headline[data-astro-cid-vhelnamd]{max-width:22ch}.doc__standfirst[data-astro-cid-vhelnamd]{max-width:60ch}.doc__updated[data-astro-cid-vhelnamd]{font-size:var(--fs-small);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--text-secondary);margin-top:var(--sp-5)}.doc__body[data-astro-cid-vhelnamd]{padding-bottom:var(--sp-8)}.doc__body[data-astro-cid-vhelnamd] h2{font-size:var(--fs-display-1);margin-top:var(--sp-8);padding-top:var(--sp-4);border-top:1px solid var(--border-hairline);max-width:34ch}.doc__body[data-astro-cid-vhelnamd] .demo h2,.doc__body[data-astro-cid-vhelnamd] .demo h3{margin-top:0;padding-top:0;border-top:0}.doc__body[data-astro-cid-vhelnamd] h3{font-size:var(--fs-heading-2);margin-top:var(--sp-6);max-width:40ch}.doc__body[data-astro-cid-vhelnamd] p,.doc__body[data-astro-cid-vhelnamd] li{color:var(--text-secondary)}.doc__body[data-astro-cid-vhelnamd] p{max-width:68ch}.doc__body[data-astro-cid-vhelnamd] ul,.doc__body[data-astro-cid-vhelnamd] ol{max-width:68ch;padding-left:1.15rem}.doc__body[data-astro-cid-vhelnamd] li{margin-bottom:var(--sp-3)}.doc__body[data-astro-cid-vhelnamd] strong{color:var(--text-primary)}.doc__body[data-astro-cid-vhelnamd] a{color:var(--text-primary);text-decoration-color:var(--accent)}.doc__body[data-astro-cid-vhelnamd] .pull{border-left:3px solid var(--accent);padding:var(--sp-3) 0 var(--sp-3) var(--sp-5);margin:var(--sp-6) 0;font-size:var(--fs-heading-2);color:var(--text-primary);max-width:56ch}.doc__body[data-astro-cid-vhelnamd] .verify{display:block;border:1.5px dashed var(--status-fail-ink);padding:var(--sp-4);margin:var(--sp-5) 0;font-family:var(--font-mono);font-size:var(--fs-small);color:var(--status-fail-ink);max-width:68ch}.doc__body[data-astro-cid-vhelnamd] .tablewrap{overflow-x:auto;max-width:68ch;margin:var(--sp-5) 0}.doc__body[data-astro-cid-vhelnamd] table{width:100%;border-collapse:collapse;margin:var(--sp-5) 0;font-size:var(--fs-small)}.doc__body[data-astro-cid-vhelnamd] th,.doc__body[data-astro-cid-vhelnamd] td{text-align:left;padding:var(--sp-3);border-bottom:1px solid var(--border-hairline);vertical-align:top;color:var(--text-secondary)}.doc__body[data-astro-cid-vhelnamd] th{color:var(--text-primary);font-family:var(--font-mono);font-size:.7rem;letter-spacing:var(--tracking-label);text-transform:uppercase}.doc__cta[data-astro-cid-vhelnamd]{background:var(--bg-chrome);color:var(--text-inverse);padding-block:var(--sp-6)}.doc__cta-inner[data-astro-cid-vhelnamd]{display:flex;flex-wrap:wrap;gap:var(--sp-5);align-items:center;justify-content:space-between}.doc__cta-body[data-astro-cid-vhelnamd]{color:var(--text-chrome-muted);margin:0;max-width:52ch}
+.proband[data-astro-cid-2bchfchf]{margin:0 0 var(--sp-5);padding:var(--sp-3) var(--sp-4);background:var(--bg-recessed);border-left:3px solid var(--border-frame);font-size:var(--fs-small);line-height:var(--lh-small);color:var(--text-secondary);max-width:none}
+.status[data-astro-cid-4xop3g7j]{border-left:3px solid var(--status-warn-border);background:var(--status-warn-bg);color:var(--status-warn-ink);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-5);max-width:68ch}.status[data-astro-cid-4xop3g7j] strong[data-astro-cid-4xop3g7j]{color:var(--status-warn-ink)}.fine[data-astro-cid-4xop3g7j]{margin-top:var(--sp-7);padding-top:var(--sp-4);border-top:var(--border-width) solid var(--border-hairline);font-size:var(--fs-small);color:var(--text-secondary)}
+</style></head> <body data-page="devices-about"> <a class="skip-link" href="#main">Skip to content</a> <header class="site-header" data-astro-cid-3ef6ksr2> <div class="wrap site-header__inner" data-astro-cid-3ef6ksr2> <a class="wordmark" href="/" aria-label="10xAnd home" data-astro-cid-3ef6ksr2> <span class="wordmark__x" data-astro-cid-3ef6ksr2>10x</span><span class="wordmark__and" data-astro-cid-3ef6ksr2>And</span> </a> <a class="btn btn--ghost btn--sm" href="#capture" data-book="header"> Scoping review <span class="visually-hidden"> (booking link not configured)</span> </a> </div> </header>  <main id="main">  <article class="doc" data-astro-cid-vhelnamd> <header class="doc__head" data-astro-cid-vhelnamd> <div class="wrap" data-astro-cid-vhelnamd> <p class="eyebrow" data-astro-cid-vhelnamd>Device Atlas</p> <h1 class="doc__headline" data-astro-cid-vhelnamd>How this catalog works.</h1> <p class="lede doc__standfirst" data-astro-cid-vhelnamd>What the data is, what it is not, and the rules we hold ourselves to. Written to be checked rather than trusted.</p>  </div> </header> <div class="wrap doc__body" data-astro-cid-vhelnamd>  <p class="proband" data-astro-cid-2bchfchf>For healthcare professionals and institutional buyers. Product information is provided by or derived from manufacturer-public sources.</p>  <h2 data-astro-cid-4xop3g7j>What this is right now</h2> <p class="status" data-astro-cid-4xop3g7j> <strong data-astro-cid-4xop3g7j>A concept build.</strong> Every manufacturer and product name here
+    is a placeholder. There are no prices, nothing can be purchased, and no
+    supplier relationship is implied by any listing. It exists to prove the
+    navigation before real data goes in.
+</p> <p data-astro-cid-4xop3g7j>
+It currently holds 24 categories across
+12 specialties, with 43 placeholder
+    listings from 11 placeholder manufacturers. Three
+    categories are fully exercised — surgical tables, OR ergonomics and
+    hospital beds — because between them they cover capital equipment,
+    accessories, and the classes where buying direct is plausible.
+</p> <h2 data-astro-cid-4xop3g7j>Where the data will come from</h2> <p data-astro-cid-4xop3g7j>Every record carries two fields, and both are shown on the page:</p> <div class="tablewrap" data-astro-cid-4xop3g7j> <table data-astro-cid-4xop3g7j> <thead data-astro-cid-4xop3g7j> <tr data-astro-cid-4xop3g7j><th data-astro-cid-4xop3g7j>Source</th><th data-astro-cid-4xop3g7j>What it means</th></tr> </thead> <tbody data-astro-cid-4xop3g7j> <tr data-astro-cid-4xop3g7j><td class="mono" data-astro-cid-4xop3g7j>manufacturer-public</td><td data-astro-cid-4xop3g7j>Taken from information the manufacturer publishes itself.</td></tr> <tr data-astro-cid-4xop3g7j><td class="mono" data-astro-cid-4xop3g7j>supplier-provided</td><td data-astro-cid-4xop3g7j>Submitted to us by the supplier.</td></tr> <tr data-astro-cid-4xop3g7j><td class="mono" data-astro-cid-4xop3g7j>verified</td><td data-astro-cid-4xop3g7j>We checked it against a primary source, and would show you which.</td></tr> </tbody> </table> </div> <p data-astro-cid-4xop3g7j>
+Alongside it, <span class="mono" data-astro-cid-4xop3g7j>last_verified</span> — the date somebody
+    last confirmed the record. A specification with no date on it is a
+    specification with no shelf life, and in capital equipment that matters:
+    configurations change without the model name changing.
+</p> <h2 data-astro-cid-4xop3g7j>Neutrality</h2> <p class="pull" data-astro-cid-4xop3g7j>
+Inclusion and ranking are never for sale.
+</p> <ul data-astro-cid-4xop3g7j> <li data-astro-cid-4xop3g7j> <strong data-astro-cid-4xop3g7j>No paid placement, ever.</strong> Not a promoted tier, not a
+      boosted result, not a "featured" slot that happens to correlate with
+      revenue.
+</li> <li data-astro-cid-4xop3g7j> <strong data-astro-cid-4xop3g7j>No "recommended" sort.</strong> Sorting is by name, manufacturer,
+      or newest listed — orderings you can verify. A relevance ranking nobody
+      can inspect is exactly where a neutrality promise quietly dies.
+</li> <li data-astro-cid-4xop3g7j> <strong data-astro-cid-4xop3g7j>Relationships are labelled.</strong> Where a listed company has
+      any relationship with our alliance, that is stated visibly on the profile
+      and on every card it appears in. Disclosed because it exists — and it
+      does not affect placement.
+</li> <li data-astro-cid-4xop3g7j> <strong data-astro-cid-4xop3g7j>No comparative or clinical claims.</strong> Descriptions say what
+      a thing is and what it does. This catalog will not tell you one device
+      performs better than another; that is not a claim a catalog is entitled
+      to make.
+</li> </ul> <h2 data-astro-cid-4xop3g7j>Prices</h2> <p data-astro-cid-4xop3g7j>
+There are none here, and that is deliberate rather than unfinished. Capital
+    equipment pricing is configuration-dependent and negotiated, so a number on
+    a catalog page would be wrong the moment it was written. Listings show
+<strong data-astro-cid-4xop3g7j>Quote</strong>, and the quote request goes to a human.
+</p> <h2 data-astro-cid-4xop3g7j>How listing works</h2> <p data-astro-cid-4xop3g7j>
+Listing is free. A manufacturer or rep group can correct a record, add
+    documents, or ask to be removed. We would rather hold a smaller catalog
+    that is right than a bigger one that is stale.
+</p> <p data-astro-cid-4xop3g7j>
+Real names replace placeholders only after the naming posture is settled
+    with our attorney. That is an open question — a neutral catalog referring
+    to products by their actual names is ordinary and lawful in principle, but
+    "in principle" is not the standard we ship on.
+</p> <h2 data-astro-cid-4xop3g7j>What we do not do</h2> <ul data-astro-cid-4xop3g7j> <li data-astro-cid-4xop3g7j>No accounts, no cart, no checkout, no payment processing — none of that code exists in this build.</li> <li data-astro-cid-4xop3g7j>No tracking of individuals. Analytics are aggregate and cookieless, as everywhere else on this site.</li> <li data-astro-cid-4xop3g7j>No selling of buyer interest to manufacturers. A quote request goes where you send it.</li> </ul> <p class="fine" data-astro-cid-4xop3g7j>For healthcare professionals and institutional buyers. Product information is provided by or derived from manufacturer-public sources.</p>  </div>  </article>  </main> <footer class="site-footer" data-astro-cid-sz7xmlte> <div class="wrap site-footer__inner" data-astro-cid-sz7xmlte> <div class="site-footer__id" data-astro-cid-sz7xmlte> <p class="mono site-footer__entity" data-astro-cid-sz7xmlte>{{LEGAL_ENTITY_NAME}}</p> <address class="site-footer__address" data-astro-cid-sz7xmlte>{{MAILING_ADDRESS}}</address>  </div> <nav class="site-footer__links" aria-label="Footer" data-astro-cid-sz7xmlte> <a href="/" data-astro-cid-sz7xmlte>Home</a> <a href="/learn" data-astro-cid-sz7xmlte>AI Academy</a><a href="/ai-data-privacy" data-astro-cid-sz7xmlte>AI and your data</a><a href="/local-ai" data-astro-cid-sz7xmlte>Local AI</a><a href="/tools" data-astro-cid-sz7xmlte>Free tools</a><a href="/devices" data-astro-cid-sz7xmlte>Device Atlas</a><a href="/components" data-astro-cid-sz7xmlte>Component Atlas</a> <a href="/newsletter" data-astro-cid-sz7xmlte>Newsletter</a> <a href="/privacy" data-astro-cid-sz7xmlte>Privacy</a> </nav> <p class="site-footer__note" data-astro-cid-sz7xmlte>
+This site describes engineering and regulatory services. Nothing here is a
+      claim about the clinical or technical performance of any medical device.
+      Your documents are never used to train any model —
+<a href="/ai-data-privacy" data-astro-cid-sz7xmlte>how we handle your data</a>.
+<span class="site-footer__copy" data-astro-cid-sz7xmlte>© 2026 {{LEGAL_ENTITY_NAME}}</span> </p> </div> </footer>  <script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.Di3Q8By8.js"></script> </body> </html>  
