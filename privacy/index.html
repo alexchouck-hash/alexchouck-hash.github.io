@@ -86,7 +86,31 @@ Some pages offer a tool walkthrough hosted on YouTube. <strong data-astro-cid-fb
         point YouTube's own privacy policy applies to that playback — it may set
         storage in your browser and will know that a video was watched. If you
         never press play, no request is made and nothing is set.
-</p> <h2 data-astro-cid-fb3qbcs3>Processors</h2> <p data-astro-cid-fb3qbcs3>We share data only with the services required to run this site:</p> <ul data-astro-cid-fb3qbcs3> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Plausible Analytics</strong> — aggregate, cookieless site analytics.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Kit (ConvertKit)</strong> — email list management and delivery.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Calendly</strong> — call scheduling, only if you book.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>YouTube (Google)</strong> — video playback, only if you press play on a walkthrough.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Our hosting provider</strong> — serves the pages and keeps standard server logs.</li> </ul> <p data-astro-cid-fb3qbcs3>
+</p> <h2 data-astro-cid-fb3qbcs3>The component navigator</h2> <p data-astro-cid-fb3qbcs3>
+The navigator on our component pages works in two ways, and they have
+        different privacy consequences, so it is worth separating them.
+</p> <p data-astro-cid-fb3qbcs3> <strong data-astro-cid-fb3qbcs3>Picking a device shape sends nothing anywhere.</strong> The
+        matching runs entirely in your browser against data already on the
+        page. No request is made, and we learn nothing beyond the aggregate
+        page view.
+</p> <p data-astro-cid-fb3qbcs3> <strong data-astro-cid-fb3qbcs3>Typing a free-text description sends that text to us</strong>
+so it can be turned into structured attributes. If you use that box, we
+        store the description you typed, what we parsed it into, and whether we
+        found a match. We do that for one reason worth stating plainly: a query
+        we could not answer is a page we should have written, and the misses
+        are how we decide what to build next.
+</p> <p data-astro-cid-fb3qbcs3>
+We do not store your IP address alongside it. Rate limiting uses a
+        hashed value that is not retained with the query. We do not ask for and
+        do not want personal information in that box — it is for describing a
+        device, and a description of a device is what we keep.
+</p> <p data-astro-cid-fb3qbcs3>
+Query records are retained for {{NAVIGATOR_LOG_RETENTION}} and then
+        deleted. If you would like a query of yours removed sooner, email
+{{PRIVACY_CONTACT_EMAIL}} — though bear in mind that with no
+        identifier stored, you will need to tell us roughly what you typed and
+        when.
+</p> <h2 data-astro-cid-fb3qbcs3>Processors</h2> <p data-astro-cid-fb3qbcs3>We share data only with the services required to run this site:</p> <ul data-astro-cid-fb3qbcs3> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Plausible Analytics</strong> — aggregate, cookieless site analytics.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Kit (ConvertKit)</strong> — email list management and delivery.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Calendly</strong> — call scheduling, only if you book.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>YouTube (Google)</strong> — video playback, only if you press play on a walkthrough.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Anthropic</strong> — reads a free-text device description you type into the navigator, in order to structure it. Only if you use that box.</li> <li data-astro-cid-fb3qbcs3><strong data-astro-cid-fb3qbcs3>Our hosting provider</strong> — serves the pages and keeps standard server logs.</li> </ul> <p data-astro-cid-fb3qbcs3>
 Each of these is bound by its own agreement with us and by its own
         privacy policy. Some are located in, or transfer data to, the United
         States.
