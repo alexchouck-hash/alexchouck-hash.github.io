@@ -1,0 +1,1403 @@
+[
+  {
+    "id": "sba-504-cdc-loan",
+    "name": "504 loans",
+    "channel": "debt",
+    "type": "government_guaranteed_loan",
+    "administrator": "U.S. Small Business Administration (SBA), originated through Certified Development Companies (CDCs) in collaboration with a senior lender",
+    "jurisdiction": "US-federal",
+    "dilution": "debt_service",
+    "stage_fit": [
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 5500000,
+      "currency": "USD"
+    },
+    "rate": "Pegged to an increment above the current market rate for 10-year U.S. Treasury issues; no fixed percentage is stated on the page",
+    "term_months": 300,
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Business must operate for profit",
+        "evidence": "Operate for profit"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Business must be located in the United States",
+        "evidence": "Be located in the U.S."
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Nonprofit, passive and speculative businesses are excluded",
+        "evidence": "Loans cannot be made to businesses engaged in nonprofit, passive, or speculative activities."
+      }
+    ],
+    "summary": "Long-term, fixed-rate financing for major fixed assets — owner-occupied real estate and long-life machinery — delivered exclusively through SBA-certified nonprofit Certified Development Companies alongside a senior lender. It cannot be used for working capital or inventory, which rules it out for a services venture with no fixed-asset purchase.",
+    "verified": true,
+    "source_url": "https://www.sba.gov/funding-programs/loans/504-loans",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "FIGURE DISCREPANCY ON THE SAME PAGE: the hero line reads 'Long-term, fixed rate financing of up to $5 million for major fixed assets.' while the body reads 'The maximum loan amount for a 504 loan is $5.5 million.' I recorded $5.5M because that is the sentence explicitly labelled as the maximum; verify with a CDC before relying on either. TERMS: term_months=300 is the longest of three options — the page says '10-, 20- and 25-year maturity terms are available.' (i.e. 120 / 240 / 300 months). PERMITTED USES (verbatim): 'The purchase, construction or renovation of existing buildings or land'; 'Long-term machinery and equipment with a useful remaining life of a minimum of 10 years, including project-related AI-supported equipment or machinery for manufacturing products'; 'Consolidating debt under the conditions listed in 13 CFR 120.882, paragraph (e)'; 'Repaying or refinancing debt defined as \"qualified debt\" under 13 CFR 120.882, paragraph (g)'. PROHIBITED USES (verbatim): 'Working capital or inventory'; 'Consolidating, repaying or refinancing debt that does not meet the definition of \"qualified debt\" under 13 CFR 120.882, paragraphs (e) and (g)'; 'Speculation or investment in rental real estate'. FEES: under the 'Interest rates' heading the page adds 'Totals approximately 3% of the debt, rate may be financed with the loan' — this reads as fees, not the interest rate, and the page does not disambiguate. SIZE TESTS — NOT ON THIS PAGE: the 504 page says only 'Be small under SBA size requirements' and 'Other general eligibility standards include falling within SBA size guidelines, having qualified management expertise, a feasible business plan, good character and the ability to repay the loan.' The net-worth/net-income alternative size standard is on a different SBA page (https://www.sba.gov/article/2024/02/22/sba-issues-final-rule-adopt-increases-alternative-size-standard-inflation-adjust-limits-surety-bond, which I fetched via its legacy.sba.gov redirect). That page states the rule 'increases the size standard's level for tangible net worth to $20 million and for net income to $6.5 million', reflecting a '34.46 percent adjustment for inflation that has occurred since the establishment of the statutory alternative size standard in 2010', and 'The changes contained in the final rule are effective March 18, 2024'. The commonly cited statutory formulation is that net income is AVERAGED after federal income taxes over the two fiscal years preceding application — I could NOT quote that two-year averaging language from any page I fetched, so treat the averaging basis as unverified. These are 2024 figures and are the current ones I could confirm; I found no later adjustment. COULD NOT CONFIRM: (a) the job-creation/retention requirement — the page says 504 financing 'promote[s] business growth and job creation' but states no dollars-per-job threshold, and eCFR (13 CFR 120.861) redirected to a bot-block page on every attempt, so I am reporting NO dollar-per-job figure rather than a remembered one; (b) the standard 50/40/10 CDC/senior-lender/borrower structure and the borrower equity injection percentage — not stated on this page; (c) any application deadline or decision timeline — none stated, hence deadline 'rolling' with an empty quote and timeline_days null. An additional eligibility bullet I could not map to an allowed profile key: 'Be an operating business'. Not a fit for a pre-revenue medical-device services venture with no building or 10-year-life machinery to buy. | NO DEADLINE STATED on the cited page. \"rolling\" was an inference and has been replaced with a declared gap."
+  },
+  {
+    "id": "sba-7a-loan",
+    "name": "7(a) Loan Program",
+    "channel": "debt",
+    "type": "government_guaranteed_loan",
+    "administrator": "U.S. Small Business Administration (SBA), delivered through participating lenders",
+    "jurisdiction": "US-federal",
+    "dilution": "debt_service",
+    "stage_fit": [
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 5000000,
+      "currency": "USD"
+    },
+    "rate": "Negotiated between borrower and lender but subject to SBA maximums pegged to the prime rate or an optional peg rate. Published variable-rate maximum spreads: base rate +6.5% for loans of $50,000 or less; +6.0% for $50,001 to $250,000; +4.5% for $250,001 to $350,000; +3.0% for loans greater than $350,000.",
+    "term_months": 300,
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Must operate for profit — nonprofits are not eligible",
+        "evidence": "Operate for profit"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Business must be located in the United States",
+        "evidence": "Be located in the U.S."
+      },
+      {
+        "key": "has_revenue",
+        "op": "eq",
+        "value": true,
+        "label": "Must be an operating business (not a pre-operational shell), and must be creditworthy with a demonstrated ability to repay",
+        "evidence": "Be an operating business ... Be creditworthy and demonstrate a reasonable ability to repay the loan"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "Must be small under SBA size standards. Standards are industry-specific (13 CFR Part 121); 500 employees is the common manufacturing threshold, not a universal cap",
+        "evidence": "Most manufacturing companies with 500 employees or fewer, and most non-manufacturing businesses with average annual receipts under $7.5 million, will qualify as a small business."
+      },
+      {
+        "key": "annual_revenue_usd",
+        "op": "lte",
+        "value": 7500000,
+        "label": "Receipts-based size standard for most non-manufacturing businesses. Industry-specific — check the SBA size standards table for your NAICS code, or use the alternative size standard",
+        "evidence": "Most manufacturing companies with 500 employees or fewer, and most non-manufacturing businesses with average annual receipts under $7.5 million, will qualify as a small business."
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Ineligible business types are excluded; the business must be a for-profit operating entity",
+        "evidence": "Not be a type of ineligible business"
+      }
+    ],
+    "summary": "The SBA's primary business loan programme: a bank makes the loan and the SBA guarantees a share of it, so lenders will write credit they would otherwise decline. The maximum loan is $5 million, with SBA exposure capped at $3.75 million, and rates are negotiated with the lender but capped at a base rate plus an SBA-set spread.",
+    "verified": true,
+    "source_url": "https://www.sba.gov/partners/lenders/7a-loan-program/terms-conditions-eligibility",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "CONFIRMED THIS SESSION (pages fetched: sba.gov/partners/lenders/7a-loan-program/terms-conditions-eligibility; sba.gov/funding-programs/loans/7a-loans; sba.gov/federal-contracting/contracting-guide/size-standards; legacy.sba.gov/article/2026/05/18/... ; legacy.sba.gov/article/2024/02/22/...).\n\nWHAT THE SBA GUARANTEES (verbatim, lender terms page): \"SBA's maximum exposure (i.e., dollars guaranteed) is $3.75 million. However, 7(a) International Trade loans may receive a maximum guaranty of 90% or $4.5 million.\" Standard 7(a) guaranty percentage: \"up to 85% of loans of $150,000 or less, and up to 75% of loans above $150,000\". Sub-programme guaranties quoted on the same page: SBA Express \"50%\"; Export Express \"90% for loans of $350,000 or less, 75% for loans more than $350,000\"; Export Working Capital Program (EWCP) \"90%\"; International Trade \"90%\". The guarantee protects the LENDER, not the borrower — the borrower still owes the full debt.\n\nTERM (verbatim, lender terms page): \"A maximum of 25 years, including extensions.\" Also: \"Ten years or less, unless it finances or refinances real estate or equipment with a useful life exceeding ten years. The term for a loan to finance equipment and/or leasehold improvements may include an additional reasonable period, not to exceed 12 months, when necessary to complete the installation of the equipment and/or complete the leasehold improvements.\" term_months is set to the 300-month ceiling; working-capital loans are typically much shorter.\n\nCREDIT-ELSEWHERE TEST (verbatim): \"Not be able to obtain the desired credit on reasonable terms from non-federal, non-state, and non-local government sources\". This is a real gate — a company that can raise conventional bank credit is not eligible.\n\nRECENT CHANGE — CUMULATIVE LIMIT: legacy.sba.gov article dated 2026-05-18 states borrowers may \"combine their 7(a) and 504 loans for up to $10 million in SBA-backed financing, increasing the cumulative loan limit from its current $5 million\", and that a borrower may \"access up to $5 million through the 7(a) loan program and up to $5 million through the 504 loan program\". Effective date quoted: \"Effective July 4, this rule will raise the SBA's maximum financing offering\". The per-programme 7(a) ceiling of $5 million is UNCHANGED — what doubled is the combined 7(a)+504 exposure. The same article mentions \"a new 90% Made in America Loan Guarantee for small manufacturers, as well as a 90% Grocery Guarantee for small businesses across the food supply chain\"; I did not find a terms page for either, so I cannot confirm their mechanics.\n\nALTERNATIVE SIZE STANDARD: a business that fails its NAICS size standard may still qualify under the alternative standard. legacy.sba.gov article (final rule, effective March 18, 2024) states: \"The inflation adjustment increases the size standard's level for tangible net worth to $20 million and for net income to $6.5 million\" and \"The changes contained in the final rule are effective March 18, 2024.\" There is no profile key for tangible net worth or net income, so this route is NOT represented in the eligibility array — screen it manually. Note that SBA Form 1920 still circulates older $15M/$5M figures; I did not fetch that form, so treat $20M/$6.5M (the 2024 final rule) as current and verify with the lender.\n\nCOULD NOT CONFIRM — DO NOT ASSUME:\n- Minimum loan amount: not stated on any page fetched. amount_min is null.\n- Time to decision/funding: not stated. timeline_days is null. SBA Express exists as a faster-turnaround variant but I did not confirm its turnaround figure.\n- Guaranty fees and SBA upfront fee schedule: not stated on the pages fetched.\n- Maximum FIXED interest rates: the lender terms page says only \"SBA publishes the maximum fixed interest rates on SBA's FTA wiki.\" I did not retrieve those figures. The spread table above is the VARIABLE-rate maximum.\n- Base rate options beyond prime/optional peg: a procedural notice \"7(a) Alternative Base Rate Options\" (effective date shown as February 9, 2026) exists on legacy.sba.gov, but the page carried only metadata and a PDF link — I could not read the permitted base rate list (e.g. whether a SOFR-based rate is allowed and at what adjustment). The current numeric value of the prime rate and the SBA optional peg rate was NOT read this session; do not quote a rate without pulling it.\n- Ownership/citizenship: no sentence on the pages fetched requires majority US citizen or permanent-resident ownership. The majority_us_owned key is therefore deliberately absent from the eligibility array. SBA SOP 50 10 does address citizenship of owners; verify with a lender before relying on it either way.\n- Equity injection / down payment / collateral: not stated on the pages fetched. collateral_available is not in the eligibility array for that reason, though lenders will in practice take available collateral.\n\nFIT FOR AN EARLY-STAGE SERVICES VENTURE: weak. This is bank credit with an SBA backstop — it needs an operating business with demonstrable repayment capacity and a personal credit record, and it carries debt service from day one. It is not a substitute for SBIR/STTR or grant capital at the pre-revenue smoke-test stage. | NO DEADLINE STATED. The page carries no closing date and no \"applications accepted continuously\" language, so \"rolling\" would be an inference rather than a reading. Treat application timing as unknown until confirmed with a lender."
+  },
+  {
+    "id": "sba-microloan",
+    "name": "Microloans",
+    "channel": "debt",
+    "type": "government_guaranteed_loan",
+    "administrator": "U.S. Small Business Administration (SBA), disbursed through SBA-approved nonprofit community-based intermediary lenders (microlenders)",
+    "jurisdiction": "US-federal",
+    "dilution": "debt_service",
+    "stage_fit": [
+      "preseed",
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 50000,
+      "currency": "USD"
+    },
+    "rate": "8%-13%",
+    "term_months": 84,
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Business must operate for profit (the page separately names certain not-for-profit childcare centers as served by the programme — see notes)",
+        "evidence": "Operate for profit"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Business must be located in the United States",
+        "evidence": "Be located in the U.S."
+      }
+    ],
+    "summary": "Small loans made through SBA-funded nonprofit intermediaries, usable for working capital, inventory, supplies, furniture, fixtures, machinery and equipment. The intermediary — not SBA — makes the credit decision and sets the terms, and proceeds cannot repay existing debt or buy real estate.",
+    "verified": true,
+    "source_url": "https://www.sba.gov/funding-programs/loans/microloans",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "AMOUNTS: the page frames the cap two ways — 'Use them when you need less than $50,000' and, in the programme description, 'loans up to $50,000 to help small businesses and certain not-for-profit childcare centers'. It also states 'The average microloan is about $13,000.' There is no stated minimum, so amount_min is null. TERM: 'Maximum repayment term allowed for an SBA microloan is seven years' (84 months); the page adds that terms vary with loan amount, intended use, lender requirements and borrower needs. RATE: '8%-13%' is given as a general range, and the page states 'SBA-approved lenders make all credit decisions and set all terms.' — so the actual rate and term come from the intermediary, not SBA. PERMITTED USES (verbatim list): 'Working capital / Inventory / Supplies / Furniture / Fixtures / Machinery / Equipment'. PROHIBITED USES (verbatim): 'Proceeds from an SBA microloan cannot be used to pay existing debts or to purchase real estate.' ELIGIBILITY (verbatim bullets): 'Not be a type of ineligible business'; 'Be an operating business'; 'Operate for profit'; 'Be located in the U.S.'; 'Be small under SBA size requirements'. INTERNAL TENSION ON THE PAGE: the eligibility bullets require 'Operate for profit', yet the programme description says microloans help 'small businesses and certain not-for-profit childcare centers'. Both sentences are on the page; the childcare-center carve-out is the exception to the for-profit bullet. I did NOT add an entity_type not_in nonprofit criterion because of this. Two eligibility bullets could not be mapped to an allowed profile key: 'Be an operating business' and 'Be small under SBA size requirements' — and no dollar or employee figure for the microloan size test is stated on this page, so I am reporting none. APPLICATION: 'To apply for a microloan, work with an SBA-approved intermediary in your area.' No deadline and no decision timeline are stated, hence deadline 'rolling' with an empty quote and timeline_days null. Unlike 504, working capital IS a permitted use, so this is the more plausible of the two routes for a services venture — but $50k against 8-13% intermediary-set terms. | NO DEADLINE STATED on the cited page. \"rolling\" was an inference and has been replaced with a declared gap."
+  },
+  {
+    "id": "sbic-debt-financing",
+    "name": "SBIC Financing — Debt (SBA Small Business Investment Company Program)",
+    "channel": "debt",
+    "type": "venture_debt",
+    "administrator": "U.S. Small Business Administration (SBA) licenses and regulates the funds; the loan is made by a privately owned SBIC fund, not by SBA",
+    "jurisdiction": "US-federal",
+    "dilution": "debt_service",
+    "stage_fit": [
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 10000000,
+      "currency": "USD",
+      "min": 250000
+    },
+    "rate": "9% to 16%",
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "At least 51% of employees and assets in the U.S.",
+        "evidence": "At least 51% of your employees and assets must be within the U.S."
+      },
+      {
+        "key": "sectors",
+        "op": "not_in",
+        "value": [
+          "farmland",
+          "real_estate",
+          "financing"
+        ],
+        "label": "Must operate in an approved industry — farmland, real estate and financing are among those excluded",
+        "evidence": "Farmland, real estate, and financing are some of the industries that don't qualify."
+      },
+      {
+        "key": "has_revenue",
+        "op": "eq",
+        "value": true,
+        "label": "Typically requires revenue and cashflow sufficient to pay interest (SBA's words are \"typically target\", not a hard rule)",
+        "evidence": "SBICs typically target mature, profitable businesses with sufficient cashflow to pay interest."
+      }
+    ],
+    "summary": "The debt form of SBIC financing: an SBA-licensed private fund lends to your business at an interest rate and takes no ownership. SBA states SBICs typically target mature, profitable businesses with enough cashflow to service interest, so this route suits a company already generating revenue.",
+    "verified": true,
+    "source_url": "https://www.sba.gov/funding-programs/investment-capital",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "CONFIRMED BY FETCH of sba.gov/funding-programs/investment-capital: the $250,000–$10 million range and the 9%–16% interest band appear in a single sentence under the debt heading, quoted in full in amount_source_quote. The 51% U.S. employees/assets bullet, the \"Qualify as a small business according to SBA size standards\" bullet, and the excluded-industries sentence are on the same page.\n\nSIZE TEST (no profile key exists for net worth/net income): \"Tangible net worth of less than $24 million and average net income after Federal income taxes for the preceding two completed years of less than $8 million\" — sba.gov/for-partners/small-business-investment-companies/, cross-checked against 13 CFR 121.301(c) at govinfo.gov (CFR-2025, revised January 1, 2025): \"tangible net worth not in excess of $24 million, and average net income after Federal income taxes (excluding any carry-over losses) for the preceding two completed fiscal years not in excess of $8 million\". Alternative: the NAICS size standard for the primary industry. The widely repeated $19.5M/$6.5M pair is the pre-December-2022 figure and is stale.\n\nNOT CONFIRMED: (1) SBA calls these figures \"typical\" — they are not caps or floors, and no statutory loan maximum for SBIC financing to a single business was stated on any page I fetched. (2) No loan term or maturity is stated anywhere on the page, so term_months is null. (3) No deadline and no decision timeline are stated; \"rolling\" reflects that you approach the fund directly with no SBA window, and timeline_days is null. (4) The has_revenue criterion is built from SBA's descriptive sentence about what SBICs \"typically target\" — it is a strong practical filter, not a published eligibility rule, and should be labelled that way to the founder. (5) 13 CFR 107.720 lists further ineligible business types that I did not fetch. | NO DEADLINE STATED on the cited SBA page. Timing is set by each individual SBIC."
+  },
+  {
+    "id": "sbic-equity-investment",
+    "name": "SBIC Financing — Equity (SBA Small Business Investment Company Program)",
+    "channel": "equity",
+    "type": "venture_capital",
+    "administrator": "U.S. Small Business Administration (SBA) licenses and regulates the funds; the money is invested by a privately owned SBIC fund, not disbursed by SBA to the business",
+    "jurisdiction": "US-federal",
+    "dilution": "equity",
+    "stage_fit": [
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 5000000,
+      "currency": "USD",
+      "min": 100000
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "At least 51% of employees and assets in the U.S.",
+        "evidence": "At least 51% of your employees and assets must be within the U.S."
+      },
+      {
+        "key": "sectors",
+        "op": "not_in",
+        "value": [
+          "farmland",
+          "real_estate",
+          "financing"
+        ],
+        "label": "Must operate in an approved industry — farmland, real estate and financing are among those excluded",
+        "evidence": "Farmland, real estate, and financing are some of the industries that don't qualify."
+      }
+    ],
+    "summary": "An SBIC is a privately owned, SBA-licensed and regulated fund that raises private capital, matches it with an SBA-guaranteed loan to the fund, and then invests that pool in qualifying U.S. small businesses. In the equity form, the SBIC buys a share of ownership in your company; you approach the SBIC directly rather than applying to SBA.",
+    "verified": true,
+    "source_url": "https://www.sba.gov/funding-programs/investment-capital",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "CONFIRMED BY FETCH: sba.gov/funding-programs/investment-capital gave the definition (\"An SBIC is a privately owned company that's licensed and regulated by the SBA.\"), the $100,000–$5 million equity range, the ownership mechanism (\"SBICs will invest in your business in exchange for a share of ownership in your company.\"), the 51% U.S. employees/assets bullet, the size-standard bullet (\"Qualify as a small business according to SBA size standards.\"), and the excluded industries. How to reach one: \"Find an SBIC using our online directory, and make sure they're actively investing in businesses in your region, size, and industry.\" and \"For the best chance to get financing, use your network. Talk to accountants, attorneys, and executives to get an introduction to an SBIC.\"\n\nSIZE TEST — no profile key exists for net worth or net income, so it is recorded here rather than in eligibility. Confirmed on sba.gov/for-partners/small-business-investment-companies/: \"Tangible net worth of less than $24 million and average net income after Federal income taxes for the preceding two completed years of less than $8 million.\" Cross-checked against 13 CFR 121.301(c) at govinfo.gov (CFR-2025 edition, revised as of January 1, 2025): \"tangible net worth not in excess of $24 million, and average net income after Federal income taxes (excluding any carry-over losses) for the preceding two completed fiscal years not in excess of $8 million\". The alternative is the NAICS industry size standard for the industry the business is primarily engaged in. Older SBA material still circulating quotes $19.5M/$6.5M — that is the pre-December-2022 figure and is stale; SBA's 2022 inflation rule raised it (\"$19.5 million to $24 million\" and \"$6.5 million to $8 million\", effective December 19, 2022, per legacy.sba.gov article 2022/11/21). Report $24M/$8M.\n\nSMALLER ENTERPRISES: at least 25% of an SBIC's financings must go to \"smaller enterprises\" — \"Net worth less than $6 million and average net income after Federal income taxes for the preceding two years of less than $2 million\" (sba.gov for-partners page), matching 13 CFR 107.710 (govinfo, CFR-2025): \"at least 25 percent (in dollars) of your Financings must have been invested in Smaller Enterprises\" for SBICs licensed after February 17, 2009. This is a fund-side quota, not a bar on the business — but a very small company is the kind an SBIC actively needs.\n\nNOT CONFIRMED: (1) The $100,000–$5 million figure is described by SBA as \"typical\", NOT a statutory cap — an SBIC may write outside it. Do not present it as a ceiling. (2) No deadline is stated anywhere on the page; \"rolling\" is my characterisation of the fact that you approach an SBIC fund directly and there is no SBA application window, not a quoted term. (3) No decision timeline is stated, so timeline_days is null. The page does say \"A typical SBIC investment is made over a 3-year period,\" which describes the deployment period, not how long a decision takes. (4) for_profit and entity_type are almost certainly constrained (a \"small business concern\" under the Small Business Act must be operated for profit) but I found no sentence on a page I fetched stating it, so I left those criteria out rather than invent a quote. (5) 13 CFR 107.720 lists further ineligible businesses (passive, relender, foreign-operations, project-financing) — I did not fetch that section, so treat the sba.gov three-industry list as indicative, not exhaustive. | NO DEADLINE STATED. The SBA page gives three steps only: research an SBIC via the directory, prepare a business plan, contact an SBIC. Timing is set by each individual SBIC, not by SBA."
+  },
+  {
+    "id": "sbic-debt-with-equity",
+    "name": "SBIC Financing — Debt with Equity (SBA Small Business Investment Company Program)",
+    "channel": "hybrid",
+    "type": "debt_with_equity",
+    "administrator": "U.S. Small Business Administration (SBA) licenses and regulates the funds; the financing is provided by a privately owned SBIC fund, not by SBA",
+    "jurisdiction": "US-federal",
+    "dilution": "equity",
+    "stage_fit": [
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 10000000,
+      "currency": "USD",
+      "min": 250000
+    },
+    "rate": "10% to 14%",
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "At least 51% of employees and assets in the U.S.",
+        "evidence": "At least 51% of your employees and assets must be within the U.S."
+      },
+      {
+        "key": "sectors",
+        "op": "not_in",
+        "value": [
+          "farmland",
+          "real_estate",
+          "financing"
+        ],
+        "label": "Must operate in an approved industry — farmland, real estate and financing are among those excluded",
+        "evidence": "Farmland, real estate, and financing are some of the industries that don't qualify."
+      },
+      {
+        "key": "has_revenue",
+        "op": "eq",
+        "value": true,
+        "label": "Typically requires revenue and cashflow sufficient to pay interest (SBA's words are \"typically target\", not a hard rule)",
+        "evidence": "SBICs typically target mature, profitable businesses with sufficient cashflow to pay interest."
+      }
+    ],
+    "summary": "The blended form of SBIC financing: the fund lends at interest and also takes a share of ownership, so the business carries both debt service and dilution. SBA gives a lower interest band for this form than for pure debt, which is the trade for the equity the fund receives.",
+    "verified": true,
+    "source_url": "https://www.sba.gov/funding-programs/investment-capital",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "CONFIRMED BY FETCH of sba.gov/funding-programs/investment-capital: under the debt-with-equity heading the page states \"Investments range from $250,000 to $10 million.\" and \"Loan interest rates are typically between 10% and 14%.\" The financing combines both loans and shares of ownership, which is why dilution is recorded as equity even though interest is also payable — the founder pays twice, in cash and in ownership.\n\nSIZE TEST (no profile key exists for net worth/net income): \"Tangible net worth of less than $24 million and average net income after Federal income taxes for the preceding two completed years of less than $8 million\" — sba.gov/for-partners/small-business-investment-companies/, cross-checked against 13 CFR 121.301(c) at govinfo.gov (CFR-2025, revised January 1, 2025). The alternative test is the NAICS industry size standard. Ignore any source still quoting $19.5M/$6.5M — that was superseded effective December 19, 2022.\n\nNOT CONFIRMED: (1) All figures are labelled \"typical\" by SBA, not caps. (2) No loan term or maturity is stated, so term_months is null. The page does say \"A typical SBIC investment is made over a 3-year period\" — that is the period over which the money is deployed, NOT the loan term and NOT a decision timeline; do not convert it into either. (3) No deadline is published; \"rolling\" reflects that you approach an SBIC fund directly through SBA's online SBIC directory rather than applying to SBA in a window. (4) The has_revenue criterion comes from SBA's descriptive statement about what SBICs typically target, not a published rule. (5) The equity percentage an SBIC takes is not stated on any page I fetched — it is negotiated deal by deal, so no dilution figure can be given. (6) 13 CFR 107.720 lists further ineligible business types that I did not fetch. | NO DEADLINE STATED on the cited SBA page. Timing is set by each individual SBIC."
+  },
+  {
+    "id": "arpa-h-mission-office-iso",
+    "name": "ARPA-H Mission Office Innovative Solution Openings (ISO)",
+    "channel": "non_dilutive",
+    "type": "research_contract",
+    "administrator": "Advanced Research Projects Agency for Health (ARPA-H), U.S. Department of Health and Human Services",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "idea",
+      "seed",
+      "series_a"
+    ],
+    "deadline": "rolling",
+    "eligibility": [
+      {
+        "key": "entity_type",
+        "op": "in",
+        "value": [
+          "c_corp",
+          "llc",
+          "s_corp",
+          "sole_trader",
+          "nonprofit",
+          "partnership"
+        ],
+        "label": "Open to essentially any entity type, including individuals",
+        "evidence": "responsible sources capable of satisfying the government's needs: This includes academia, non-profit organizations, for-profit entities, hospitals, community health centers, non-federal research centers, researchers, and individuals capable of performing research and/or development."
+      },
+      {
+        "key": "for_profit",
+        "op": "in",
+        "value": [
+          true,
+          false
+        ],
+        "label": "For-profit status not required",
+        "evidence": "responsible sources capable of satisfying the government's needs: This includes academia, non-profit organizations, for-profit entities, hospitals, community health centers, non-federal research centers, researchers, and individuals capable of performing research and/or development."
+      }
+    ],
+    "summary": "ARPA-H's standing, always-open route for research ideas that fall outside its named Programs and Initiatives. You submit a short Solution Summary to whichever of the four Mission Office ISOs best fits your idea, get written encourage/discourage feedback, and only then invest in a full proposal. Awards are Other Transactions with aggressive milestones rather than grants.",
+    "verified": true,
+    "source_url": "https://arpa-h.gov/explore-funding/submission-resources-and-FAQs/mission-office-iso-know-before-applying",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "NO DOLLAR FIGURES ARE PUBLISHED FOR THIS ROUTE at the programme level. I fetched both the Mission Office ISO guidance page and https://arpa-h.gov/explore-funding/open-funding-opportunities and neither states an award ceiling, floor, or period of performance — those are set per-solicitation in the ISO PDFs on SAM.gov. amount_min, amount_max and term_months are therefore null; do not fill them in from memory. Four Mission Office ISOs are currently listed as open on a rolling basis, with solicitation numbers ARPA-H-SOL-24-103 (Resilient Systems Office), -24-104 (Health Science Futures Office), -24-105 (Scalable Solutions Office) and -24-106 (Proactive Health Office). Mechanism, quoted verbatim: \"not a grant-making agency. Instead, we primarily use Other Transactions for research and development (R&D) efforts. These are often performance-based agreements where funding is contingent on meeting the aggressive milestones and performance criteria agreed upon during award negotiations between ARPA-H and potential performers.\" How to apply, from https://arpa-h.gov/explore-funding/submission-resources-and-FAQs/navigating-application-process: find the opportunity on arpa-h.gov, read the full solicitation PDF on SAM.gov, create an account on the ARPA-H Solutions portal, submit a Solution Summary, then a full proposal (which \"cannot be edited\" after submission), then negotiate the agreement. A UEI and SAM.gov registration may be required depending on the solicitation. Review speed is explicitly not committed to: \"the timeline for a response may vary depending on the number of submissions received, other Program and Initiative deadlines, the number of review staff personnel, and other variables\" — so timeline_days is null. What ARPA-H funds, from https://arpa-h.gov/about/our-research: three focus areas — Health Science Futures, Proactive Health, Scalable Solutions — with proposals required to be breakthrough-enabling, high-risk/high-impact and highly complex. Note that ARPA-H funds R&D performance, not services rendered to third parties; a services venture would need its own technical thrust to fit."
+  },
+  {
+    "id": "arpa-h-sbir-sttr",
+    "name": "ARPA-H Small Business Innovation Research (SBIR) and Small Business Technology Transfer (STTR) — 2026 Topics",
+    "channel": "non_dilutive",
+    "type": "research_contract",
+    "administrator": "Advanced Research Projects Agency for Health (ARPA-H), U.S. Department of Health and Human Services",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed"
+    ],
+    "amount": {
+      "max": 3500000,
+      "currency": "USD"
+    },
+    "deadline": "2026-09-11",
+    "eligibility": [
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees",
+        "evidence": "Be a small business with no more than 500 employees."
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "Majority owned by U.S. citizens or another U.S.-based small business",
+        "evidence": "Have majority ownership by U.S. Citizens or another U.S. based small business."
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "All work performed in the United States",
+        "evidence": "Perform all work in the U.S."
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "SBIR only: principal investigator more than 50% employed by the small business",
+        "evidence": "For SBIR awards: The Primary Investigator (PI) must be >50% employed by the small business."
+      },
+      {
+        "key": "affiliated_research_org",
+        "op": "eq",
+        "value": true,
+        "label": "STTR only: must have a Research Institution partner",
+        "evidence": "The small business must have a Research Institution (RI) partner"
+      }
+    ],
+    "summary": "ARPA-H's small-business route, run as topic-specific contract awards rather than open grants. The 2026 round covers seven named topics and runs Solution Summary first, then an invited pitch, then a technical deck plus cost proposal. Awards are contracts, and payment depends on hitting milestones.",
+    "verified": true,
+    "source_url": "https://arpa-h.gov/explore-funding/sbir",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "AMOUNT CAVEAT: $600K and $3.5M are separate PHASE CEILINGS, not a range. amount_min is null because no floor is stated. amount_max is set to the Phase 2 ceiling of $3,500,000; Phase 1 is capped at $600,000. Both figures are read verbatim from the quote in amount_source_quote. Note these are ARPA-H's own stated contract ceilings for this solicitation — SBA adjusts statutory SBIR/STTR guidelines periodically, and the page does not say which SBA guideline year it reflects.\n\nTIMING WARNING — this round is largely closed to new entrants. The gate was \"Solution Summary Due: July 17, 2026 (11:59AM ET)\", which has already passed as of 1 September 2026, and the page states \"Applicants who are successful in the Solution Summary phase will be encouraged to pitch.\" The 11 September 2026 date in the deadline field is the technical-submission date for companies already through that gate, not an entry point. A company starting now should watch for the next topic release rather than plan on this one.\n\nWork-share rules quoted from the page: \"For Phase I, >66% of the work must be performed by the small business. For Phase II, >50% of the work must be performed by the small business.\" For STTR: \"For Phase I and Phase II, >40% of the work must be performed by the small business and >30% of the work must be performed by the RI.\"\n\nCOULD NOT CONFIRM: period of performance for either phase, number of awards expected, or total programme budget — none stated on the page, so term_months and timeline_days are null. The solicitation notice ID given on the page is 7599226SN106 and the full solicitation lives on SAM.gov; per-phase durations would be there. The seven 2026 topics cover fertility testing, bioadhesives, toxin removal, endometriosis therapy, an ARPA-H lineage topic, autoimmune diagnostics, and neurosurgical robotics simulation — a device or diagnostics company must fit one of these named topics, as this is not an open call."
+  },
+  {
+    "id": "barda-accelerator-network-poc",
+    "name": "BARDA Accelerator Network — Proof-of-Concept Funding",
+    "channel": "non_dilutive",
+    "type": "research_contract",
+    "administrator": "Division of Research, Innovation and Ventures (DRIVe), BARDA, ASPR, U.S. Department of Health and Human Services, delivered through five hub partners",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed"
+    ],
+    "amount": {
+      "max": 200000,
+      "currency": "USD",
+      "min": 50000
+    },
+    "term_months": 6,
+    "deadline": "rolling",
+    "summary": "The smallest and most accessible BARDA door: short milestone-based proof-of-concept awards run through five topic hubs, including one specifically for diagnostics and medical devices. Applications are accepted year-round with priority deadlines rather than a single closing date.",
+    "verified": true,
+    "source_url": "https://drive.hhs.gov/partner.html",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "ELIGIBILITY IS EMPTY BECAUSE NONE IS STATED ON THE .GOV PAGE. The DRIVe partner page lists the hubs and the money but sets no entity, ownership, size or revenue criteria; each hub publishes its own rules on its own non-government site. Do not screen against this record's eligibility — treat it as unknown and read the hub's page.\n\nFIGURES CONFIRMED: the $50K-$200K / 6-month structure is stated separately for four of the five hubs in near-identical wording, so the range and duration are solid. term_months is 6 for MedTech Innovator Vantage (diagnostics and medical devices), BioTools Innovator VANGUARD (enabling technologies), SPARK for Innovations in Pediatrics, and VITAL (therapeutics/vaccines). The exception is the Paratus digital-health hub, quoted verbatim: \"Funding ranging from $50K-$200K for 4-week to 12-week, milestone-based projects that support the development, evaluation, and validation of digital health tools\" — so if that hub is the target, term_months is 1 to 3, not 6.\n\nFor a medical-device or diagnostics company this is the closest fit of any route in this set: MedTech Innovator Vantage is the diagnostics and medical devices hub, listed as OPEN with no deadline. The page's asterisk explains what that means: \"For opportunities without a deadline, proposals are accepted on an ongoing basis and reviewed based on BARDA priorities and availability of funds.\" That is discretionary, not guaranteed — an ongoing intake is not a commitment to fund.\n\nAPPLICATION ROUTE IS OFF-GOV. Each hub's \"Learn More\" link leaves drive.hhs.gov for a third-party site (medtechinnovator.org, biotoolsinnovator.org, matter.health, mcm4kids.org, vitalhubhealth.com) and the page itself warns \"This link goes to a non-USG site.\" I did not fetch those sites, so application mechanics, eligibility and current cohort dates are unconfirmed. timeline_days is null for the same reason.\n\nOTHER OPEN BARDA ROUTES SEEN ON THIS PAGE, for context, all with figures read verbatim: the Single Shield Prize, \"an $80+ million, multi-stage competition to advance single-administration vaccine platforms for pandemic influenza A(H5N1)\", administered by Luminary Labs under Other Transaction Authority, listed as OPEN and \"Closes 1/15/27\"; the VITAL MucInn mucosal influenza vaccine topic, OPEN, \"Closes 11/9/26\"; and ImmuneChip+ under the full BAA, OPEN, \"Closes 9/28/28\". These are per-solicitation and vaccine/biologics-focused rather than device-focused."
+  },
+  {
+    "id": "barda-drive-ez-baa",
+    "name": "BARDA DRIVe Easy Broad Agency Announcement (EZ-BAA), EZ-BAA-22-100-SOL-00003",
+    "channel": "non_dilutive",
+    "type": "research_contract",
+    "administrator": "Division of Research, Innovation and Ventures (DRIVe), Biomedical Advanced Research and Development Authority (BARDA), ASPR, U.S. Department of Health and Human Services",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "seed"
+    ],
+    "amount": {
+      "max": 750000,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "us_based",
+        "op": "in",
+        "value": [
+          true,
+          false
+        ],
+        "label": "Non-US applicants may apply unless the specific Area of Interest says otherwise",
+        "evidence": "Can companies/universities outside of the United States apply for DRIVe funding? Yes. Applicants from outside of the United States may apply, unless stated otherwise in the respecting Area of Interest."
+      },
+      {
+        "key": "entity_type",
+        "op": "in",
+        "value": [
+          "c_corp",
+          "llc",
+          "s_corp",
+          "partnership",
+          "nonprofit"
+        ],
+        "label": "Any eligible entity may submit via the BDR portal",
+        "evidence": "eligible entity can submit a proposal via the BDR portal (see section D page 4 of the EZ-BAA)."
+      }
+    ],
+    "summary": "BARDA's deliberately lightweight entry door: a short abstract rather than a full proposal, aimed at early-stage health-security technologies. Successful projects can escalate to a Plus Phase for advanced development. Applications are made against specific Areas of Interest, and there are none open at the moment.",
+    "verified": true,
+    "source_url": "https://drive.hhs.gov/ezbaa.html",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "ACT ON THIS ONE WITH CARE: the EZ-BAA page currently carries the banner \"EZ-BAA has no open Areas of Interest—explore active opportunities at PARTNERING WITH DRIVe\". The vehicle exists and the ceiling is real, but there is nothing to submit against today, which is why deadline is deadline rather than a date or \"rolling\". Check https://drive.hhs.gov/partner.html for what is actually open.\n\nBOTH FIGURES READ ON THE PAGE. The $750K ceiling is stated twice — the overview quote in amount_source_quote, and again in the abstract instructions: \"For Total Proposed Cost: Abstracts exceeding $750,000 will be considered non-conforming and will not be reviewed.\" The $20M Plus Phase figure appears only in the same overview sentence; I have set amount_max to 750000 because that is the ceiling of the EZ-BAA itself, and the $20M applies to the follow-on + Phase.\n\nAward instrument, from https://drive.hhs.gov/faq.html: \"The vast majority of the awards typically result in a Firm fixed-price contract (FFP). An FFP contract provides for a price that remains stable and is not subject to adjustment based on the contractor's cost experience in performing the contract.\"\n\nHow to apply, from the EZ-BAA page: (1) find an open Area of Interest and email the listed address with a brief technology description, after which a call is scheduled to discuss alignment; (2) review the solicitation on SAM.gov and prepare an abstract — \"The abstract must be no more than 12,5000 characters (approximately 2,000 words) for the Technical Section, and must also include costs requested from BARDA and the amount of resource contribution\" (the character figure is typo'd on the page as shown; other BARDA material reads 12,500); (3) create an account on the BARDA Digital Resources (BDR) portal — \"the account request process may take up to one week for approval and access.\" Projects should be limited to no more than 3-4 main tasks/deliverables. Cost-share is described as a \"resource contribution\" that may be cash and/or in-kind. Note the FAQ's restrictive condition on claiming resource contributions: a respondent must show \"no probability that the respondent will receive present or future benefits from participation as described in Federal Acquisition Regulation (FAR) 16.303\".\n\nCOULD NOT CONFIRM: period of performance, time from abstract to award, or number of awards — none stated, so term_months and timeline_days are null. Escalation path, quoted from the BARDA site: the full \"Broad Agency Announcement (BAA)\" \"sets forth the advanced research and development Areas of Interest (AOIs) and solicits proposals\" and runs a three-stage process — \"STAGE 1: Pre-submission call with technical point of contact\", then a quad chart and market research abstract, then a full proposal. No award figures are published for the full BAA either. The previous EZ-BAA number BAA-20-100-SOL-0002 is superseded by EZ-BAA-22-100-SOL-00003. | STATUS AT VERIFICATION: the page carried a banner reading \"EZ-BAA has no open Areas of Interest\". There is no open call to apply to as recorded; check DRIVe for active opportunities before relying on this record."
+  },
+  {
+    "id": "irs-qsb-payroll-tax-credit-research-activities",
+    "name": "Qualified Small Business Payroll Tax Credit for Increasing Research Activities",
+    "channel": "non_dilutive",
+    "type": "tax_credit",
+    "administrator": "Internal Revenue Service (IRS), U.S. Department of the Treasury",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed",
+      "series_a"
+    ],
+    "amount": {
+      "max": 500000,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "annual_revenue_usd",
+        "op": "lt",
+        "value": 5000000,
+        "label": "Gross receipts of less than $5 million for the tax year",
+        "evidence": "A qualified small business is a corporation (including an S corporation) or partnership with: (1) Gross receipts of less than $5 million for the tax year, and (2) No gross receipts for any tax year before the 5-tax-year period ending with the tax year."
+      },
+      {
+        "key": "years_operating",
+        "op": "lte",
+        "value": 5,
+        "label": "No gross receipts in any tax year before the 5-tax-year period ending with the credit year - in practice, first gross receipts no more than 5 tax years ago",
+        "evidence": "A qualified small business is a corporation (including an S corporation) or partnership with: (1) Gross receipts of less than $5 million for the tax year, and (2) No gross receipts for any tax year before the 5-tax-year period ending with the tax year."
+      },
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Not a tax-exempt organization under section 501",
+        "evidence": "A qualified small business does not include a tax-exempt organization under section 501."
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Tax-exempt section 501 organizations are excluded; corporations (including S corporations), partnerships and other persons carrying on trades or businesses may qualify",
+        "evidence": "A qualified small business does not include a tax-exempt organization under section 501."
+      },
+      {
+        "key": "has_paid_payroll_tax",
+        "op": "eq",
+        "value": true,
+        "label": "Must have employer social security / Medicare tax liability for the credit to offset",
+        "evidence": "Starting in the first quarter of 2023, the payroll tax credit is first used to reduce the employer's share of social security tax up to $250,000 per quarter and any remaining credit reduces the employer's share of Medicare tax for the quarter."
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Must file a US federal income tax return and a US employment tax return",
+        "evidence": "The QSB must claim the payroll tax credit on its employment tax return for the first quarter that begins after it files the income tax return reflecting the payroll tax election on Form 6765."
+      }
+    ],
+    "summary": "A pre-revenue or early-revenue company with qualified research expenses can elect on Form 6765 to take part of its federal research credit as an offset against employer payroll taxes instead of income tax, then claim it quarterly on Form 8974 with its employment tax return. This turns an otherwise unusable income-tax credit into cash for a company with payroll but no taxable income.",
+    "verified": true,
+    "source_url": "https://www.irs.gov/instructions/i6765",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "CONFIRMED THIS SESSION by fetching three IRS pages: (a) https://www.irs.gov/instructions/i6765 (Instructions for Form 6765, Revised 12/2025) - source of the $500,000 maximum, the qualified small business definition, the section 501 exclusion, and the election deadline; (b) https://www.irs.gov/businesses/small-businesses-self-employed/qualified-small-business-payroll-tax-credit-for-increasing-research-activities - source of the per-quarter split and the amended-return bar; (c) https://www.irs.gov/instructions/i8974 (Instructions for Form 8974, Revised 12/2024) - source of the quarter in which the credit is first claimable. KEY MECHANICS READ ON THOSE PAGES, VERBATIM: 'IRA Provision 13902 increased the maximum amount of payroll tax research credit that a QSB can elect to apply against payroll tax liability from $250,000 to $500,000 for tax years beginning after December 31, 2022.' / 'Starting in the first quarter of 2023, the payroll tax credit is first used to reduce the employer's share of social security tax up to $250,000 per quarter and any remaining credit reduces the employer's share of Medicare tax for the quarter.' / 'The payroll tax credit is elected by completing the appropriate portion of Form 6765 and attaching the completed form to the QSB's timely filed (including extensions) income tax return for the taxable year to which the election applies. An election cannot be made with an amended return.' / 'You can first claim the qualified small business payroll tax credit for increasing research activities on the Form 941 for the quarter that begins after you file your income tax return that makes the election on Form 6765.' (Form 8974 instructions). The $500,000 ceiling applies to tax years beginning after 2022; for tax years beginning before January 1, 2023 the Form 8974 instructions state the limit was $250,000. NOT CONFIRMED - treat as open: (1) rate is null. The percentage used to COMPUTE the research credit itself (regular credit vs alternative simplified credit, and the reduced-rate election under section 280C) was not captured as a clean quotable sentence - the Form 6765 instructions express it as line-by-line arithmetic. Read Form 6765 Sections A and B directly before modelling a credit amount. (2) timeline_days is null - no page stated a number of days to cash. The real lag is structural: the election is made on the annual income tax return, and the credit is first claimable on the employment tax return for the first quarter beginning after that return is filed, so cash relief typically starts one or more quarters after filing. (3) deadline is 'rolling' because there is no fixed calendar date - it is each taxpayer's own income tax return due date including extensions, and it cannot be made on an amended return, so a missed original filing forfeits the year. (4) The years_operating <= 5 criterion is a PROXY. The statutory test is about gross receipts history, not years in business: a company can have existed longer than 5 years and still qualify if it had no gross receipts before the 5-tax-year window. Screen on gross receipts history, not incorporation date. (5) The gross receipts definition and the controlled-group aggregation rules were only partially captured - the instructions point to section 448(c)(3) (without regard to subparagraph (A)) and, for a person other than a corporation or partnership, to aggregate gross receipts from all trades or businesses. Confirm aggregation with a tax adviser if the company has affiliates. (6) I did not verify whether any 2025 legislation changed the ceiling; the Form 6765 instructions I read carry a 12/2025 revision date and state $500,000. | DEADLINE CORRECTED DURING VERIFICATION. The researcher recorded \"rolling\"; the page states a hard, return-linked deadline that contradicts it — the election must be made on or before the due date of the originally filed income tax return, including extensions. This is not a rolling programme."
+  },
+  {
+    "id": "nih-sbir-phase-i-r43",
+    "name": "NIH, CDC and FDA Small Business Innovation Research Grant (Parent SBIR [R43/R44] Clinical Trial Optional) — Phase I",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "National Institutes of Health (NIH), with CDC and FDA participating; administered through the NIH SEED office (seed.nih.gov)",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed"
+    ],
+    "amount": {
+      "max": 700000,
+      "currency": "USD"
+    },
+    "term_months": 6,
+    "deadline": "2026-09-05",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "Is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business in the United States",
+        "evidence": "Is organized for profit, with a place of business located in the United States ... operates primarily within the United States or which makes a significant contribution to the United States economy"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "Has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by US citizens or permanent residents",
+        "evidence": "Be a concern which is more than 50% directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed (>50%) by the small business",
+        "evidence": "The primary employment of the PD/PI must be with the small business concern at the time of award and during the conduct of the proposed project."
+      }
+    ],
+    "summary": "Non-dilutive federal grant to a US small business to establish the technical merit and feasibility of a health-related R&D project. This is the standard entry door for a medical device company into NIH funding; no prior award is required, and the money is a grant, not an investment.",
+    "verified": true,
+    "source_url": "https://files.simpler.grants.gov/opportunities/d1ba49e5-3684-4420-849a-ab2330ec493e/attachments/743ad4bd-fc28-450e-9249-1008f37490af/PA-27-100-Revised-Full-Announcement.html",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "ANSWER TO THE HARD-CAP QUESTION: yes, NIH goes above the general guideline, but only at some Institutes. The SBA statutory guideline as of April 2026 is $323,090 for Phase I. NIH holds an SBA waiver — seed.nih.gov: \"the NIH has a waiver from the Small Business Administration (SBA) to allow larger awards (Phase I and Phase II only)\" — and the PA-27-100 Award Budget table assigns each awarding component its own level. The only distinct Phase I values in that table are \"SBA Guideline\", $400,000.00 and $700,000.00. IMPORTANT FOR A MEDICAL DEVICE COMPANY: the NIBIB row (National Institute of Biomedical Imaging and Bioengineering, the most device-relevant Institute) reads \"National Institute of Biomedical Imaging and Bioengineering | SBA Guideline | SBA Guideline\" — i.e. NIBIB does NOT use the higher cap, so plan against $323,090 unless your topic routes to an Institute that does. The $700,000 Phase I level is listed for NCI, NIA, NIAAA, NIAID, NIGMS, NIMH, NINDS and NCCIH. TERM: term_months is set to the statutory guideline — PA-27-100: \"According to statutory guidelines, award periods normally may not exceed 6 months for Phase I and 2 years for Phase II.\" seed.nih.gov describes actual NIH practice as longer: \"A Phase I budget is $323,090 for a project timeline between 6 months to 2 years.\" NOT CONFIRMED: time from submission to award (timeline_days is null — no page I fetched stated it); success/award rates; whether the venture-capital ownership alternative applies to your structure. VC/PE EXCEPTION: seed.nih.gov eligibility page states an SBIR-only alternative — \"Be a concern that is more than 50% owned by multiple venture capital operating companies, hedge funds, private equity firms, or any combination of these\" — so majority_us_owned is not strictly fatal for SBIR (it is for STTR). SUBCONTRACTING: PA-27-100 Phase I — \"Two-thirds or 67% of the research or analytical effort is carried out by the small business concern.\" This NOFO expires April 06, 2027; the program was reauthorized for five years on April 14, 2026. | AMOUNT IS A PER-INSTITUTE CEILING, NOT A PROGRAMME-WIDE MAXIMUM. The cited page states only \"Total funding support ... normally may not exceed the current SBA budgetary guidelines\" and then lists ceilings per NIH component. $700,000 is the highest Phase I ceiling on the page (National Cancer Institute). Check the ceiling for the institute you are applying to. No lower bound is stated on the page."
+  },
+  {
+    "id": "nih-sbir-phase-ii-r44",
+    "name": "NIH, CDC and FDA Small Business Innovation Research Grant (Parent SBIR [R43/R44] Clinical Trial Optional) — Phase II",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "National Institutes of Health (NIH), with CDC and FDA participating; administered through the NIH SEED office (seed.nih.gov)",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed",
+      "series_a"
+    ],
+    "amount": {
+      "max": 3000000,
+      "currency": "USD"
+    },
+    "term_months": 24,
+    "deadline": "2026-09-05",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "Is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business in the United States",
+        "evidence": "Is organized for profit, with a place of business located in the United States ... operates primarily within the United States or which makes a significant contribution to the United States economy"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "Has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by US citizens or permanent residents",
+        "evidence": "Be a concern which is more than 50% directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed (>50%) by the small business",
+        "evidence": "The primary employment of the PD/PI must be with the small business concern at the time of award and during the conduct of the proposed project."
+      },
+      {
+        "key": "has_prototype",
+        "op": "eq",
+        "value": true,
+        "label": "Feasibility already established (normally via a prior Phase I award)",
+        "evidence": "The SBIR Program supports projects through multiple phases: Phase I establishes the technical merit and feasibility of the proposed R&D."
+      }
+    ],
+    "summary": "Non-dilutive federal grant continuing the R&D effort begun under Phase I, at roughly seven times the Phase I scale. Same parent announcement and same three annual due dates as Phase I, but a substantially larger award and a longer project period.",
+    "verified": true,
+    "source_url": "https://files.simpler.grants.gov/opportunities/d1ba49e5-3684-4420-849a-ab2330ec493e/attachments/743ad4bd-fc28-450e-9249-1008f37490af/PA-27-100-Revised-Full-Announcement.html",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "HARD CAP: the SBA guideline is $2,153,927 for Phase II as of April 2026. NIH exceeds it at some Institutes under its SBA waiver — the PA-27-100 Award Budget table's only distinct Phase II values are \"SBA Guideline\", $2,500,000.00 and $3,000,000.00. The $3,000,000.00 level is listed for NHLBI, NIA, NIAID, NIDCD, NIDA, NIGMS, NIMH and NINDS. NIBIB — the Institute most device companies route to — is listed as \"SBA Guideline\" for both phases, so budget against $2,153,927 there. seed.nih.gov: \"individual NIH Institutes and Centers can set their own budget limits\" and \"the NIH has a waiver from the Small Business Administration (SBA) to allow larger awards (Phase I and Phase II only)\"; it also directs applicants to the NIH ICO Funding Considerations page to check approved waiver topics before requesting more. TERM: term_months reflects PA-27-100's statutory sentence — \"award periods normally may not exceed 6 months for Phase I and 2 years for Phase II\" — while seed.nih.gov describes practice as \"$2,153,927 for a project timeline between 1 to 3 years.\" The ICO page shows Institute-level practice varies (e.g. NIBIB: \"Generally, the NIBIB will support Phase I (R41/R43) project periods ≤1 year and Phase II (R42/R44) project periods ≤2 years\"; NHLBI: \"Phase I up to two years; Phase II/IIB up to three years\"). NOT CONFIRMED: the exact Phase I prerequisite language and the Direct-to-Phase-II / Fast-Track options — I did not read a page stating those this session, so has_prototype above is inferred from the Phase I/Phase II structure sentence rather than from an explicit 'prior Phase I required' sentence; verify before relying on it. timeline_days is null: no page I fetched stated time-to-award. SUBCONTRACTING: PA-27-100 Phase II — \"One-half or 50% of the research or analytical effort is carried out by the small business concern.\" | AMOUNT IS A PER-INSTITUTE CEILING. $3,000,000 is the highest Phase II ceiling listed on the page (NHLBI; also NIA, NIGMS, NIMH). No lower bound is stated. Check your target institute."
+  },
+  {
+    "id": "nih-sbir-sttr-crp-sb1",
+    "name": "SBIR/STTR Commercialization Readiness Pilot (CRP) Program (Parent SB1 Clinical Trial Optional)",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "National Institutes of Health (NIH); administered through the NIH SEED office (seed.nih.gov)",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "series_a",
+      "series_b_plus"
+    ],
+    "amount": {
+      "max": 2000000,
+      "currency": "USD"
+    },
+    "term_months": 36,
+    "deadline": "2026-09-05",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "Is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "United States small business concern",
+        "evidence": "Only United States small business concerns (SBCs) that have had an active NIH SBIR or STTR Phase II or Phase IIB contract, grant or cooperative agreement from NIH within the last 36 months are eligible to submit applications for this opportunity."
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "Has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by US citizens or permanent residents",
+        "evidence": "Be a concern which is more than 50% directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "years_operating",
+        "op": "gte",
+        "value": 1,
+        "label": "Must already hold an NIH Phase II or Phase IIB award active within the last 36 months",
+        "evidence": "Only United States small business concerns (SBCs) that have had an active NIH SBIR or STTR Phase II or Phase IIB contract, grant or cooperative agreement from NIH within the last 36 months are eligible to submit applications for this opportunity."
+      }
+    ],
+    "summary": "The largest non-dilutive award in the NIH small-business family, funding the late-stage work between a finished Phase II and the market — clinical validation, regulatory work, manufacturing scale-up. It is closed to newcomers: only companies with a recent NIH Phase II or Phase IIB award may apply.",
+    "verified": true,
+    "source_url": "https://files.simpler.grants.gov/opportunities/ed6db6b2-d74e-4838-9223-ce72f4895688/attachments/6ef87dfe-4d97-48b0-ac8c-634a139051b6/PAR-27-098-Revised-Full-Announcement.html",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "THE GATING CONDITION IS NOT A COMPANY-PROFILE FIELD, SO READ IT HERE: CRP is open only to companies that held an active NIH SBIR or STTR Phase II or Phase IIB award within the last 36 months. The years_operating criterion above is a stand-in — there is no profile key for 'holds a prior Phase II award' — and it will NOT screen this correctly on its own. Do not treat a pass on the listed criteria as eligibility. PROJECT PERIOD: PAR-27-098 — \"The maximum project period allowed is 3 years.\" This NOFO runs longer than the SBIR/STTR parents: expiration April 06, 2029 versus April 06, 2027, with due dates continuing quarterly. RELEVANCE FOR A DEVICE COMPANY: the NIH ICO page states NIBIB \"Accepts Commercialization Readiness Pilot projects\" but does not accept Phase IIB SBIR projects. NOT CONFIRMED: the NIBIB-specific CRP dollar level in the PAR-27-098 table — I read only two of its rows ($500,000 NEI, $2,000,000 NIAID) plus 'SBA Guideline' entries; amount_min above is the lowest Institute value I actually saw, not a floor stated by NIH. timeline_days is null — no page I fetched stated time-to-award. | AMOUNT CORRECTED DOWNWARD DURING VERIFICATION. The researcher claimed a $4,191,495 ceiling; that string appears nowhere on PAR-27-098. The largest ceiling on the page is $2,000,000 (NIAID, NIAMS); the page also lists $500,000 (National Eye Institute) and a non-numeric \"SBA Guideline\" entry, and says budget guidelines vary by participating component and may be lower than the SBA limits."
+  },
+  {
+    "id": "nih-sttr-r41-r42",
+    "name": "NIH Small Business Technology Transfer Grant (Parent STTR [R41/R42] Clinical Trial Optional)",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "National Institutes of Health (NIH); administered through the NIH SEED office (seed.nih.gov)",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed"
+    ],
+    "amount": {
+      "max": 3000000,
+      "currency": "USD"
+    },
+    "term_months": 12,
+    "deadline": "2026-09-05",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "Is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business in the United States",
+        "evidence": "Is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "not more than 500 employees"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by US citizens or permanent residents — no VC/PE alternative for STTR",
+        "evidence": "Small business concerns that are more than 50% owned by multiple venture capital operating companies, hedge funds, private equity firms, or any combination of these are NOT eligible to apply to the NIH STTR program"
+      },
+      {
+        "key": "affiliated_research_org",
+        "op": "eq",
+        "value": true,
+        "label": "Formal partnership with a single nonprofit research institution, with at least 30% of the effort performed there",
+        "evidence": "At least 40% of the research or analytical effort must be performed by the small business concern and at least 30% by the single, 'partnering' research institution."
+      }
+    ],
+    "summary": "The same non-dilutive grant money as SBIR, but the award requires a formal partnership with a nonprofit research institution and a fixed division of the work between the two. Worth taking instead of SBIR when the underlying technology sits in, or leans on, a university lab.",
+    "verified": true,
+    "source_url": "https://files.simpler.grants.gov/opportunities/ee37f2de-b959-4b45-86a9-43d06c944f24/attachments/5295c0e4-bffd-4a53-911e-4cfdd9567e71/PA-27-102-Revised-Full-Announcement.html",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "KEY DIFFERENCE FROM SBIR, AND THE ONE THAT MOST OFTEN DECIDES THE CHOICE: the PI does not have to be your employee. PA-27-102: the Program Director/Principal Investigator may work for either the small business or the research institution partner, though \"the award is always made to the small business.\" That is why pi_employed_by_company is absent from the criteria above — it is deliberately not required here. Conversely, STTR closes the venture-capital door that SBIR leaves open: seed.nih.gov's eligibility page states VC/hedge-fund/PE-majority-owned concerns are NOT eligible for STTR. TERM: PA-27-102 states \"Award periods normally may not exceed 1 year for Phase I and 2 years for Phase II\" — note this differs from the SBIR parent, which says 6 months for Phase I. term_months above is the Phase I statutory figure (12); Phase II is 24. WORK SPLIT: 40% small business / 30% research institution, versus SBIR's 67% (Phase I) and 50% (Phase II) minimum by the small business. NOT CONFIRMED: I did not separately read the R41 vs R42 per-phase dollar rows of the PA-27-102 budget table; amount_min/amount_max above take the SBA guideline floor and the highest NIH waiver level seen in the equivalent SBIR table, and the seed.nih.gov sentence that the guidelines are the same for both programs. Verify the specific Institute's row before setting a budget. timeline_days is null — no page I fetched stated time-to-award. | AMOUNT IS A PER-INSTITUTE CEILING. $3,000,000 is the largest budget figure on the page. No lower bound is stated. Check your target institute."
+  },
+  {
+    "id": "nsf-sbir-phase-i",
+    "name": "NSF SBIR Phase I (America's Seed Fund)",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. National Science Foundation (NSF), Directorate for Technology, Innovation and Partnerships — America's Seed Fund powered by NSF",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed"
+    ],
+    "amount": {
+      "max": 305000,
+      "currency": "USD"
+    },
+    "term_months": 18,
+    "deadline": "2026-11-04",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit entity",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States",
+        "evidence": "operates primarily within the United States or which makes a significant contribution to the United States economy through payment of taxes or use of American products, materials or labor"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by U.S. citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed by the small business (at least 51%)",
+        "evidence": "The primary employment of the Principal Investigator (PI) must be with the small business at the time of award and for the duration of the award."
+      }
+    ],
+    "summary": "Non-dilutive federal R&D grant for deep-technology startups, gated by a mandatory Project Pitch that must earn an official NSF invitation before a full Phase I proposal can be submitted. Funds high-technical-risk research toward commercialization; NSF takes no equity and no IP.",
+    "verified": true,
+    "source_url": "https://www.nsf.gov/funding/opportunities/small-business-innovation-research-small-business-technology/nsf26-510/solicitation",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "HOW THE SUBMISSION MODEL WORKS — this is the part founders get wrong. Phase I is NOT open application. Two gates: (1) Project Pitch, then (2) an invited full proposal at one of three fixed annual deadlines. Solicitation: \"For Phase I: Proposers must obtain an official invitation to submit a proposal. To receive the invitation, potential proposers must submit a Project Pitch.\" PROJECT PITCH: a short screening document, not an award. seedfund.nsf.gov/apply/project-pitch/ states \"Typically, it takes about 1-2 months to get an official response from NSF staff.\" Limits, quoted from that page: \"Each company or individual may only submit one Project Pitch within each submission window and may only have one Project Pitch under review at a time\" and \"Each company or individual may only submit two Project Pitches per year (12-month period), and three total Project Pitches for the same project regardless of topic or timeline.\" The solicitation adds: \"Invitations are valid for the next two submission deadlines after the date of the initial official invitation.\" I could NOT confirm published calendar dates for the Project Pitch windows themselves — the pages I fetched (seedfund.nsf.gov/project-pitch/, /apply/project-pitch/, /how-to-submit/project-pitch-guide/, /solicitation-proposal/) reference \"each submission window\" but never list window open/close dates. I did not find a page stating Project Pitches are accepted year-round, so do not assume rolling; check the portal before planning around it. FULL PROPOSAL DEADLINES are fixed, three per year (first Wed in July, first Wed in November, first Thu in March), due \"by 5:00 PM submitter's time on the specified due date\" (seedfund.nsf.gov/apply/full-proposal/). Next one after today: November 4, 2026. Working backwards from the 1-2 month pitch response, a pitch aimed at the Nov 4 2026 deadline needed to be in by roughly September. AMOUNT SCOPE: the $305,000 is \"inclusive of all direct and indirect costs as well as the small business fee, Technical and Business Assistance (TABA) funding, and the optional, but highly encouraged Innovation Corps (I-Corps)\" — so the usable R&D budget is materially less than the headline. NOT CONFIRMED: time from proposal submission to award decision is not stated on any page I fetched, so timeline_days is null. Award success rate not stated. Program-level context from the same solicitation: \"Each company can receive up to $2 million for R&D\" across the program and \"Anticipated Funding Amount: $210,000,000\". A parallel solicitation, NSF 26-511, runs the same Phase I/II/Fast-Track structure and the same dollar figures with a topic emphasis on \"next-generation instrumentation, novel experimental platforms, and other scientific equipment\" — worth checking if the technology is instrumentation-shaped. MEDTECH CAVEAT: NSF funds the technical risk, not clinical trials; confirm topic fit with a Program Director before pitching. Eligibility quotes marked to sbir.gov come from https://www.sbir.gov/faq/eligibility-requirements, which I fetched; NSF 26-510 itself defers to SBA, stating only \"Proposals may only be submitted by firms qualifying as a small business concern\" and that \"the size limit of 500 employees includes affiliates.\""
+  },
+  {
+    "id": "nsf-sbir-sttr-fast-track",
+    "name": "NSF SBIR/STTR Fast-Track Pilot",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. National Science Foundation (NSF), Directorate for Technology, Innovation and Partnerships — America's Seed Fund powered by NSF",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "seed"
+    ],
+    "amount": {
+      "max": 1555000,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit entity",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States",
+        "evidence": "operates primarily within the United States or which makes a significant contribution to the United States economy through payment of taxes or use of American products, materials or labor"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by U.S. citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed by the small business",
+        "evidence": "The primary employment of the Principal Investigator (PI) must be with the small business at the time of award and for the duration of the award."
+      }
+    ],
+    "summary": "A pilot that lets a narrow set of qualifying companies apply for Phase I and Phase II in a single proposal, removing the gap between the two awards. Larger Phase I component than the standard route, but the entry conditions are restrictive.",
+    "verified": true,
+    "source_url": "https://seedfund.nsf.gov/how-to-submit/fast-track/",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "A FIGURE DISCREPANCY YOU MUST RESOLVE BEFORE BUDGETING. Two NSF pages I fetched give different totals. seedfund.nsf.gov/how-to-submit/fast-track/ says \"pathway for up to $1,555,000 in non-dilutive funding\". NSF 26-510 says \"NSF SBIR/STTR Fast-Track proposals may be submitted for up to $1,555,555 in R&D funding, to include $400,000 for the Phase I component, with a duration of 6 to 12 months, and up to $1,155,000 for the Phase II component over an additional 18 to 24 months.\" I read $1,555,555 in two separate fetches of the solicitation, so it is not a one-off transcription slip on my side. $400,000 + $1,155,000 = $1,555,000, which matches the seedfund page and not the solicitation. I recorded amount_max as $1,555,000 because it is arithmetically consistent with the two component figures, which BOTH pages agree on. Treat the component figures as reliable and the total as unresolved; ask a Program Director. THE REAL CONSTRAINT IS ENTRY, NOT MONEY. Fast-Track is not open to everyone with a good idea — the seedfund page lists qualifying conditions including: \"Have submitted a SBIR/STTR Fast-Track Project Pitch and received an official invitation from a cognizant NSF SBIR/STTR Program Director, within the 4 months preceding the proposal submission date\"; \"Have received research funding from current NSF-funded research or research that has been funded by NSF within five years prior to the proposal submission date\"; and \"Have received formal customer discovery training (such as I-Corps) within the previous two years, as measured from the date of the Fast-Track proposal submission.\" I did not confirm whether these are ALL required together or are alternative qualifying paths — the page presents them as a list and the distinction changes eligibility completely. Read the solicitation's Fast-Track section before assuming eligibility. Note the invitation window here is tighter than standard Phase I: 4 months preceding submission, versus \"Invitations are valid for the next two submission deadlines\" for regular Phase I. WHY IT MATTERS: the Phase I component is $400,000 against the standard $305,000, and it removes the re-application gap between phases. NOT CONFIRMED: whether the pilot is still running for the deadlines listed (it is described as a pilot, and pilots lapse) — verify it is live before building a plan on it. Time to decision not stated; timeline_days is null. Term of 36 months is my arithmetic on the stated maxima (12 + 24), not a figure printed on the page. | DURATION AND DEADLINE NOT ON THE CITED PAGE. The Fast-Track page states no total duration and no dates. The November 4, 2026 deadline belongs to solicitation NSF 26-510, not to this page."
+  },
+  {
+    "id": "nsf-sbir-sttr-phase-ii",
+    "name": "NSF SBIR/STTR Phase II (America's Seed Fund)",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. National Science Foundation (NSF), Directorate for Technology, Innovation and Partnerships — America's Seed Fund powered by NSF",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "seed",
+      "series_a"
+    ],
+    "amount": {
+      "max": 1250000,
+      "currency": "USD"
+    },
+    "term_months": 24,
+    "deadline": "2026-11-04",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit entity",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States",
+        "evidence": "operates primarily within the United States or which makes a significant contribution to the United States economy through payment of taxes or use of American products, materials or labor"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by U.S. citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed by the small business",
+        "evidence": "The primary employment of the Principal Investigator (PI) must be with the small business at the time of award and for the duration of the award."
+      }
+    ],
+    "summary": "The scale-up grant, open only to companies that already hold an NSF Phase I award. Roughly four times the Phase I ceiling over about two years, with supplements available on top for matched commercial partnerships.",
+    "verified": true,
+    "source_url": "https://www.nsf.gov/funding/opportunities/small-business-innovation-research-small-business-technology/nsf26-510/solicitation",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "THE GATING CONDITION IS NOT IN THE PROFILE SCHEMA: Phase II is available only to existing NSF Phase I awardees. None of the allowed profile keys expresses \"holds an NSF SBIR/STTR Phase I award\", so it is stated here instead and must be screened manually — a company with no Phase I cannot apply, full stop. Evidence of the awardee-only structure, from seedfund.nsf.gov/apply/full-proposal/: \"Phase I awardees whose Phase I award start date was on or after November 6, 2023, and who have not already submitted their Phase II proposal will be permitted to submit their Phase II proposal not later than November 4, 2026.\" That sentence is a transition provision for a specific cohort, not the general eligibility rule — read the solicitation's Phase II section for the rule that applies to a given award date. DURATION: NSF 26-510 states \"NSF SBIR/STTR Phase II projects typically run for 24 months\" — note \"typically\", so 24 is an expectation, not a stated ceiling. MONEY ON TOP OF THE $1.25M, both quoted from NSF 26-510: \"Phase IIB supplement proposals may be submitted by active Phase II awardees for between $50,000 to $500,000\" (these generally require matching third-party funds — I did not confirm the matching ratio on a page I fetched, so verify it) and \"Technology Enhancement for Commercial Partnerships (TECP) supplement proposals may be submitted by active Phase II awardees for an amount not to exceeded 20% of the Phase II award\" (quoted verbatim, typo included). Program cap across everything: \"Each company can receive up to $2 million for R&D.\" $305K + $1.25M + supplements is how a company reaches that ceiling. NOT CONFIRMED: whether Phase II uses the same three annual deadlines as Phase I. The deadline list I quoted is the solicitation's single Full Proposal Deadline list covering the whole document; I did not find a separate Phase II date table, and there is no Project Pitch step for Phase II. Confirm the applicable Phase II window with a Program Director. Time to decision is not stated; timeline_days is null."
+  },
+  {
+    "id": "nsf-sttr-phase-i",
+    "name": "NSF STTR Phase I (America's Seed Fund)",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. National Science Foundation (NSF), Directorate for Technology, Innovation and Partnerships — America's Seed Fund powered by NSF",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "preseed",
+      "seed"
+    ],
+    "amount": {
+      "max": 305000,
+      "currency": "USD"
+    },
+    "term_months": 18,
+    "deadline": "2026-11-04",
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organized for profit",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit entity",
+        "evidence": "is organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States",
+        "evidence": "operates primarily within the United States or which makes a significant contribution to the United States economy through payment of taxes or use of American products, materials or labor"
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% owned and controlled by U.S. citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "No more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "affiliated_research_org",
+        "op": "eq",
+        "value": true,
+        "label": "Formal subaward to a non-profit research institution partner is required",
+        "evidence": "an STTR awardee must subcontract a portion of the award to a research institution"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "PI employed by the small business at least 51% of time; co-PI sits at the partner institution",
+        "evidence": "the PI must be an employee of the proposing small business for at least 51% of his/her time"
+      }
+    ],
+    "summary": "The same Phase I grant and the same ceiling as SBIR, but structured around a formal partnership with a non-profit research institution that performs a required share of the work. Same mandatory Project Pitch gate and same three annual deadlines.",
+    "verified": true,
+    "source_url": "https://www.nsf.gov/funding/opportunities/small-business-innovation-research-small-business-technology/nsf26-510/solicitation",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "WHY THIS IS A SEPARATE ROUTE: the money and deadlines are identical to SBIR Phase I — same $305,000, same 6-18 months, same Project Pitch gate, same three annual deadlines — but the work-split rules are different and they bind hard. From sbir.gov/faq/eligibility-requirements: \"an STTR awardee must subcontract a portion of the award to a research institution\" and \"SBCs must perform at least 40% and research institutions must perform at least 30% of the work.\" NSF 26-510 states \"the proposing small business concern must also include a partner research institution in the project\" and that for STTR \"the PI must be an employee of the proposing small business for at least 51% of his/her time\" while \"the co-PI must be part of the STTR partner research institution.\" PRACTICAL READ: choose STTR over SBIR when the core IP or key personnel sit inside a university or non-profit lab and you want that relationship formalised and funded; choose SBIR when the work is being done in-house, because SBIR does not force 30% of the budget out the door. The 40/30 split leaves up to 30% unallocated by rule. NOT CONFIRMED: I did not find the 40%/30% figures stated on an NSF page — they come from the sbir.gov (SBA) eligibility FAQ, which is the governing authority, but verify against the current SBIR/STTR Policy Directive before budgeting. Time from submission to decision is not stated anywhere I fetched, so timeline_days is null. All Project Pitch mechanics, window caveats and the TABA/I-Corps-inclusive nature of the $305,000 described in the SBIR Phase I record apply identically here."
+  },
+  {
+    "id": "sbir-phase-i",
+    "name": "Small Business Innovation Research (SBIR) — Phase I",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. Small Business Administration (SBA) issues the government-wide SBIR/STTR Policy Directive; each participating federal agency (NIH, NSF, DoD, NASA, DOE and others) runs its own SBIR programme and makes the awards.",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "idea",
+      "preseed"
+    ],
+    "amount": {
+      "max": 323090,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organised for profit",
+        "evidence": "organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit — 501(c)(3) entities are ineligible",
+        "evidence": "The small business must be for profit, and therefore non-profit entities, that is those with a 501(c)(3) designation by the IRS are not eligible."
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States, and the work performed in the US",
+        "evidence": "the SBIR and STTR work must be performed in the U.S."
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% directly owned and controlled by US citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "Not more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed by the applicant small business (SBIR only)",
+        "evidence": "For SBIR projects, the PI must be 'primarily employed' by the applicant small business during the SBIR award period"
+      }
+    ],
+    "summary": "The feasibility/concept stage of the federal SBIR programme: equity-free R&D funding to a US small business to test the technical merit or feasibility of an idea before any development work. As of April 2026 an agency may issue a Phase I award of up to $323,090 without seeking SBA approval, though the statutory baseline guideline is $150,000 and agencies routinely award less.",
+    "verified": true,
+    "source_url": "https://www.sbir.gov/about",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "FIGURE PROVENANCE: the $323,090 ceiling was read on https://www.sbir.gov/about, fetched this session. CONFLICTING FIGURES STILL PUBLISHED ON THE SAME SITE — read this before budgeting. https://www.sbir.gov/faq says 'SBIR Phase I awards normally do not exceed $150,000 and have a six-month period of performance.' https://www.sbir.gov/about/policies gives the un-adjusted statutory baseline: 'Generally, a Phase I award (including modifications) may not exceed $150,000 and a Phase II award (including modifications) may not exceed $1,000,000' plus 'Agencies may issue an award that exceeds these award guideline amounts by no more than 50%.' https://www.sbir.gov/tutorials/program-basics/tutorial-4 states the pre-inflation cap: 'An Agency may provide awards capped at 150% of the base - the cap then is $225,000 for each Phase I award and $1.5 million for each Phase II award.' The $323,090 reconciles these: it is the April 2026 inflation-adjusted guideline (~$215,393) plus 50%. SBA adjusts annually — 'SBA reviews these amounts every year for the effects of inflation and posts these inflation effects and any resulting adjustments on www.SBIR.gov' — so re-check /about before relying on it. DO NOT EXPECT THE CEILING: 'Agencies have the discretion to issue awards for less than the guidelines' (about/policies) and 'Agencies have discretion regarding the size of their awards and may offer smaller awards so that the Agency can increase the number of Phase I awards that it makes' (tutorial-4). COULD NOT CONFIRM: (1) any minimum award — none stated on any page I fetched, hence amount_min null; (2) any deadline — there is no government-wide date, each agency opens its own solicitations and https://www.sbir.gov/apply gives no dates, hence deadline; (3) timeline_days — https://www.sbir.gov/apply says only 'Review process times vary; check with the specific agency.'; (4) the award instrument (grant vs contract vs cooperative agreement), which varies by agency — 'type' is set to grant as the channel-matching default, not because a page I read said so. DURATION: term_months set to 6 from the SBIR-specific FAQ sentence, but treat 6–12 as the real range — https://www.sbir.gov/apply lists 'Time Frame: 6-12 months' and https://www.sbir.gov/tutorials/program-basics/tutorial-1 says 'Phase I is the concept phase. It lasts six to twelve months and supports exploration of the technical merit or feasibility of an idea or technology.' SUBCONTRACTING LIMIT (tutorial-3): 'there is a 33% limit on Phase I SBIR subcontracting.' Agency-level amounts differ sharply from the government-wide ceiling — check the specific agency's solicitation. | DURATION NOT ON THE CITED PAGE: sbir.gov/about states no durations. The 6-month figure is on https://www.sbir.gov/faq (\"SBIR Phase I awards normally do not exceed $150,000 and have a six-month period of performance\"), and sbir.gov/apply lists 6-12 months. term_months is therefore null here rather than sourced to the wrong page."
+  },
+  {
+    "id": "sbir-phase-ii",
+    "name": "Small Business Innovation Research (SBIR) — Phase II",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. Small Business Administration (SBA) issues the government-wide SBIR/STTR Policy Directive; each participating federal agency runs its own SBIR programme and makes the awards.",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "seed"
+    ],
+    "amount": {
+      "max": 2153927,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organised for profit",
+        "evidence": "organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit — 501(c)(3) entities are ineligible",
+        "evidence": "The small business must be for profit, and therefore non-profit entities, that is those with a 501(c)(3) designation by the IRS are not eligible."
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States, and the work performed in the US",
+        "evidence": "the SBIR and STTR work must be performed in the U.S."
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% directly owned and controlled by US citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "Not more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "pi_employed_by_company",
+        "op": "eq",
+        "value": true,
+        "label": "Principal Investigator primarily employed by the applicant small business (SBIR only)",
+        "evidence": "For SBIR projects, the PI must be 'primarily employed' by the applicant small business during the SBIR award period"
+      },
+      {
+        "key": "has_prototype",
+        "op": "eq",
+        "value": true,
+        "label": "Proxy for the real gate: Phase II expands on completed Phase I results, so a Phase I award (or an agency-accepted equivalent) normally comes first",
+        "evidence": "Phase II awards may last for up to two years and expand upon the Phase I results. During this time, the R&D work is performed."
+      }
+    ],
+    "summary": "The R&D/development stage of the federal SBIR programme, awarded on the strength of Phase I results. As of April 2026 an agency may issue a Phase II award of up to $2,153,927 without seeking SBA approval, against a statutory baseline guideline of $1,000,000, normally over about two years.",
+    "verified": true,
+    "source_url": "https://www.sbir.gov/about",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "PHASE I FIRST: Phase II is not a standalone entry point — 'Phase II awards may last for up to two years and expand upon the Phase I results' (https://www.sbir.gov/tutorials/program-basics/tutorial-1). I mapped that to has_prototype because the allowed profile keys have no 'holds a Phase I award' field; the real requirement is prior Phase I work, not a prototype, so treat that criterion as a proxy and read the source_quote. FIGURE PROVENANCE: $2,153,927 read on https://www.sbir.gov/about this session. CONFLICTING FIGURES ON THE SAME SITE: https://www.sbir.gov/faq says 'SBIR Phase II awards normally do not exceed $1,000,000 and have a two-year period of performance.'; https://www.sbir.gov/about/policies gives the statutory baseline 'a Phase II award (including modifications) may not exceed $1,000,000' with 'Agencies may issue an award that exceeds these award guideline amounts by no more than 50%.'; https://www.sbir.gov/tutorials/program-basics/tutorial-4 gives the pre-inflation cap 'the cap then is $225,000 for each Phase I award and $1.5 million for each Phase II award.' The $2,153,927 is the April 2026 inflation-adjusted guideline (~$1,435,951) plus 50%, and SBA re-adjusts annually — re-check /about. SEQUENTIAL PHASE II: tutorial-4 states 'a Phase II awardee to receive one additional sequential Phase II award, to continue the work of an initial Phase II award' and 'This additional sequential Phase II award has the same guideline amounts and limits as the initial Phase II award – that is, a guideline amount of $1 million and a limit of $1.5 million.' Those are the un-adjusted figures as printed on that page; I did not find the inflation-adjusted sequential figures stated separately. tutorial-4 also warns 'not every Agency offers these awards and that guidelines will vary within Agencies' and notes 'SBA has approved a topics list, which allows budgets to exceed the hard caps as long as the project topics are on the list' — I did not locate or verify that topics list. COULD NOT CONFIRM: minimum award (none stated, amount_min null); any deadline (agency-by-agency, no dates on https://www.sbir.gov/apply); timeline_days ('Review process times vary; check with the specific agency.'); award instrument type. SUBCONTRACTING (tutorial-3): 'The SBIR limit increases to 50% in Phase II'. https://www.sbir.gov/apply lists Phase II 'Time Frame: 24 months'. | DURATION NOT ON THE CITED PAGE: the 24-month figure is on https://www.sbir.gov/faq, not on sbir.gov/about. Nulled here rather than mis-sourced."
+  },
+  {
+    "id": "sttr-phase-i",
+    "name": "Small Business Technology Transfer (STTR) — Phase I",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. Small Business Administration (SBA) issues the government-wide SBIR/STTR Policy Directive; five participating federal agencies run their own STTR programmes and make the awards.",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "idea",
+      "preseed"
+    ],
+    "amount": {
+      "max": 323090,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organised for profit",
+        "evidence": "organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit — the small business is always the applicant, never the research institution",
+        "evidence": "an STTR project requires the small business – which is always the applicant – to be teamed with a non-profit research institution"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States, and the work performed in the US",
+        "evidence": "the SBIR and STTR work must be performed in the U.S."
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% directly owned and controlled by US citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "Not more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "affiliated_research_org",
+        "op": "eq",
+        "value": true,
+        "label": "Formally partnered with a US non-profit research institution, which must perform at least 30% of the work while the company performs at least 40%",
+        "evidence": "SBCs must perform at least 40% and research institutions must perform at least 30% of the work"
+      }
+    ],
+    "summary": "The feasibility stage of the federal STTR programme — the same equity-free funding as SBIR Phase I, but the small business must be formally teamed with a US non-profit research institution, splitting the work at least 40% to the company and at least 30% to the institution. Phase I awards normally do not exceed $150,000 total costs for one year, against an April 2026 ceiling of $323,090.",
+    "verified": true,
+    "source_url": "https://www.sbir.gov/about",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "THE STTR DIFFERENCE vs SBIR — two things change. (1) A research-institution partner is mandatory: 'an STTR project requires the small business – which is always the applicant – to be teamed with a non-profit research institution' (https://www.sbir.gov/tutorials/program-basics/tutorial-3), and 'The research institution must be owned and operated exclusively for scientific or educational purposes, non-profit, and located in the United States' (https://www.sbir.gov/faq/eligibility-requirements). Work split: 'For and STTR award, the small business must perform at least 40% of the work and the single partnering research institution must perform at least 30% of the work' (https://www.sbir.gov/faq — the 'For and' typo is verbatim from the page). (2) PI EMPLOYMENT IS RELAXED — this is why pi_employed_by_company is deliberately absent from the criteria above: 'With an STTR, the PI could be primarily employed at either the RI or the small business' (tutorial-3), and https://www.sbir.gov/tutorials/program-basics/tutorial-2 says 'At the other four agencies the PI can be primarily employed by either the small business applicant or the non-profit organization with which the small firm is collaborating on the STTR project.' That sentence implies one agency does not follow the relaxed rule; I could NOT determine which agency, or what its rule is, from the pages I fetched — verify against your target agency's solicitation before relying on an RI-employed PI. ALSO REQUIRED: 'STTR requires the Small Business Concern (SBC) and its partnering institution to establish an intellectual property agreement detailing the allocation of intellectual property rights and rights to carry out follow-on research, development or commercialization activities' (/faq) — negotiate this early, it is a common schedule risk. AMOUNT CAVEAT: the $323,090 sentence appears on the page titled 'About SBIR and STTR' and says 'agencies' without naming STTR separately, so I am reading it as programme-wide across SBIR and STTR; I did not find an STTR-only ceiling stated anywhere. The STTR-specific guideline on /faq is 'STTR Phase I awards normally do not exceed $150,000 total costs for 1 year.' — that $150,000 is the un-adjusted statutory baseline, not the current cap. COULD NOT CONFIRM: minimum award (none stated, amount_min null); deadline (no government-wide date; agency solicitations only); timeline_days ('Review process times vary; check with the specific agency.' — https://www.sbir.gov/apply); award instrument type. SUBCONTRACTING is looser than SBIR: 'up to 60% of the research effort for an STTR project can be subcontracted' (tutorial-3). term_months of 12 comes from the STTR-specific FAQ sentence; /apply lists Phase I generally as 'Time Frame: 6-12 months'. | DURATION NOT ON THE CITED PAGE: the 12-month figure is on https://www.sbir.gov/faq, not on sbir.gov/about. Nulled here rather than mis-sourced."
+  },
+  {
+    "id": "sttr-phase-ii",
+    "name": "Small Business Technology Transfer (STTR) — Phase II",
+    "channel": "non_dilutive",
+    "type": "federal_grant",
+    "administrator": "U.S. Small Business Administration (SBA) issues the government-wide SBIR/STTR Policy Directive; five participating federal agencies run their own STTR programmes and make the awards.",
+    "jurisdiction": "US-federal",
+    "dilution": "none",
+    "stage_fit": [
+      "seed"
+    ],
+    "amount": {
+      "max": 2153927,
+      "currency": "USD"
+    },
+    "deadline": null,
+    "eligibility": [
+      {
+        "key": "for_profit",
+        "op": "eq",
+        "value": true,
+        "label": "Organised for profit",
+        "evidence": "organized for profit, with a place of business located in the United States"
+      },
+      {
+        "key": "entity_type",
+        "op": "not_in",
+        "value": [
+          "nonprofit"
+        ],
+        "label": "Not a non-profit — the small business is always the applicant, never the research institution",
+        "evidence": "an STTR project requires the small business – which is always the applicant – to be teamed with a non-profit research institution"
+      },
+      {
+        "key": "us_based",
+        "op": "eq",
+        "value": true,
+        "label": "Place of business located in the United States, and the work performed in the US",
+        "evidence": "the SBIR and STTR work must be performed in the U.S."
+      },
+      {
+        "key": "majority_us_owned",
+        "op": "eq",
+        "value": true,
+        "label": "More than 50% directly owned and controlled by US citizens or permanent resident aliens",
+        "evidence": "more than 50 percent directly owned and controlled by one or more individuals (who are citizens or permanent resident aliens of the United States)"
+      },
+      {
+        "key": "employees",
+        "op": "lte",
+        "value": 500,
+        "label": "Not more than 500 employees, including affiliates",
+        "evidence": "has, including its affiliates, not more than 500 employees"
+      },
+      {
+        "key": "affiliated_research_org",
+        "op": "eq",
+        "value": true,
+        "label": "Research-institution partnership continues in Phase II, with at least 30% of the research performed by the non-profit",
+        "evidence": "On STTR projects, either Phase I or II, at least 30% of the research must be performed by a non-profit entity"
+      },
+      {
+        "key": "has_prototype",
+        "op": "eq",
+        "value": true,
+        "label": "Proxy for the real gate: Phase II expands on completed Phase I results, so a Phase I award normally comes first",
+        "evidence": "Phase II awards may last for up to two years and expand upon the Phase I results. During this time, the R&D work is performed."
+      }
+    ],
+    "summary": "The R&D stage of the federal STTR programme, awarded on Phase I results and continuing the mandatory 40/30 work split with the non-profit research institution. Phase II awards normally do not exceed $1,000,000 total costs over two years, against an April 2026 ceiling of $2,153,927.",
+    "verified": true,
+    "source_url": "https://www.sbir.gov/about",
+    "verified_on": "2026-09-01",
+    "verified_by": "agent:claude-opus-5",
+    "notes": "PHASE I FIRST: as with SBIR, Phase II builds on Phase I — 'Phase II awards may last for up to two years and expand upon the Phase I results' (https://www.sbir.gov/tutorials/program-basics/tutorial-1). has_prototype is a PROXY for 'holds a Phase I award' because the permitted profile keys have no field for prior award status; read the source_quote rather than the key name. THE 40/30 SPLIT PERSISTS INTO PHASE II — this is explicit: 'On STTR projects, either Phase I or II, at least 30% of the research must be performed by a non-profit entity' and 'the applicant small business must perform at least 40% of the R&D on an STTR project' (https://www.sbir.gov/tutorials/program-basics/tutorial-2). PI EMPLOYMENT: pi_employed_by_company is deliberately omitted — 'With an STTR, the PI could be primarily employed at either the RI or the small business' (https://www.sbir.gov/tutorials/program-basics/tutorial-3). But tutorial-2's phrasing 'At the other four agencies the PI can be primarily employed by either the small business applicant or the non-profit organization' implies one of the five STTR agencies differs; I could NOT identify which from the pages I fetched — verify with your target agency. AMOUNT CAVEAT: the $2,153,927 sentence is on the 'About SBIR and STTR' page and says 'agencies' without naming STTR separately, so I read it as programme-wide; no STTR-only ceiling was stated on any page I fetched. The STTR-specific guideline on https://www.sbir.gov/faq is 'STTR Phase II awards normally do not exceed $1,000,000 total costs for 2 years.' — the $1,000,000 is the un-adjusted statutory baseline, not the current cap. SBA re-adjusts annually ('SBA reviews these amounts every year for the effects of inflation and posts these inflation effects and any resulting adjustments on www.SBIR.gov' — https://www.sbir.gov/about/policies), so re-check /about before budgeting. Agencies routinely award less: 'Agencies have the discretion to issue awards for less than the guidelines.' COULD NOT CONFIRM: minimum award (amount_min null); deadline (no government-wide date); timeline_days ('Review process times vary; check with the specific agency.' — https://www.sbir.gov/apply); award instrument type; whether the sequential Phase II mechanism described for SBIR on https://www.sbir.gov/tutorials/program-basics/tutorial-4 applies identically to STTR — that page warns 'not every Agency offers these awards and that guidelines will vary within Agencies'. IP AGREEMENT with the research institution remains required (/faq). | DURATION NOT ON THE CITED PAGE: the 24-month figure is on https://www.sbir.gov/faq, not on sbir.gov/about. Nulled here rather than mis-sourced."
+  }
+]
