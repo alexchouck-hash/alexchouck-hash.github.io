@@ -1,4 +1,0 @@
-# Indexing is OFF (site.flags.allowIndexing = false).
-# The site is reachable by link and by ad click; it is not for crawlers yet.
-User-agent: *
-Disallow: /
