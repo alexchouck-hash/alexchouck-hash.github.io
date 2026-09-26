@@ -1,0 +1,640 @@
+{
+ "generated": "2026-09-26T22:00:01.624Z",
+ "count": 36,
+ "resorts": [
+  {
+   "id": "ritz-naples",
+   "name": "The Ritz-Carlton Naples",
+   "city": "Naples, FL",
+   "region": "fl_sw",
+   "lat": 26.213,
+   "lon": -81.8141,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 12,
+    "tmaxF": 84,
+    "sstF": 86,
+    "waveFt": 1.2,
+    "uv": 7.7,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/ritz-naples.json"
+  },
+  {
+   "id": "marco-marriott",
+   "name": "JW Marriott Marco Island",
+   "city": "Marco Island, FL",
+   "region": "fl_sw",
+   "lat": 25.936,
+   "lon": -81.729,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 12,
+    "sstF": 85,
+    "waveFt": 1.3,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/marco-marriott.json"
+  },
+  {
+   "id": "south-seas",
+   "name": "South Seas Island Resort",
+   "city": "Captiva, FL",
+   "region": "fl_sw",
+   "lat": 26.527,
+   "lon": -82.192,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 11,
+    "tmaxF": 82,
+    "sstF": 85,
+    "waveFt": null,
+    "uv": 7.6,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/south-seas.json"
+  },
+  {
+   "id": "pink-shell",
+   "name": "Pink Shell Beach Resort",
+   "city": "Fort Myers Beach, FL",
+   "region": "fl_sw",
+   "lat": 26.452,
+   "lon": -81.948,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 11,
+    "sstF": 86,
+    "waveFt": 1.5,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/pink-shell.json"
+  },
+  {
+   "id": "lido-beach",
+   "name": "Lido Beach Resort",
+   "city": "Sarasota, FL",
+   "region": "fl_tb",
+   "lat": 27.314,
+   "lon": -82.577,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 10,
+    "tmaxF": 84,
+    "sstF": 85,
+    "waveFt": 1.6,
+    "uv": 7.55,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/lido-beach.json"
+  },
+  {
+   "id": "don-cesar",
+   "name": "The Don CeSar",
+   "city": "St. Pete Beach, FL",
+   "region": "fl_tb",
+   "lat": 27.711,
+   "lon": -82.74,
+   "today": {
+    "sargassum": "Very low",
+    "sargassumScore": 9,
+    "tmaxF": 84,
+    "sstF": 85,
+    "waveFt": 1.4,
+    "uv": 7.6,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/don-cesar.json"
+  },
+  {
+   "id": "tradewinds",
+   "name": "TradeWinds Island Grand",
+   "city": "St. Pete Beach, FL",
+   "region": "fl_tb",
+   "lat": 27.739,
+   "lon": -82.748,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 10,
+    "sstF": 85,
+    "waveFt": 1.4,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/tradewinds.json"
+  },
+  {
+   "id": "opal-sands",
+   "name": "Opal Sands Resort",
+   "city": "Clearwater Beach, FL",
+   "region": "fl_tb",
+   "lat": 27.976,
+   "lon": -82.829,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 10,
+    "tmaxF": 86,
+    "sstF": 83,
+    "waveFt": null,
+    "uv": 7.9,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/opal-sands.json"
+  },
+  {
+   "id": "hilton-pensacola",
+   "name": "Hilton Pensacola Beach",
+   "city": "Pensacola Beach, FL",
+   "region": "fl_ph",
+   "lat": 30.329,
+   "lon": -87.142,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 14,
+    "tmaxF": 83,
+    "sstF": 85,
+    "waveFt": 1.2,
+    "uv": 7.2,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/hilton-pensacola.json"
+  },
+  {
+   "id": "henderson",
+   "name": "Henderson Beach Resort",
+   "city": "Destin, FL",
+   "region": "fl_ph",
+   "lat": 30.384,
+   "lon": -86.446,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 14,
+    "tmaxF": 82,
+    "sstF": 86,
+    "waveFt": 0.7,
+    "uv": 7.15,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/henderson.json"
+  },
+  {
+   "id": "sandestin",
+   "name": "Sandestin Golf and Beach Resort",
+   "city": "Miramar Beach, FL",
+   "region": "fl_ph",
+   "lat": 30.383,
+   "lon": -86.329,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 13,
+    "tmaxF": 84,
+    "sstF": 85,
+    "waveFt": 0.7,
+    "uv": 7.15,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/sandestin.json"
+  },
+  {
+   "id": "watercolor",
+   "name": "WaterColor Inn",
+   "city": "Santa Rosa Beach, FL",
+   "region": "fl_ph",
+   "lat": 30.328,
+   "lon": -86.159,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 13,
+    "tmaxF": 84,
+    "sstF": 85,
+    "waveFt": 0.6,
+    "uv": 7.15,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/watercolor.json"
+  },
+  {
+   "id": "edgewater-pcb",
+   "name": "Edgewater Beach & Golf Resort",
+   "city": "Panama City Beach, FL",
+   "region": "fl_ph",
+   "lat": 30.173,
+   "lon": -85.8,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 15,
+    "tmaxF": 84,
+    "sstF": 85,
+    "waveFt": 0.4,
+    "uv": 7.15,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/edgewater-pcb.json"
+  },
+  {
+   "id": "lodge-gsp",
+   "name": "The Lodge at Gulf State Park",
+   "city": "Gulf Shores, AL",
+   "region": "al_ms",
+   "lat": 30.249,
+   "lon": -87.645,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 20,
+    "sstF": 86,
+    "waveFt": 1.2,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/lodge-gsp.json"
+  },
+  {
+   "id": "perdido-beach",
+   "name": "Perdido Beach Resort",
+   "city": "Orange Beach, AL",
+   "region": "al_ms",
+   "lat": 30.28,
+   "lon": -87.525,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 20,
+    "tmaxF": 83,
+    "sstF": 84,
+    "waveFt": 1.9,
+    "uv": 7.7,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/perdido-beach.json"
+  },
+  {
+   "id": "beau-rivage",
+   "name": "Beau Rivage Resort & Casino",
+   "city": "Biloxi, MS",
+   "region": "al_ms",
+   "lat": 30.393,
+   "lon": -88.893,
+   "today": {
+    "sargassum": "Very low",
+    "sargassumScore": 5,
+    "tmaxF": 87,
+    "sstF": 86,
+    "waveFt": 0.6,
+    "uv": 6.65,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/beau-rivage.json"
+  },
+  {
+   "id": "grand-isle",
+   "name": "Grand Isle Beach Rentals",
+   "city": "Grand Isle, LA",
+   "region": "la",
+   "lat": 29.236,
+   "lon": -89.987,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 20,
+    "tmaxF": 83,
+    "sstF": 86,
+    "waveFt": 2.2,
+    "uv": 7.25,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/grand-isle.json"
+  },
+  {
+   "id": "san-luis",
+   "name": "The San Luis Resort",
+   "city": "Galveston, TX",
+   "region": "tx_up",
+   "lat": 29.28,
+   "lon": -94.812,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 33,
+    "tmaxF": 87,
+    "sstF": 87,
+    "waveFt": 1.7,
+    "uv": 6.8,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/san-luis.json"
+  },
+  {
+   "id": "moody-gardens",
+   "name": "Moody Gardens Hotel",
+   "city": "Galveston, TX",
+   "region": "tx_up",
+   "lat": 29.271,
+   "lon": -94.853,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 29,
+    "tmaxF": 89,
+    "sstF": 87,
+    "waveFt": 1.7,
+    "uv": 6.8,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/moody-gardens.json"
+  },
+  {
+   "id": "cinnamon-shore",
+   "name": "Cinnamon Shore",
+   "city": "Port Aransas, TX",
+   "region": "tx_lo",
+   "lat": 27.775,
+   "lon": -97.1,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 39,
+    "tmaxF": 90,
+    "sstF": 87,
+    "waveFt": 2.3,
+    "uv": 7.4,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/cinnamon-shore.json"
+  },
+  {
+   "id": "pearl-spi",
+   "name": "Pearl South Padre",
+   "city": "South Padre Island, TX",
+   "region": "tx_lo",
+   "lat": 26.099,
+   "lon": -97.164,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 41,
+    "tmaxF": 86,
+    "sstF": 86,
+    "waveFt": 2.2,
+    "uv": 7.75,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/pearl-spi.json"
+  },
+  {
+   "id": "isla-grand",
+   "name": "Isla Grand Beach Resort",
+   "city": "South Padre Island, TX",
+   "region": "tx_lo",
+   "lat": 26.1,
+   "lon": -97.165,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 41,
+    "tmaxF": 86,
+    "sstF": 86,
+    "waveFt": 2.2,
+    "uv": 7.75,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/isla-grand.json"
+  },
+  {
+   "id": "casa-marina",
+   "name": "Casa Marina Key West",
+   "city": "Key West, FL",
+   "region": "fl_keys",
+   "lat": 24.547,
+   "lon": -81.788,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 25,
+    "tmaxF": 86,
+    "sstF": 87,
+    "waveFt": 1.3,
+    "uv": 7.45,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/casa-marina.json"
+  },
+  {
+   "id": "riu-peninsula",
+   "name": "Riu Palace Peninsula",
+   "city": "Cancún, MX",
+   "region": "mx_cun",
+   "lat": 21.138,
+   "lon": -86.746,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 35,
+    "tmaxF": 85,
+    "sstF": 85,
+    "waveFt": 1.7,
+    "uv": 8.2,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/riu-peninsula.json"
+  },
+  {
+   "id": "hyatt-ziva-cun",
+   "name": "Hyatt Ziva Cancún",
+   "city": "Cancún, MX",
+   "region": "mx_cun",
+   "lat": 21.136,
+   "lon": -86.74,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 37,
+    "sstF": 85,
+    "waveFt": null,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/hyatt-ziva-cun.json"
+  },
+  {
+   "id": "fiesta-coral",
+   "name": "Grand Fiesta Americana Coral Beach",
+   "city": "Cancún, MX",
+   "region": "mx_cun",
+   "lat": 21.13,
+   "lon": -86.746,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 36,
+    "tmaxF": 85,
+    "sstF": 85,
+    "waveFt": 1.7,
+    "uv": 8.2,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/fiesta-coral.json"
+  },
+  {
+   "id": "iberostar-cun",
+   "name": "Iberostar Selection Cancún",
+   "city": "Cancún, MX",
+   "region": "mx_cun",
+   "lat": 21.07,
+   "lon": -86.778,
+   "today": {
+    "sargassum": "High",
+    "sargassumScore": 69,
+    "tmaxF": 90,
+    "sstF": 86,
+    "waveFt": 1.8,
+    "uv": 8.2,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/iberostar-cun.json"
+  },
+  {
+   "id": "impression-isla",
+   "name": "Impression Isla Mujeres",
+   "city": "Isla Mujeres, MX",
+   "region": "mx_cun",
+   "lat": 21.26,
+   "lon": -86.752,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 28,
+    "sstF": 86,
+    "waveFt": 1.8,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/impression-isla.json"
+  },
+  {
+   "id": "holbox",
+   "name": "Holbox Island Hotels",
+   "city": "Holbox, MX",
+   "region": "mx_cun",
+   "lat": 21.524,
+   "lon": -87.379,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 31,
+    "tmaxF": 84,
+    "sstF": 85,
+    "waveFt": null,
+    "uv": 8.5,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/holbox.json"
+  },
+  {
+   "id": "playa-del-carmen",
+   "name": "Playa del Carmen Resorts",
+   "city": "Playa del Carmen, MX",
+   "region": "mx_rm",
+   "lat": 20.63,
+   "lon": -87.07,
+   "today": {
+    "sargassum": "Very high",
+    "sargassumScore": 71,
+    "tmaxF": 90,
+    "sstF": 87,
+    "waveFt": 0.9,
+    "uv": 8.25,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/playa-del-carmen.json"
+  },
+  {
+   "id": "tulum",
+   "name": "Tulum Beach Hotels",
+   "city": "Tulum, MX",
+   "region": "mx_rm",
+   "lat": 20.21,
+   "lon": -87.465,
+   "today": {
+    "sargassum": "High",
+    "sargassumScore": 62,
+    "tmaxF": 87,
+    "sstF": 87,
+    "waveFt": 2.4,
+    "uv": 8.1,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/tulum.json"
+  },
+  {
+   "id": "progreso",
+   "name": "Progreso Beach Resorts",
+   "city": "Progreso, MX",
+   "region": "mx_yuc",
+   "lat": 21.284,
+   "lon": -89.663,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 14,
+    "tmaxF": 93,
+    "sstF": 88,
+    "waveFt": 1.4,
+    "uv": 8.2,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/progreso.json"
+  },
+  {
+   "id": "campeche",
+   "name": "Campeche Malecón Hotels",
+   "city": "Campeche, MX",
+   "region": "mx_yuc",
+   "lat": 19.845,
+   "lon": -90.537,
+   "today": {
+    "sargassum": "Very low",
+    "sargassumScore": 8,
+    "sstF": 89,
+    "waveFt": 0.6,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/campeche.json"
+  },
+  {
+   "id": "boca-del-rio",
+   "name": "Boca del Río Resorts",
+   "city": "Veracruz, MX",
+   "region": "mx_ver",
+   "lat": 19.107,
+   "lon": -96.1,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 10,
+    "tmaxF": 87,
+    "sstF": 84,
+    "waveFt": null,
+    "uv": 8.3,
+    "crowd": "Quiet"
+   },
+   "url": "resorts/boca-del-rio.json"
+  },
+  {
+   "id": "miramar-tampico",
+   "name": "Playa Miramar Hotels",
+   "city": "Tampico, MX",
+   "region": "mx_ver",
+   "lat": 22.275,
+   "lon": -97.797,
+   "today": {
+    "sargassum": "Low",
+    "sargassumScore": 15,
+    "tmaxF": 89,
+    "sstF": 87,
+    "waveFt": 1.4,
+    "uv": 8.05,
+    "crowd": "Quiet"
+   },
+   "url": "resorts/miramar-tampico.json"
+  },
+  {
+   "id": "varadero",
+   "name": "Varadero Beach Resorts",
+   "city": "Varadero, CU",
+   "region": "cu",
+   "lat": 23.19,
+   "lon": -81.15,
+   "today": {
+    "sargassum": "Moderate",
+    "sargassumScore": 25,
+    "tmaxF": 86,
+    "sstF": 87,
+    "waveFt": 1.6,
+    "uv": 7.6,
+    "crowd": "Moderate"
+   },
+   "url": "resorts/varadero.json"
+  }
+ ]
+}
