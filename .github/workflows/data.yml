@@ -1,12 +1,16 @@
 name: Refresh data feed
 
+# Builds the JSON feed and publishes it to the `data-feed` branch as a single
+# force-pushed commit, so the feed never accumulates history on main.
+# Served at https://raw.githubusercontent.com/<owner>/<repo>/data-feed/index.json
+
 on:
   schedule:
-    - cron: "17 */3 * * *" # every 3 hours
+    - cron: "17 */6 * * *" # every 6 hours (Open-Meteo free-tier budget for 440+ resorts)
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["js/**", "scripts/**"]
+    paths: ["js/**", "scripts/**", ".github/workflows/data.yml"]
 
 permissions:
   contents: write
@@ -18,16 +22,28 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/build-data.mjs
-      - name: Commit updated data
+      - name: Fetch previous feed (normals cache, last good pulls)
+        run: git clone --depth 1 --branch data-feed "$REMOTE" feed || mkdir -p feed
+      - name: Build feed
+        run: node scripts/build-data.mjs
+        env:
+          FEED_DIR: feed
+          NORMALS_BUDGET: "3"
+      - name: Publish to data-feed branch
         run: |
+          cp data/README.md feed/README.md
+          cd feed
+          rm -rf .git
+          git init -q -b data-feed
           git config user.name "gulf-forecast-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data
-          git diff --cached --quiet || git commit -m "Refresh forecast data feed"
-          git push
+          git add -A
+          git commit -q -m "Forecast data feed $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "$REMOTE" data-feed

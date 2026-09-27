@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gulf Resort Forecast</title>
-  <meta name="description" content="Sargassum, weather, water, UV, crowd and safety forecasts for every major Gulf of Mexico resort, up to a year out." />
+  <title>Gulf & Caribbean Resort Forecast</title>
+  <meta name="description" content="Sargassum, weather, water, UV, crowd and safety forecasts for 440+ resorts across the Gulf of Mexico and the Caribbean, up to a year out." />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -13,11 +13,15 @@
     <div class="brand">
       <span class="logo" aria-hidden="true">🌊</span>
       <div>
-        <h1>Gulf Resort Forecast</h1>
+        <h1>Gulf &amp; Caribbean Resort Forecast</h1>
         <p class="sub">Sargassum · weather · water · UV · crowds · safety, up to 365 days out</p>
       </div>
     </div>
     <div class="controls">
+      <label>Search
+        <input type="search" id="search" list="resortlist" autocomplete="off" />
+        <datalist id="resortlist"></datalist>
+      </label>
       <label>Resort
         <select id="resort"></select>
       </label>
@@ -36,10 +40,11 @@
 
   <main class="layout">
     <section class="mapwrap">
-      <div id="map" role="application" aria-label="Map of Gulf resorts colored by sargassum risk"></div>
+      <div id="map" role="application" aria-label="Map of Gulf and Caribbean resorts colored by sargassum risk"></div>
       <div class="maplegend">
         <label>Color map by
           <select id="mapmetric">
+            <option value="score">Favorability score</option>
             <option value="sargassum">Sargassum risk</option>
             <option value="crowd">Resort crowds</option>
             <option value="temp">High temperature</option>
@@ -55,6 +60,7 @@
       <div id="now" class="card now"></div>
       <nav class="tabs" role="tablist">
         <button role="tab" data-tab="overview" class="on">Overview</button>
+        <button role="tab" data-tab="rank">Best places</button>
         <button role="tab" data-tab="sargassum">Sargassum</button>
         <button role="tab" data-tab="weather">Weather</button>
         <button role="tab" data-tab="ocean">Water & waves</button>
@@ -74,7 +80,7 @@
 
   <footer class="foot">
     <p>Live data: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (weather, marine, ERA5 climate history) and <a href="https://www.weather.gov/" target="_blank" rel="noopener">NOAA/NWS</a> alerts. Sargassum outlook modeled from USF / NOAA AOML seasonality; confirm with the <a href="https://optics.marine.usf.edu/projects/SaWS.html" target="_blank" rel="noopener">USF Sargassum Watch</a> monthly bulletin.
-    Beyond 16 days, weather is a climate outlook (10-year normals), not a day-specific forecast. Crowd levels are modeled, not measured.</p>
+    Beyond 16 days, weather is a climate outlook (6-year normals), not a day-specific forecast. Crowd levels are modeled, not measured.</p>
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>

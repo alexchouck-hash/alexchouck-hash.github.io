@@ -1,11 +1,12 @@
-# Gulf Resort Forecast
+# Gulf & Caribbean Resort Forecast
 
-Static site (GitHub Pages) with sargassum, weather, water temperature, waves, UV, crowd, safety and tourism forecasts for 36 major Gulf of Mexico resorts, up to 365 days out.
+Static site (GitHub Pages) with sargassum, weather, water temperature, waves, UV, crowd, safety and tourism forecasts for 440+ resorts across the Gulf of Mexico, the Caribbean (east to Barbados) and Caribbean Central America (south to Panama and Colombia), up to 365 days out.
 
 - `index.html`, `css/`, `js/app.js`: map + per-resort dashboard (live data fetched in the browser).
-- `js/resorts.js`: resorts, regions, airports, barrier/cleanup programs, safety and tourism info.
+- `js/resorts.js` + `js/data/*.js`: resorts, regions (climate, crowds, cleanup, safety, tourism) and airports.
 - `js/model.js`: sargassum, crowd, rip-current, heat, UV and tropical models plus climate normals.
-- `js/api.js`: Open-Meteo (forecast, marine, ERA5 archive) and NWS alerts clients.
-- `scripts/build-data.mjs` + `.github/workflows/data.yml`: JSON data feed in `data/`, refreshed every 3 hours. See `data/README.md`.
+- `js/api.js`: Open-Meteo (forecast, marine, ERA5 archive), NWS alerts and feed clients.
+- `scripts/build-data.mjs` + `.github/workflows/data.yml`: JSON data feed, rebuilt every 6 hours and published on the `data-feed` branch. See `data/README.md`.
+- `scripts/validate-data.mjs`: catalog sanity checks (`node scripts/validate-data.mjs`).
 
-Days 0–15 use real forecasts; beyond that, weather and water values are 10-year climate normals for the date. Sargassum and crowd levels are modeled.
+Days 0–15 use real forecasts; beyond that, weather and water values are 6-year climate normals for the location (regional monthly tables until those are built). Sargassum and crowd levels are modeled. Resort coordinates are approximate.
