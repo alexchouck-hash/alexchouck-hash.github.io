@@ -109,6 +109,8 @@ function compactOutlook(days) {
   return {
     start: days[0]?.date,
     source: col((q) => q.source),
+    score: col((q) => q.score.total),
+    scoreParts: Object.fromEntries(Object.keys(days[0]?.score.parts ?? {}).map((k) => [k, col((q) => q.score.parts[k])])),
     sargassum: col((q) => q.sargassum.score),
     tmaxF: col((q) => q.weather.tmaxF ?? null), tminF: col((q) => q.weather.tminF ?? null),
     precipProb: col((q) => q.weather.precipProb ?? null), cloud: col((q) => q.weather.cloud ?? null), uv: col((q) => q.weather.uv ?? null),
@@ -157,8 +159,15 @@ for (const r of RESORTS) {
   const t = days[0], next = days.slice(0, FORECAST_DAYS);
   index.push({
     id: r.id, name: r.name, city: r.city, region: r.region, lat: r.lat, lon: r.lon,
-    today: { sargassum: t.sargassum.label, sargassumScore: t.sargassum.score, tmaxF: t.weather.tmaxF ?? null, sstF: t.ocean.sstF ?? null, waveFt: t.ocean.waveFt ?? null, uv: t.weather.uv ?? null, crowd: t.crowds.resort.label },
-    next16: { tmaxF: next.map((q) => q.weather.tmaxF ?? null), windDir: next.map((q) => q.weather.windDir ?? null), windMph: next.map((q) => q.weather.windMph ?? null) },
+    today: { score: t.score.total, sargassum: t.sargassum.label, sargassumScore: t.sargassum.score, tmaxF: t.weather.tmaxF ?? null, sstF: t.ocean.sstF ?? null, waveFt: t.ocean.waveFt ?? null, uv: t.weather.uv ?? null, crowd: t.crowds.resort.label },
+    next16: Object.fromEntries([
+      ["code", (q) => (q.source === "forecast" ? q.weather.code ?? null : null)],
+      ["tmaxF", (q) => (q.source === "forecast" ? q.weather.tmaxF : null)], ["tminF", (q) => (q.source === "forecast" ? q.weather.tminF : null)],
+      ["precipProb", (q) => (q.source === "forecast" ? q.weather.precipProb : null)], ["cloud", (q) => (q.source === "forecast" ? q.weather.cloud : null)],
+      ["uv", (q) => (q.source === "forecast" ? q.weather.uv : null)], ["windDir", (q) => q.weather.windDir], ["windMph", (q) => q.weather.windMph],
+      ["waveFt", (q) => (q.ocean.source === "forecast" ? q.ocean.waveFt : null)], ["periodS", (q) => q.ocean.periodS], ["sstF", (q) => (q.ocean.source === "forecast" ? q.ocean.sstF : null)],
+      ["score", (q) => q.score.total],
+    ].map(([k, fn]) => [k, next.map((q) => fn(q) ?? null)])),
     url: `resorts/${r.id}.json`,
   });
 }

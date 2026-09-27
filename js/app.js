@@ -1,5 +1,5 @@
 import { RESORTS, REGIONS, AIRPORTS, TOURISM, CLEANUP } from "./resorts.js";
-import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, normalsFromArchive, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
+import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, METRICS, SCORE_LEVELS, normalsFromArchive, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -9,7 +9,7 @@ const now = new Date();
 const TODAY = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12));
 const MAX = addDays(TODAY, 365);
 
-const state = { id: "lodge-gsp", date: iso(TODAY), tab: "overview", metric: "sargassum", data: {}, index: null };
+const state = { id: "lodge-gsp", date: iso(TODAY), tab: "overview", metric: "score", data: {}, index: null };
 const cache = state.data;
 
 // ---------- URL state ----------
@@ -63,7 +63,12 @@ function setupMap() {
   const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
   const y = iso(addDays(TODAY, -1));
   const sat = L.tileLayer(`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${y}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`, { maxZoom: 9, attribution: "NASA GIBS / MODIS Terra" });
-  L.control.layers({ "Street map": osm, [`Satellite (MODIS, ${y})`]: sat }).addTo(map);
+  const esri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" });
+  const labels = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Labels © Esri" });
+  L.control.layers(
+    { "Street map": osm, "Satellite (high resolution)": L.layerGroup([esri, labels]), [`Satellite, daily (MODIS ${y})`]: sat },
+    {}, { collapsed: false },
+  ).addTo(map);
   for (const r of RESORTS) {
     markers[r.id] = L.circleMarker([r.lat, r.lon], { radius: 6, weight: 1.5, color: "#fff", fillOpacity: 0.95 })
       .addTo(map).on("click", () => selectResort(r.id, false));
@@ -80,11 +85,13 @@ const TEMP_LEVELS = [[60, "<60°", "#3b6fb6"], [70, "60s", "#4fa3c7"], [80, "70s
 function paintMap() {
   const d = parseISO(state.date);
   const daysOut = Math.round((d - TODAY) / DAY);
-  const legends = { sargassum: SARG_LEVELS, crowd: CROWD_LEVELS, temp: TEMP_LEVELS, water: TEMP_LEVELS };
+  const legends = { score: SCORE_LEVELS, sargassum: SARG_LEVELS, crowd: CROWD_LEVELS, temp: TEMP_LEVELS, water: TEMP_LEVELS };
   for (const r of RESORTS) {
     const o = overviewFor(r, d);
     let val, color, text;
-    if (state.metric === "sargassum") {
+    if (state.metric === "score") {
+      const q = quickDay(r, d).score; color = q.color; text = `Favorability ${q.total}/100 (${q.label})`;
+    } else if (state.metric === "sargassum") {
       const s = sargassum(r, d, { ...o, daysOut }); val = s.score; color = s.color; text = `Sargassum ${s.label} (${s.score})`;
     } else if (state.metric === "crowd") {
       const c = crowds(r, d).resort; color = c.color; text = `Crowds ${c.label}`;
@@ -143,6 +150,23 @@ async function loadNormals(r) {
 }
 
 // ---------- day record ----------
+// Day record for any resort: full data if it's been opened, otherwise the
+// feed index (16-day forecast) and regional/cached climate.
+function quickDay(r, d) {
+  if (cache[r.id]?.fc) return day(r, d);
+  const x = state.index?.[r.id]?.next16, i = state.indexStart ? Math.round((d - parseISO(state.indexStart)) / DAY) : -1;
+  const at = (k) => (x && i >= 0 && i < (x[k]?.length ?? 0) ? x[k][i] : null);
+  const fc = at("tmaxF") != null ? { code: at("code"), tmaxF: at("tmaxF"), tminF: at("tminF"), precipProb: at("precipProb"), cloud: at("cloud"), uv: at("uv"), windMph: at("windMph"), windDir: at("windDir") } : null;
+  const marine = at("waveFt") != null || at("sstF") != null ? { waveFt: at("waveFt"), periodS: at("periodS"), sstF: at("sstF") } : null;
+  return buildDay(r, d, TODAY, { fc, marine, nm: cache[r.id]?.normals?.[doy(d)] || null });
+}
+const scoreCache = new Map();
+function scoresFor(d) {
+  const k = iso(d) + ":" + (state.indexStart || "") + ":" + Object.keys(cache).length;
+  if (!scoreCache.has(k)) { scoreCache.clear(); scoreCache.set(k, new Map(RESORTS.map((r) => [r.id, quickDay(r, d)]))); }
+  return scoreCache.get(k);
+}
+
 function day(r, d) {
   const c = cache[r.id] || {};
   const k = iso(d);
@@ -165,6 +189,8 @@ function render() {
   $("#now").innerHTML = renderNow(r, c);
   $("#tab").innerHTML = (TABS[state.tab] || TABS.overview)(r, d, rec, c);
   $("#tab").querySelectorAll("[data-date]").forEach((el) => (el.onclick = () => setDate(el.dataset.date)));
+  const rs = $("#rankscope");
+  if (rs) rs.onchange = () => { state.rankScope = rs.value; render(); };
   const dl = $("#tab").querySelector("[data-download]");
   if (dl) dl.onclick = () => download(r, dl.dataset.download);
   renderYear(r, d);
@@ -191,7 +217,7 @@ function renderNow(r, c) {
 const TABS = {
   overview(r, d, rec) {
     const s = rec.sargassum, w = rec.weather, o = rec.ocean, cr = rec.crowds, sf = rec.safety;
-    return `<div class="grid">
+    return `${scoreCard(rec)}${swaps(r, d, rec)}<div class="grid">
       ${stat("Sargassum risk", chip(s.label, s.color), `Score ${s.score}/100 · after cleanup: ${s.beachAfterCleanupLabel}`, s.score, s.color)}
       ${stat("Weather", `${w.icon} ${w.tmaxF ?? "—"}° / ${w.tminF ?? "—"}°`, esc(w.summary))}
       ${stat("Rain chance", w.precipProb != null ? w.precipProb + "%" : "—", w.precipIn != null ? `${w.precipIn}" ${rec.source === "forecast" ? "expected" : "typical"}` : "")}
@@ -306,6 +332,20 @@ const TABS = {
     <div class="card small"><h3>Cleanup & beach programs</h3><p style="margin:0">${esc(CLEANUP[r.region].cleanup)}</p></div>`;
   },
 
+  rank(r, d) {
+    const all = scoresFor(d);
+    const scope = state.rankScope || "all";
+    const countries = [...new Set(Object.values(REGIONS).map((g) => g.country))].sort();
+    const pool = RESORTS.filter((x) => scope === "all" || (scope === "near" ? dist(r.lat, r.lon, x.lat, x.lon) <= 500 : scope.startsWith("c:") ? REGIONS[x.region].country === scope.slice(2) : x.region === scope.slice(2)));
+    const list = pool.map((x) => ({ x, q: all.get(x.id) })).sort((a, b) => b.q.score.total - a.q.score.total).slice(0, 40);
+    const opts = [["all", "Everywhere"], ["near", `Within 500 mi of ${r.name}`], ...countries.map((c) => ["c:" + c, "Country: " + c]), ...Object.entries(REGIONS).map(([k, g]) => ["r:" + k, "Region: " + g.name])];
+    return `<div class="card"><h3>Best places on ${esc(state.date)}</h3>
+      <label class="small muted">Show <select id="rankscope">${opts.map(([v, l]) => `<option value="${v}"${v === scope ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
+      <table style="margin-top:8px"><tr><th>#</th><th>Resort</th><th>Score</th><th>Sargassum</th><th>High</th><th>Water</th></tr>
+      ${list.map(({ x, q }, i) => `<tr data-resort="${x.id}" style="cursor:pointer"><td>${i + 1}</td><td><b>${esc(x.name)}</b><br><span class="muted small">${esc(x.city)}</span></td><td>${scoreChip(q.score)}</td><td>${q.score.parts.sargassum}</td><td>${q.weather.tmaxF ?? "—"}°</td><td>${q.ocean.sstF ?? "—"}°</td></tr>`).join("")}</table>
+      <p class="small muted">Within 16 days uses the latest feed forecast; later dates use climate outlooks. Sargassum column is its 1–100 metric score (higher is better).</p></div>`;
+  },
+
   data(r) {
     return `<div class="card"><h3>Download this resort</h3>
       <p>Full 365-day dataset (sargassum, weather/climate, water, waves, UV, crowds, safety) as generated in your browser right now.</p>
@@ -317,6 +357,27 @@ GET ${esc(api.FEED_BASE)}resorts/${esc(r.id)}.json</pre>
       <p class="small">Each resort file contains <code>current</code> (live conditions and alerts), <code>days[]</code> with full detail for the next 16 days, and <code>outlook</code> with day-by-day columns for the rest of the year. See <a href="https://github.com/alexchouck-hash/alexchouck-hash.github.io/blob/main/data/README.md" target="_blank" rel="noopener">field reference</a>.</p></div>`;
   },
 };
+
+const scoreChip = (q) => chip(`${q.total} · ${q.label}`, q.color);
+function scoreCard(rec) {
+  const q = rec.score;
+  return `<div class="card"><h3>Favorability ${scoreChip(q)}</h3>
+    <p class="small muted" style="margin:0 0 8px">1–100, 100 = best. Each metric is scored on its own; the overall score weights them and drops when a key metric (sargassum, air or water temperature, rain, hurricanes, safety) is very poor.</p>
+    <div class="bars">${Object.entries(METRICS).map(([k, m]) => { const v = q.parts[k]; const c = v == null ? "var(--line)" : level(v, SCORE_LEVELS)[2];
+      return `<div class="bar"><span>${m.label}</span><div class="meter"><i style="width:${v ?? 0}%;--c:${c}"></i></div><b>${v ?? "—"}</b></div>`; }).join("")}</div></div>`;
+}
+// Nearby resorts with a better score for the same date.
+function swaps(r, d, rec) {
+  const all = scoresFor(d);
+  const near = (mi) => RESORTS.filter((x) => x.id !== r.id).map((x) => ({ x, mi: dist(r.lat, r.lon, x.lat, x.lon), q: all.get(x.id) }))
+    .filter((c) => c.mi <= mi && c.q.score.total >= rec.score.total + 5).sort((a, b) => b.q.score.total - a.q.score.total);
+  let radius = 150, list = near(radius);
+  if (list.length < 2) { radius = 400; list = near(radius); }
+  if (!list.length) return `<div class="card"><h3>Nearby swaps</h3><p class="small" style="margin:0">Nothing within 400 miles scores meaningfully better on this date. This is a strong pick.</p></div>`;
+  const row = (c, tag) => `<tr data-resort="${c.x.id}" style="cursor:pointer"><td><span class="chip soft">${tag}</span></td><td><b>${esc(c.x.name)}</b><br><span class="muted small">${esc(c.x.city)} · ${Math.round(c.mi)} mi</span></td><td>${scoreChip(c.q.score)}</td><td class="small">+${c.q.score.total - rec.score.total}</td></tr>`;
+  return `<div class="card"><h3>Nearby swaps for this date</h3><table>${row(list[0], "Best")}${list.slice(1, 5).map((c) => row(c, "Better")).join("")}</table>
+    <p class="small muted">Within ${radius} miles, at least 5 points better. Click to switch.</p></div>`;
+}
 
 function forecastStrip(r, d) {
   const days = Array.from({ length: 16 }, (_, i) => addDays(TODAY, i));
@@ -377,8 +438,8 @@ function download(r, kind) {
   let blob;
   if (kind === "json") blob = new Blob([JSON.stringify({ resort: r, generated: new Date().toISOString(), current: { weather: cache[r.id]?.fc?.current, marine: cache[r.id]?.mar?.current }, days: rows }, null, 2)], { type: "application/json" });
   else {
-    const head = ["date", "source", "sargassum_score", "sargassum_level", "tmax_f", "tmin_f", "precip_prob", "precip_in", "cloud_pct", "uv", "wind_mph", "water_f", "wave_ft", "rip_risk", "crowd_resort", "crowd_airport", "crowd_city", "tropical_pct", "holidays"];
-    const lines = rows.map((q) => [q.date, q.source, q.sargassum.score, q.sargassum.label, q.weather.tmaxF, q.weather.tminF, q.weather.precipProb, q.weather.precipIn, q.weather.cloud, q.weather.uv, q.weather.windMph, q.ocean.sstF, q.ocean.waveFt, q.safety.ripCurrent?.label, q.crowds.resort.score, q.crowds.airport.score, q.crowds.city.score, q.safety.tropical.pct, q.holidays.join("; ")].map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
+    const head = ["date", "source", "favorability", ...Object.keys(METRICS).map((k) => "score_" + k), "sargassum_score", "sargassum_level", "tmax_f", "tmin_f", "precip_prob", "precip_in", "cloud_pct", "uv", "wind_mph", "water_f", "wave_ft", "rip_risk", "crowd_resort", "crowd_airport", "crowd_city", "tropical_pct", "holidays"];
+    const lines = rows.map((q) => [q.date, q.source, q.score.total, ...Object.keys(METRICS).map((k) => q.score.parts[k]), q.sargassum.score, q.sargassum.label, q.weather.tmaxF, q.weather.tminF, q.weather.precipProb, q.weather.precipIn, q.weather.cloud, q.weather.uv, q.weather.windMph, q.ocean.sstF, q.ocean.waveFt, q.safety.ripCurrent?.label, q.crowds.resort.score, q.crowds.airport.score, q.crowds.city.score, q.safety.tropical.pct, q.holidays.join("; ")].map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
     blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
   }
   const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `${r.id}-forecast.${kind}` });

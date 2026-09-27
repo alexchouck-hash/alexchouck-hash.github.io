@@ -287,6 +287,56 @@ export function regionalNormal(resort, d) {
   return { regional: true, tmaxF: m("tmaxF"), tminF: m("tminF"), precipProb: m("rainPct"), precipIn: null, cloud: m("cloud"), uv: c.uv ? Math.round(monthly(c.uv, d) * 10) / 10 : null, windMph: null, rh: null, thunderPct: null, sstF: fallbackSstF(resort, d), waveFt: null };
 }
 
+// ---------- favorability (1–100, 100 = best) ----------
+// Every metric gets its own 1–100 score; the overall score is a weighted blend
+// of the metrics that are known for that day.
+export const SCORE_LEVELS = [[40, "Poor", "#c8372d"], [55, "Fair", "#e0772b"], [70, "Good", "#e3b52a"], [85, "Very good", "#8bbf3f"], [101, "Excellent", "#2e9e6b"]];
+export const METRICS = {
+  sargassum: { label: "Sargassum", weight: 0.24 },
+  temperature: { label: "Air temperature", weight: 0.12 },
+  rain: { label: "Rain", weight: 0.12 },
+  sun: { label: "Sunshine", weight: 0.06 },
+  water: { label: "Water temperature", weight: 0.09 },
+  waves: { label: "Waves & rip currents", weight: 0.08 },
+  wind: { label: "Wind", weight: 0.04 },
+  uv: { label: "UV exposure", weight: 0.03 },
+  crowds: { label: "Crowds", weight: 0.08 },
+  tropical: { label: "Hurricane risk", weight: 0.07 },
+  safety: { label: "Travel safety", weight: 0.07 },
+};
+const s100 = (x) => Math.round(Math.max(1, Math.min(100, x)));
+// 100 inside [lo, hi], falling off by `slope` points per degree outside it.
+const band = (v, lo, hi, slope) => v == null ? null : s100(100 - Math.max(0, lo - v, v - hi) * slope);
+const advisoryLevel = (text) => +(/Level (\d)/.exec(text || "")?.[1] || 1);
+
+export function favorability(rec) {
+  const w = rec.weather, o = rec.ocean, sf = rec.safety;
+  const heat = sf.heatIndexF != null && sf.heatIndexF > 100 ? (sf.heatIndexF - 100) * 3 : 0;
+  const rip = sf.ripCurrent?.label;
+  const parts = {
+    sargassum: s100(100 - rec.sargassum.score),
+    temperature: w.tmaxF == null ? null : s100(band(w.tmaxF, 80, 88, 4) - heat),
+    rain: w.precipProb == null ? null : s100(100 - w.precipProb * 0.9 - (w.thunderPct || 0) * 0.3),
+    sun: w.cloud == null ? null : s100(100 - Math.max(0, w.cloud - 15) * 1.1),
+    water: band(o.sstF, 79, 86, 6),
+    waves: o.waveFt == null ? null : s100(rip === "High" ? 20 : rip === "Moderate" ? 60 : 100 - Math.max(0, o.waveFt - 2) * 12),
+    wind: w.windMph == null ? null : band(w.windMph, 4, 15, 4),
+    uv: w.uv == null ? null : s100(100 - Math.max(0, w.uv - 8) * 12),
+    crowds: s100(100 - rec.crowds.resort.score * 0.8),
+    tropical: s100(100 - sf.tropical.pct * 9),
+    safety: s100([100, 100, 85, 45, 10][advisoryLevel(sf.travelAdvisory)] ?? 100),
+  };
+  let tot = 0, wt = 0;
+  for (const [k, v] of Object.entries(parts)) if (v != null) { tot += v * METRICS[k].weight; wt += METRICS[k].weight; }
+  // Dealbreakers: a very poor core metric pulls the overall score down even
+  // when everything else is fine (cold water, heavy sargassum, storms…).
+  const drag = ["sargassum", "temperature", "water", "rain", "tropical", "safety"]
+    .reduce((acc, k) => acc + (parts[k] != null ? Math.max(0, 40 - parts[k]) * 0.3 : 0), 0);
+  const total = s100(tot / wt - drag);
+  const [, label, color] = level(total, SCORE_LEVELS);
+  return { total, label, color, parts };
+}
+
 // ---------- unify one day ----------
 // fc: forecast-day record or null; nm: climate normal for that doy or null.
 export function buildDay(resort, d, today, { fc = null, marine = null, nm = null } = {}) {
@@ -294,7 +344,7 @@ export function buildDay(resort, d, today, { fc = null, marine = null, nm = null
   nm = nm ?? regionalNormal(resort, d);
   const source = fc ? "forecast" : nm?.regional ? "regional-climate" : "climate-outlook";
   const w = fc ? {
-    summary: WMO[fc.code]?.[0] ?? "—", icon: WMO[fc.code]?.[1] ?? "", tmaxF: fc.tmaxF, tminF: fc.tminF, feelsF: fc.feelsF,
+    code: fc.code, summary: WMO[fc.code]?.[0] ?? "—", icon: WMO[fc.code]?.[1] ?? "", tmaxF: fc.tmaxF, tminF: fc.tminF, feelsF: fc.feelsF,
     precipProb: fc.precipProb, precipIn: fc.precipIn, cloud: fc.cloud, uv: fc.uv, windMph: fc.windMph, gustMph: fc.gustMph, windDir: fc.windDir,
     rh: fc.rh, thunderPct: [95, 96, 99].includes(fc.code) ? 60 : 0, sunrise: fc.sunrise, sunset: fc.sunset,
   } : nm ? {
@@ -306,5 +356,7 @@ export function buildDay(resort, d, today, { fc = null, marine = null, nm = null
   const sarg = sargassum(resort, d, { windDir: w.windDir, windMph: w.windMph, daysOut });
   const crowd = crowds(resort, d, { weatherPenalty: (w.precipProb ?? 0) > 70 ? 0.1 : 0 });
   const safe = safety(resort, d, { ...w, waveFt: ocean.waveFt, periodS: ocean.periodS });
-  return { date: iso(d), daysOut, source, weather: w, ocean, sargassum: sarg, crowds: crowd, safety: safe, holidays: holidaysOn(d).map((h) => h.name) };
+  const rec = { date: iso(d), daysOut, source, weather: w, ocean, sargassum: sarg, crowds: crowd, safety: safe, holidays: holidaysOn(d).map((h) => h.name) };
+  rec.score = favorability(rec);
+  return rec;
 }
