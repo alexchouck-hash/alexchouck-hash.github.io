@@ -7,6 +7,7 @@ Static page (`/ski-conditions/`) forecasting snow surface conditions on every ru
 - `js/model.js`: the snow model (pure functions).
 - `js/app.js`: map, resort summary, per-run table, global snowfall leaderboard.
 - `scripts/verify.mjs`: daily verification against SNOTEL stations, run by `.github/workflows/data.yml`; publishes `ski/verification.json` and `ski/forecasts/` on the `data-feed` branch.
+- `scripts/build-runs.mjs`: precomputes each resort's runs weekly (up to 15 resorts per feed run) into `ski/runs/<id>.json` on `data-feed`; the page falls back to live OpenStreetMap when a file is missing.
 - `scripts/test-model.mjs`: offline physics and parsing checks (`node ski-conditions/scripts/test-model.mjs`).
 
 ## Model
@@ -25,8 +26,11 @@ Static page (`/ski-conditions/`) forecasting snow surface conditions on every ru
 
 Once a day, `verify.mjs` pairs each resort with the nearest SNOTEL station (within 20 km, preferring stations inside the resort's elevation range), saves the forecast daily snowfall at that station's elevation for the blend and every model, and scores all saved forecasts from the last 60 days against observed snow-depth gain by lead time (1 to 5 days): mean absolute error, bias, and hit and false-alarm rates for days with 5 cm or more. Depth gain undercounts snowfall slightly because new snow settles. Coverage is US resorts for now.
 
+## Skill-weighted blend
+
+`verify.mjs` also publishes `skill`: each model's error over days 1 and 2, across all stations and per resort. Once at least two models have enough scored days (10 at the resort's own station, otherwise 30 across all stations), each model's weight becomes 1 / (error + 1 cm), scaled so the weights average 1 and kept between 0.4 and 2.5. Until then, global models count once and regional models twice. The page and the daily snapshot use the same weights, so the verified "blend" is the forecast visitors saw.
+
 ## Next steps
 
-- Use the per-model scores to weight the blend by each model's recent skill at each resort.
 - Add ground truth outside the US (resort snow reports, Canadian and European station networks).
-- Precompute resorts in the feed so pages load instantly and stay within API limits.
+- Correct systematic snowfall bias per resort once enough seasons are verified.

@@ -63,6 +63,17 @@ assert.deepEqual(b.models, ["gfs_seamless", "ncep_hrrr_conus"]); assert.equal(b.
 assert.deepEqual(M.regionalFor({ lat: 39.6, lon: -106.35 }), ["ncep_hrrr_conus", "gem_hrdps_continental"]);
 assert.deepEqual(M.regionalFor({ lat: -32.8, lon: -70.1 }), []);
 
+// Skill weights: better model gets more weight; resort scores beat global ones; too little data = none
+const skill = { global: { ecmwf_ifs025: { n: 40, mae: 1 }, gfs_seamless: { n: 40, mae: 3 }, icon_seamless: { n: 5, mae: 0 } }, byResort: { alta: { gfs_seamless: { n: 12, mae: 0.5 }, ecmwf_ifs025: { n: 12, mae: 2 } } } };
+const g = M.skillWeights(skill, "vail"), a = M.skillWeights(skill, "alta");
+assert(g.weights.ecmwf_ifs025 > g.weights.gfs_seamless && !("icon_seamless" in g.weights) && g.source === "global", JSON.stringify(g));
+assert(a.weights.gfs_seamless > a.weights.ecmwf_ifs025 && a.source === "resort", JSON.stringify(a));
+assert.deepEqual(M.skillWeights({ global: { gfs_seamless: { n: 99, mae: 1 } } }, "x").weights, {});
+assert.deepEqual(M.skillWeights(undefined, "x").weights, {});
+const wj = { elevation: 3000, hourly: { time: ["t"], temperature_2m_gfs_seamless: [0], precipitation_gfs_seamless: [0], temperature_2m_ecmwf_ifs025: [3], precipitation_ecmwf_ifs025: [3] } };
+assert.equal(M.blend(wj, null, { ecmwf_ifs025: 2 }).precipitation[0], 2);
+assert.equal(M.blend(wj).weights.ecmwf_ifs025, 1);
+
 // Rain/snow line
 const low = M.atElevation(h, 72, 2000), high = M.atElevation(h, 72, 3500);
 assert(high.snowCm > low.snowCm, "more snow up high");

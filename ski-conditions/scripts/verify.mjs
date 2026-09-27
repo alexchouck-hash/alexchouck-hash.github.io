@@ -11,7 +11,7 @@
 
 import { mkdir, readFile, writeFile, readdir, rm } from "node:fs/promises";
 import { RESORTS } from "../js/resorts.js";
-import { dailySnow, distM, MODEL_LABEL } from "../js/model.js";
+import { dailySnow, distM, MODEL_LABEL, skillWeights } from "../js/model.js";
 import * as api from "../js/api.js";
 
 const root = new URL((process.env.FEED_DIR || "feed").replace(/\/?$/, "/") + "ski/", new URL("../../", import.meta.url));
@@ -60,9 +60,11 @@ async function snapshot(pairs) {
   const path = `forecasts/${TODAY}.json`;
   if (await readJSON(path)) return console.log(`snapshot ${TODAY} exists`);
   const out = { issued: new Date().toISOString(), resorts: {} };
+  const skill = (await readJSON("verification.json"))?.skill;
   for (const r of RESORTS.filter((x) => pairs[x.id])) {
     try {
-      const h = await api.forecast(r, 0);
+      // Same skill weighting the page uses, so the saved "blend" is what visitors saw.
+      const h = await api.forecast(r, 0, skillWeights(skill, r.id).weights);
       const byDay = dailySnow(h, pairs[r.id].elevM);
       const days = {};
       for (const [d, v] of Object.entries(byDay)) if (d >= TODAY) days[d] = { blend: +v.snow.toFixed(1), models: Object.fromEntries(Object.entries(v.perModel).map(([m, x]) => [m, +x.toFixed(1)])) };
@@ -104,7 +106,7 @@ const finish = (s) => ({ n: s.n, mae: s.n ? +(s.absErr / s.n).toFixed(2) : null,
 async function score(pairs, obs) {
   await mkdir(f("forecasts/"), { recursive: true });
   const files = (await readdir(f("forecasts/"))).filter((x) => /^\d{4}-\d{2}-\d{2}\.json$/.test(x)).sort();
-  const byLead = {}, byResort = {}, recent = {};
+  const byLead = {}, byResort = {}, recent = {}, skillG = {}, skillR = {};
   for (const file of files) {
     const issue = file.slice(0, 10);
     if (issue < addDays(TODAY, -KEEP_DAYS)) { await rm(f(`forecasts/${file}`)); continue; }
@@ -115,7 +117,11 @@ async function score(pairs, obs) {
         const lead = Math.round((Date.parse(d) - Date.parse(issue)) / 864e5);
         if (lead < 1 || lead > MAX_LEAD || o[d] == null) continue;
         const L = ((byLead.blend ||= {})[lead] ||= blank()); add(L, v.blend, o[d]);
-        for (const [m, x] of Object.entries(v.models || {})) add(((byLead[m] ||= {})[lead] ||= blank()), x, o[d]);
+        for (const [m, x] of Object.entries(v.models || {})) {
+          add(((byLead[m] ||= {})[lead] ||= blank()), x, o[d]);
+          // Skill for blend weighting: short range (days 1–2), where weights matter most.
+          if (lead <= 2) { add((skillG[m] ||= blank()), x, o[d]); add(((skillR[id] ||= {})[m] ||= blank()), x, o[d]); }
+        }
         if (lead === 1) {
           add((byResort[id] ||= blank()), v.blend, o[d]);
           if (d >= addDays(TODAY, -14)) (recent[id] ||= []).push({ date: d, forecast: v.blend, observed: +o[d].toFixed(1) });
@@ -130,6 +136,7 @@ async function score(pairs, obs) {
     forecastDays: files.length, labels: MODEL_LABEL, stations: pairs,
     byLead: Object.fromEntries(Object.entries(byLead).map(([m, v]) => [m, map(v)])),
     byResort: map(byResort), recent,
+    skill: { leads: [1, 2], global: map(skillG), byResort: Object.fromEntries(Object.entries(skillR).map(([k, v]) => [k, map(v)])) },
   };
   await writeJSON("verification.json", out);
   console.log(`verification: ${files.length} forecast days, lead-1 blend n=${out.byLead.blend?.[1]?.n ?? 0}`);

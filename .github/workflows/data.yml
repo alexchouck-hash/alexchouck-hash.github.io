@@ -36,6 +36,11 @@ jobs:
         env:
           FEED_DIR: feed
           NORMALS_BUDGET: "3"
+      - name: Precompute ski trail maps
+        run: node ski-conditions/scripts/build-runs.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
       - name: Verify ski forecasts against SNOTEL
         run: node ski-conditions/scripts/verify.mjs
         continue-on-error: true
