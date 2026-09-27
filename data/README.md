@@ -15,6 +15,7 @@ Static JSON, rebuilt every 3 hours by `.github/workflows/data.yml`. No API key.
 | `tourism` | Area highlights |
 | `current.weather` | Live conditions (temp, feels-like, humidity, wind, gusts, cloud, UV, rain) |
 | `current.marine` | Live water temperature, wave height/period/direction, swell, ocean current |
+| `current.staleSince` | Set (ISO time) when a live pull failed and the previous one, under 24 h old, was reused |
 | `current.alerts` | Active NWS alerts (US resorts): rip current, beach hazards, tropical, heat |
 | `days[]` | 366 entries, today through one year out |
 

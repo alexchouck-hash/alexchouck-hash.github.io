@@ -14,14 +14,30 @@ async function getJSON(url, ttlMin = 10) {
       if (hit && Date.now() - hit.t < ttlMin * 60000) return hit.v;
     } catch {}
   }
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`${res.status} ${url}`);
-  const v = await res.json();
+  const v = await fetchRetry(url);
   if (store && ttlMin > 0) {
     try { store.setItem(key, JSON.stringify({ t: Date.now(), v })); } catch { /* quota: ignore */ }
   }
   return v;
 }
+
+// Retry transient failures (network errors, 429 rate limits, 5xx) with backoff.
+async function fetchRetry(url, tries = 4) {
+  for (let i = 0; ; i++) {
+    try {
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      if (res.ok) return await res.json();
+      if (res.status !== 429 && res.status < 500) throw Object.assign(new Error(`${res.status} ${url}`), { fatal: true });
+      if (i >= tries - 1) throw new Error(`${res.status} ${url}`);
+    } catch (e) {
+      if (e.fatal || i >= tries - 1) throw e;
+    }
+    await new Promise((r) => setTimeout(r, 1500 * 2 ** i));
+  }
+}
+
+// Point used for marine data (some beaches sit on a land cell of the wave model).
+export const marinePoint = (r) => [r.marineLat ?? r.lat, r.marineLon ?? r.lon];
 
 const DAILY = "weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,precipitation_probability_max,cloud_cover_mean,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,relative_humidity_2m_mean,sunrise,sunset";
 const CURRENT = "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day";
@@ -68,14 +84,14 @@ export async function marine(lat, lon) {
 
 // ~10 years of daily history (ERA5) for climate normals, plus 3 years of
 // marine history for water temperature / wave normals.
-export async function history(lat, lon) {
+export async function history(lat, lon, [mlat, mlon] = [lat, lon]) {
   const end = iso(addDays(new Date(), -7));
   const start = iso(addDays(new Date(), -365 * 10));
   const a = await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,cloud_cover_mean,wind_speed_10m_max,shortwave_radiation_sum,weather_code,relative_humidity_2m_mean&timezone=auto`, 0);
   let m = null;
   try {
     const mstart = iso(addDays(new Date(), -365 * 3));
-    const mj = await getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&start_date=${mstart}&end_date=${end}&daily=wave_height_max&hourly=sea_surface_temperature&timezone=auto`, 0);
+    const mj = await getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${mlat}&longitude=${mlon}&start_date=${mstart}&end_date=${end}&daily=wave_height_max&hourly=sea_surface_temperature&timezone=auto`, 0);
     const sst = {};
     mj.hourly.time.forEach((t, i) => { const v = mj.hourly.sea_surface_temperature[i]; if (v != null) (sst[t.slice(0, 10)] ||= []).push(v); });
     m = { time: mj.daily.time, wave: mj.daily.wave_height_max, sst: mj.daily.time.map((t) => sst[t] ? sst[t].reduce((a, b) => a + b, 0) / sst[t].length : null) };
@@ -86,9 +102,10 @@ export async function history(lat, lon) {
 // Batched overview for many points in one request (map markers).
 export async function overview(points) {
   const lat = points.map((p) => p.lat).join(","), lon = points.map((p) => p.lon).join(",");
+  const mlat = points.map((p) => marinePoint(p)[0]).join(","), mlon = points.map((p) => marinePoint(p)[1]).join(",");
   const [w, m] = await Promise.allSettled([
     getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,uv_index&daily=weather_code,temperature_2m_max,precipitation_probability_max,wind_direction_10m_dominant,wind_speed_10m_max,uv_index_max&forecast_days=16&timezone=auto&temperature_unit=fahrenheit&wind_speed_unit=mph`, 15),
-    getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,sea_surface_temperature&daily=wave_height_max&forecast_days=8&timezone=auto`, 30),
+    getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${mlat}&longitude=${mlon}&current=wave_height,sea_surface_temperature&daily=wave_height_max&forecast_days=8&timezone=auto`, 30),
   ]);
   const arr = (r) => (r.status === "fulfilled" ? (Array.isArray(r.value) ? r.value : [r.value]) : []);
   return { weather: arr(w), marine: arr(m) };

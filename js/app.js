@@ -108,7 +108,7 @@ async function loadResort(id, force = false) {
   const c = (cache[id] ||= {});
   const jobs = [];
   if (force || !c.fc) jobs.push(api.forecast(r.lat, r.lon).then((v) => (c.fc = v)).catch((e) => (c.fcErr = e.message)));
-  if (force || !c.mar) jobs.push(api.marine(r.lat, r.lon).then((v) => (c.mar = v)).catch((e) => (c.marErr = e.message)));
+  if (force || !c.mar) jobs.push(api.marine(...api.marinePoint(r)).then((v) => (c.mar = v)).catch((e) => (c.marErr = e.message)));
   if (!c.alerts && REGIONS[r.region].country === "US") jobs.push(api.nwsAlerts(r.lat, r.lon).then((v) => (c.alerts = v)).catch(() => (c.alerts = [])));
   if (!c.normals) jobs.push(loadNormals(r).then((v) => (c.normals = v)).catch((e) => (c.normErr = e.message)));
   // re-render as each piece arrives
@@ -118,12 +118,12 @@ async function loadResort(id, force = false) {
   if (state.id === id) render();
 }
 async function loadNormals(r) {
-  const key = "gsf:normals:v1:" + r.id;
+  const key = "gsf:normals:v2:" + r.id;
   try {
     const hit = JSON.parse(localStorage.getItem(key) || "null");
     if (hit && Date.now() - hit.t < 30 * DAY) return hit.v;
   } catch {}
-  const h = await api.history(r.lat, r.lon);
+  const h = await api.history(r.lat, r.lon, api.marinePoint(r));
   const v = normalsFromArchive(h.daily, h.marine);
   try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v })); } catch {}
   return v;

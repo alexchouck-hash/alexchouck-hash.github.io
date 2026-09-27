@@ -17,21 +17,38 @@ async function normals(r) {
     const j = JSON.parse(await readFile(f, "utf8"));
     if (Date.now() - Date.parse(j.generated) < 30 * 86400000) return j.normals;
   } catch {}
-  const h = await api.history(r.lat, r.lon);
+  const h = await api.history(r.lat, r.lon, api.marinePoint(r));
   const n = normalsFromArchive(h.daily, h.marine);
   await writeFile(f, JSON.stringify({ generated: new Date().toISOString(), normals: n }));
   await sleep(1500);
   return n;
 }
 
+// Save successful raw pulls; on failure fall back to the previous pull if it
+// is under 24 hours old (marked stale in the output).
+async function lastGood(r, kind, result) {
+  const f = new URL(`last/${r.id}.${kind}.json`, root);
+  if (result.status === "fulfilled") {
+    await writeFile(f, JSON.stringify({ fetched: new Date().toISOString(), v: result.value }));
+    return result.value;
+  }
+  console.warn(`${kind} ${r.id}: ${result.reason?.message}`);
+  try {
+    const j = JSON.parse(await readFile(f, "utf8"));
+    if (Date.now() - Date.parse(j.fetched) < 86400000) return { ...j.v, stale: true, fetched: j.fetched };
+  } catch {}
+  return null;
+}
+
 async function build(r) {
   const [fc, mar, alerts] = await Promise.allSettled([
-    api.forecast(r.lat, r.lon), api.marine(r.lat, r.lon),
+    api.forecast(r.lat, r.lon), api.marine(...api.marinePoint(r)),
     REGIONS[r.region].country === "US" ? api.nwsAlerts(r.lat, r.lon) : Promise.resolve([]),
   ]);
   let nm = null;
   try { nm = await normals(r); } catch (e) { console.warn(`normals ${r.id}: ${e.message}`); }
-  const F = fc.status === "fulfilled" ? fc.value : null, M = mar.status === "fulfilled" ? mar.value : null;
+  // Keep the last successful live pull so one failed request doesn't blank a resort.
+  const F = await lastGood(r, "forecast", fc), M = await lastGood(r, "marine", mar);
   const days = Array.from({ length: 366 }, (_, i) => {
     const d = addDays(TODAY, i), k = iso(d);
     return buildDay(r, d, TODAY, { fc: F?.days[k] || null, marine: M?.days[k] || null, nm: nm?.[doy(d)] || null });
@@ -40,7 +57,7 @@ async function build(r) {
     meta: { generated: new Date().toISOString(), units: { temp: "F", wave: "ft", precip: "in", wind: "mph" }, sources: ["Open-Meteo forecast/marine/ERA5 archive", "NOAA NWS alerts", "Sargassum & crowd models (see js/model.js)"] },
     resort: { ...r, regionName: REGIONS[r.region].name, airports: r.airports.map((a) => ({ code: a, name: AIRPORTS[a][0] })) },
     cleanup: CLEANUP[r.region], tourism: TOURISM[r.region],
-    current: { weather: F?.current ?? null, marine: M?.current ?? null, alerts: alerts.status === "fulfilled" ? alerts.value : [] },
+    current: { weather: F?.current ?? null, marine: M?.current ?? null, staleSince: { weather: F?.stale ? F.fetched : null, marine: M?.stale ? M.fetched : null }, alerts: alerts.status === "fulfilled" ? alerts.value : [] },
     days,
   };
   await writeFile(new URL(`resorts/${r.id}.json`, root), JSON.stringify(out));
@@ -50,6 +67,7 @@ async function build(r) {
 
 await mkdir(new URL("resorts/", root), { recursive: true });
 await mkdir(new URL("normals/", root), { recursive: true });
+await mkdir(new URL("last/", root), { recursive: true });
 const index = [];
 for (const r of RESORTS) {
   try { index.push(await build(r)); console.log("ok", r.id); } catch (e) { console.error("fail", r.id, e.message); }

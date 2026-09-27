@@ -5,6 +5,8 @@
 //   proximity to the Caribbean / Loop Current inflow, barrier-island shelter).
 // basin: which seasonal sargassum curve applies.
 // region: crowd / climate / safety profile key (see model.js).
+// marineLat/marineLon: optional offshore point for wave/water data where the
+//   marine model treats the beach itself as land.
 
 export const REGIONS = {
   fl_sw: { name: "Southwest Florida", country: "US", tz: "America/New_York", sst: [22, 21, 23, 25, 28, 30, 31, 31, 30, 28, 25, 23] },
@@ -94,7 +96,7 @@ export const RESORTS = [
   { id: "progreso", name: "Progreso Beach Resorts", city: "Progreso, MX", region: "mx_yuc", lat: 21.2840, lon: -89.6630, facing: 0, exposure: 0.35, basin: "gulf_s", airports: ["MID"] },
   { id: "campeche", name: "Campeche Malecón Hotels", city: "Campeche, MX", region: "mx_yuc", lat: 19.8450, lon: -90.5370, facing: 280, exposure: 0.20, basin: "gulf_s", airports: ["CPE"] },
   // Veracruz / Tamaulipas
-  { id: "boca-del-rio", name: "Boca del Río Resorts", city: "Veracruz, MX", region: "mx_ver", lat: 19.1070, lon: -96.1000, facing: 50, exposure: 0.25, basin: "gulf_w", airports: ["VER"] },
+  { id: "boca-del-rio", name: "Boca del Río Resorts", city: "Veracruz, MX", region: "mx_ver", lat: 19.1070, lon: -96.1000, marineLat: 19.12, marineLon: -96.02, facing: 50, exposure: 0.25, basin: "gulf_w", airports: ["VER"] },
   { id: "miramar-tampico", name: "Playa Miramar Hotels", city: "Tampico, MX", region: "mx_ver", lat: 22.2750, lon: -97.7970, facing: 90, exposure: 0.35, basin: "gulf_w", airports: ["TAM"] },
   // Cuba
   { id: "varadero", name: "Varadero Beach Resorts", city: "Varadero, CU", region: "cu", lat: 23.1900, lon: -81.1500, facing: 0, exposure: 0.40, basin: "carib", airports: ["VRA"] },
