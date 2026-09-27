@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluebird Rivers</title>
+  <meta name="description" content="Live river levels for canoeing and kayaking from USGS gauges, rated against what is normal for the date, with rain on the way." />
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="../assets/bluebird.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="mapwrap"><div id="map" class="map" role="region" aria-label="Map of river gauges colored by paddling rating"></div><div id="legend" class="note"></div></section>
+    <section class="panel">
+      <div class="controls"><label>Jump to <select id="jump"></select></label><span id="units"></span></div>
+      <div id="status" class="status"></div>
+      <div id="detail"></div>
+      <div id="list"></div>
+      <details class="card"><summary><b>How levels are rated</b></summary>
+        <ul class="small">
+          <li>Live flow (cubic feet per second) from USGS stream gauges, usually updated every 15 to 60 minutes.</li>
+          <li>Each reading is placed within that gauge's own history for today's date, from decades of daily records. 50% means a typical flow for the date.</li>
+          <li><b>Normal</b> is 25–60%, <b>good and lively</b> 60–88%, <b>high</b> 88–97%, and <b>flood</b> 97% or above, or above 90% and rising fast.</li>
+          <li>Rain in the next 3 days at the gauge warns that levels may rise.</li>
+        </ul>
+        <p class="note">Every river has its own runnable range, which depends on the section, your boat and your skill. Check a paddling guide such as American Whitewater for specific ranges, and never paddle a river in flood.</p>
+      </details>
+    </section>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluebird</title>
+  <meta name="description" content="Bluebird forecasts perfect days outside: snow, beach, fall foliage, river levels, offshore fishing and camping conditions." />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/bluebird.css" />
+  <style>
+    .hero { text-align: center; padding: 48px 20px 28px; }
+    .hero img { width: 88px; height: 88px; }
+    .hero h1 { font-size: 40px; letter-spacing: -.02em; margin: 8px 0 6px; }
+    .hero p { font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .site { display: block; text-decoration: none; color: var(--ink); border-top: 4px solid var(--c); transition: transform .12s; }
+    .site:hover { transform: translateY(-2px); }
+    .site .ic { font-size: 30px; } .site h2 { margin: 6px 0 4px; } .site p { margin: 0; color: var(--muted); font-size: 14px; }
+    .how { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <img src="assets/logo.svg" alt="Bluebird logo" />
+    <h1>Bluebird</h1>
+    <p>A <i>bluebird day</i> is the clear, perfect day after the storm. We forecast yours: on the mountain, on the water, in the woods and at the beach.</p>
+  </section>
+  <main class="wrap">
+    <div class="grid" id="sites"></div>
+    <h2 style="margin-top:28px">How Bluebird forecasts</h2>
+    <div class="how">
+      <div class="card"><h3>Live, open data</h3><p class="small muted">Global weather models (ECMWF, GFS, ICON and more), marine forecasts, USGS river gauges and satellite ocean data, fetched fresh in your browser.</p></div>
+      <div class="card"><h3>Built for the activity</h3><p class="small muted">Each site turns raw weather into what matters for that day out: powder on a run, peak color, a runnable river level, a safe sea for a small boat.</p></div>
+      <div class="card"><h3>Checked against reality</h3><p class="small muted">Where ground truth exists we score ourselves. Snow forecasts are verified daily against SNOTEL stations, and the blend learns from it.</p></div>
+    </div>
+  </main>
+  <footer class="bb-foot">Bluebird · forecasts are guidance, not guarantees. Always check local conditions and official warnings.</footer>
+  <script type="module">
+    import { SITES, header, esc } from "./assets/shared.js";
+    header(null, ".");
+    document.getElementById("sites").innerHTML = SITES.map((s) => `<a class="card site" style="--c:${s.color}" href="${s.href.replace(/^\.\.\//, "./")}">
+      <div class="ic">${s.icon}</div><h2>Bluebird ${esc(s.name)}</h2><p>${esc(s.blurb)}</p></a>`).join("");
+  </script>
+</body>
+</html>
