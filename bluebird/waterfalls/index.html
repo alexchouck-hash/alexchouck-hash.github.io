@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluebird Waterfalls</title>
+  <meta name="description" content="How hard famous waterfalls are flowing right now, from recent rain, snowmelt season and the forecast, with the best days to visit." />
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="../assets/bluebird.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="mapwrap"><div id="map" class="map" role="region" aria-label="Map of waterfalls colored by current flow"></div><div id="legend" class="note"></div></section>
+    <section class="panel">
+      <div class="controls"><label>Waterfall <select id="fall"></select></label><span id="units"></span></div>
+      <div id="status" class="status"></div>
+      <div id="detail"></div>
+      <div id="rank"></div>
+      <details class="card"><summary><b>How flow is estimated</b></summary>
+        <ul class="small">
+          <li>Each fall has a typical flow for every month, from park and guide information: snowmelt falls peak in late spring, and eastern rain-fed falls run low in late summer.</li>
+          <li><b>Recent rain:</b> the last 30 days of rain, with recent days counting most, compared with the same weeks in the last 3 years.</li>
+          <li>How much recent rain matters depends on the fall's type: most for rain-fed, some for snowmelt, little for big rivers, and almost none for spring-fed or dam-regulated falls.</li>
+          <li><b>Forecast:</b> rain in the next 10 days is fed forward, so you can catch a fall roaring after a storm.</li>
+          <li>Five straight days below −3 °C flags ice formations. Strong flow plus sun flags a chance of rainbows in the spray.</li>
+        </ul>
+        <p class="note">An estimate from weather data (Open-Meteo), not a flow gauge. After heavy rain, trails and pools can be dangerous: stay behind barriers and away from the brink.</p>
+      </details>
+    </section>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluebird Offshore</title>
+  <meta name="description" content="Go/no-go sea conditions for offshore fishing by boat size: waves, wave period, wind, storms, water temperature breaks and moon." />
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="../assets/bluebird.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="mapwrap"><div id="map" class="map" role="region" aria-label="Map: click the water to choose a fishing spot"></div><div class="note">Click anywhere offshore to forecast that spot.</div></section>
+    <section class="panel">
+      <div class="controls"><label>Boat <select id="boat"></select></label><label>Jump to <select id="jump"></select></label><span id="units"></span></div>
+      <div id="status" class="status"></div>
+      <div id="out"></div>
+      <details class="card"><summary><b>How the go/no-go works</b></summary>
+        <ul class="small">
+          <li>Scores the best 6-hour window between 5 am and 1 pm each day, when most offshore trips run.</li>
+          <li>Waves count for more when the period is short: 4 ft at 5 seconds is rougher than 4 ft at 12 seconds.</li>
+          <li>Limits scale with boat size. Thunderstorm risk (high instability and rain chance) is a big penalty.</li>
+          <li><b>Temperature break:</b> the largest sea-surface temperature change within about 25 km. Breaks of 1 °C or more often hold bait and pelagic fish.</li>
+        </ul>
+        <p class="note">Open-Meteo marine and weather models. Always check the official marine forecast and small-craft advisories before heading out.</p>
+      </details>
+    </section>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
