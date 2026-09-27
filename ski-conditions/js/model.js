@@ -14,14 +14,34 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const mean = (a) => { const v = a.filter((x) => x != null && !Number.isNaN(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
 
 export const MODELS = { ecmwf_ifs025: "ECMWF", gfs_seamless: "GFS", icon_seamless: "ICON", gem_seamless: "GEM" };
+// High-resolution regional models, requested only where they cover the resort.
+// [latMin, latMax, lonMin, lonMax]. They resolve valleys and ridges far better
+// than the ~10-25 km global models, so they get double weight where present.
+export const REGIONAL = {
+  ncep_hrrr_conus: { label: "HRRR 3 km", box: [21, 53, -134, -60] },
+  gem_hrdps_continental: { label: "HRDPS 2.5 km", box: [37, 70, -152, -45] },
+  meteofrance_arome_france_hd: { label: "AROME 1.5 km", box: [37.5, 55.4, -12, 16] },
+  icon_d2: { label: "ICON-D2 2 km", box: [43.2, 58.1, -3.9, 20.3] },
+  jma_msm: { label: "JMA MSM 5 km", box: [22.4, 47.6, 120, 150] },
+};
+export const MODEL_LABEL = { ...MODELS, ...Object.fromEntries(Object.entries(REGIONAL).map(([k, v]) => [k, v.label])) };
+export const regionalFor = (r) => Object.keys(REGIONAL).filter((k) => { const [a, b, c, d] = REGIONAL[k].box; return r.lat >= a && r.lat <= b && r.lon >= c && r.lon <= d; });
 export const HOURLY_VARS = ["temperature_2m", "precipitation", "freezing_level_height", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "shortwave_radiation", "cloud_cover", "snow_depth"];
 
 // ---------- multi-model blend ----------
 // Open-Meteo returns each variable once per model, suffixed with the model name.
-export function blend(j) {
-  const h = j.hourly, n = h.time.length;
-  const models = Object.keys(MODELS).filter((m) => h[`temperature_2m_${m}`]?.some((v) => v != null));
-  const series = (v) => Array.from({ length: n }, (_, i) => mean(models.map((m) => h[`${v}_${m}`]?.[i])));
+// Regional models (if any) arrive in a second response on the same time axis.
+export function blend(j, regional) {
+  const h = { ...j.hourly }, n = h.time.length;
+  if (regional?.hourly?.time?.length === n) for (const [k, v] of Object.entries(regional.hourly)) if (k !== "time") h[k] = v;
+  const all = [...Object.keys(MODELS), ...Object.keys(REGIONAL)];
+  const models = all.filter((m) => h[`temperature_2m_${m}`]?.some((v) => v != null));
+  const weight = (m) => (REGIONAL[m] ? 2 : 1);
+  const series = (v) => Array.from({ length: n }, (_, i) => {
+    let s = 0, w = 0;
+    for (const m of models) { const x = h[`${v}_${m}`]?.[i]; if (x == null || Number.isNaN(x)) continue; s += x * weight(m); w += weight(m); }
+    return w ? s / w : null;
+  });
   const out = { time: h.time, utcOffset: j.utc_offset_seconds || 0, refElev: j.elevation, models };
   for (const v of HOURLY_VARS) out[v] = series(v);
   // Wind direction must be averaged as a vector.
@@ -117,9 +137,9 @@ export const DIFFICULTY = {
 // ---------- per-run simulation ----------
 // run: { top, bottom, aspect, slope, difficulty, groomed }
 // Simulates the snow surface at the run's middle and returns per-hour states.
-export function simulateRun(run, resort, h) {
-  const z = (run.top + run.bottom) / 2;
-  const aboveTL = run.top > resort.treeline;
+// z: elevation of the segment to simulate (default: middle of the run).
+export function simulateRun(run, resort, h, z = (run.top + run.bottom) / 2) {
+  const aboveTL = z > resort.treeline - 100;
   const traffic = TRAFFIC[run.difficulty] ?? 0.06;
   const offMs = h.utcOffset * 1000;
   // Seasonal depth: model snow depth at the grid point, raised with elevation.
@@ -212,6 +232,19 @@ export function scoreOf(surface, wind, aboveTL, T) {
   return clamp(Math.round(v), 0, 100);
 }
 
+// Top, middle and bottom segments of a run (15 % in from each end).
+export function segments(run) {
+  const drop = run.top - run.bottom;
+  return { top: run.top - 0.15 * drop, mid: (run.top + run.bottom) / 2, bottom: run.bottom + 0.15 * drop };
+}
+export function simulateSegments(run, resort, h) {
+  const seg = segments(run);
+  const out = {};
+  for (const k of Object.keys(seg)) out[k] = runDays(k === "mid" || run.top - run.bottom > 120 ? simulateRun(run, resort, h, seg[k]) : null, h);
+  if (run.top - run.bottom <= 120) { out.top = out.mid; out.bottom = out.mid; } // short runs: one segment
+  return out;
+}
+
 // ---------- summaries ----------
 const localDay = (t) => t.slice(0, 10);
 export function days(h) { return [...new Set(h.time.map(localDay))]; }
@@ -242,7 +275,7 @@ export function snowLine(h, i) {
 // Per-run daily report: morning (09:30) and afternoon (14:00) states + new snow overnight.
 export function runDays(states, h) {
   const out = {};
-  states.forEach((s, i) => {
+  (states || []).forEach((s, i) => {
     if (!s) return;
     const d = localDay(h.time[i]), hr = +h.time[i].slice(11, 13);
     const r = (out[d] ||= { snow24: 0 });
@@ -256,7 +289,7 @@ export function runDays(states, h) {
 // Confidence from model agreement on the next 3 days of summit snowfall.
 export function confidence(dayMap, keys) {
   const tot = {};
-  for (const k of keys) for (const [m, v] of Object.entries(dayMap[k]?.perModel || {})) tot[m] = (tot[m] || 0) + v;
+  for (const k of keys) for (const [m, v] of Object.entries(dayMap[k]?.perModel || {})) if (MODELS[m]) tot[m] = (tot[m] || 0) + v;
   const v = Object.values(tot);
   if (v.length < 2) return { level: "low", spread: null, totals: tot };
   const mx = Math.max(...v), mn = Math.min(...v);

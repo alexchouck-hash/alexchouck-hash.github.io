@@ -6,13 +6,14 @@ Static page (`/ski-conditions/`) forecasting snow surface conditions on every ru
 - `js/api.js`: Open-Meteo hourly forecast from ECMWF, GFS, ICON and GEM (plus 7 past days), Open-Meteo elevation, OpenStreetMap runs via Overpass.
 - `js/model.js`: the snow model (pure functions).
 - `js/app.js`: map, resort summary, per-run table, global snowfall leaderboard.
+- `scripts/verify.mjs`: daily verification against SNOTEL stations, run by `.github/workflows/data.yml`; publishes `ski/verification.json` and `ski/forecasts/` on the `data-feed` branch.
 - `scripts/test-model.mjs`: offline physics and parsing checks (`node ski-conditions/scripts/test-model.mjs`).
 
 ## Model
 
-1. Blend the four models hourly; their spread on 3-day summit snowfall sets confidence.
+1. Blend the four global models hourly, plus high-resolution regional models at double weight where they cover the resort (HRRR, HRDPS, AROME, ICON-D2, JMA MSM, fetched in a separate optional request). Spread among the global models on 3-day summit snowfall sets confidence.
 2. Each OSM run gets top, bottom, aspect (downhill bearing) and slope from 5 elevation samples. Resorts with no mapped runs fall back to 12 virtual slopes (3 elevation bands × 4 aspects).
-3. At each run's mid elevation, hour by hour:
+3. At each run's top, middle and bottom (15% in from each end; runs under 120 m of drop use one segment), hour by hour:
    - temperature from a lapse rate fitted to the freezing level; rain/snow split between −0.2 and 2.2 °C; Kuchera snow-to-liquid ratio; +4% precipitation per 100 m;
    - wind loading on lee aspects and scouring on windward ones, weighted by whether the run tops out above treeline;
    - solar radiation on the slope from the real sun position drives melt, melt-freeze crusts and corn;
@@ -20,8 +21,12 @@ Static page (`/ski-conditions/`) forecasting snow surface conditions on every ru
    - snow depth starts from the model's snow depth, adjusted for elevation, then accumulates and melts.
 4. The state is classified into a surface (deep powder, corduroy, corn, crust, ice…) and scored 0–100.
 
+## Verification
+
+Once a day, `verify.mjs` pairs each resort with the nearest SNOTEL station (within 20 km, preferring stations inside the resort's elevation range), saves the forecast daily snowfall at that station's elevation for the blend and every model, and scores all saved forecasts from the last 60 days against observed snow-depth gain by lead time (1 to 5 days): mean absolute error, bias, and hit and false-alarm rates for days with 5 cm or more. Depth gain undercounts snowfall slightly because new snow settles. Coverage is US resorts for now.
+
 ## Next steps
 
-- Verification: log forecasts and score them against SNOTEL, resort snow reports and user reports, then tune the coefficients.
-- Precompute resorts in the GitHub Actions feed so pages load instantly and stay within API limits.
-- Higher-resolution models where available (HRRR, AROME, ICON-D2) and a proper energy-balance snowpack.
+- Use the per-model scores to weight the blend by each model's recent skill at each resort.
+- Add ground truth outside the US (resort snow reports, Canadian and European station networks).
+- Precompute resorts in the feed so pages load instantly and stay within API limits.
