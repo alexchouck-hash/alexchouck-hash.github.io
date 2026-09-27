@@ -9,6 +9,7 @@ Forecasts for perfect days outside. A family of partner sites sharing one brand,
 | Beach | `/` (repo root) | Open-Meteo, marine, sargassum model |
 | Foliage | `bluebird/foliage/` | Open-Meteo forecast + ERA5 archive; peak-timing model in `foliage/model.js` |
 | Rivers | `bluebird/rivers/` | USGS Water Services live gauges + daily percentiles |
+| Waterfalls | `bluebird/waterfalls/` | Open-Meteo recent rain vs ERA5 normals + monthly flow regime per fall |
 | Offshore | `bluebird/offshore/` | Open-Meteo marine + weather; go/no-go by boat size |
 | Camp | `bluebird/camp/` | Open-Meteo hourly; night-by-night scoring |
 

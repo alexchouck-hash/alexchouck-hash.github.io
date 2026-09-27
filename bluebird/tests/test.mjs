@@ -6,9 +6,11 @@ import * as F from "../foliage/model.js";
 import * as R from "../rivers/model.js";
 import * as O from "../offshore/model.js";
 import { nights } from "../camp/model.js";
+import { FALLS } from "../waterfalls/spots.js";
+import * as WF from "../waterfalls/model.js";
 
 // Shared
-assert.equal(SITES.length, 6);
+assert.equal(SITES.length, 7);
 assert(moon(new Date("2026-01-03T10:00Z")).illum > 0.95, "full moon Jan 3 2026");
 assert(moon(new Date("2026-01-18T19:00Z")).illum < 0.05, "new moon Jan 18 2026");
 assert.equal(grade(90).label, "Bluebird"); assert.equal(grade(10).label, "Stay home");
@@ -69,4 +71,21 @@ assert.equal(n.length, 2);
 assert(n[0].score > n[1].score && n[0].stars > n[1].stars, JSON.stringify(n));
 assert(!n[0].frost && !n[0].bugs);
 
-console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore and camp models`);
+// Waterfalls
+assert.equal(new Set(FALLS.map((f) => f.id)).size, FALLS.length);
+for (const f of FALLS) assert(f.months?.length === 12 && WF.RAIN_WEIGHT[f.regime] != null, f.id);
+const yos = FALLS.find((f) => f.id === "yosemite"), kaat = FALLS.find((f) => f.id === "kaaterskill"), burney = FALLS.find((f) => f.id === "burney");
+assert(WF.seasonal(yos, "2026-05-15") > 90 && WF.seasonal(yos, "2026-09-15") < 15, "Yosemite: roaring May, dry September");
+const normal30 = Array.from({ length: 30 }, (_, i) => (i % 5 ? 0 : 15));
+const soaked = normal30.map((p, i) => (i >= 27 ? 40 : p)), dry30 = normal30.map(() => 0);
+const k1 = WF.flowNow(kaat, "2026-09-27", soaked, [normal30, normal30]), k0 = WF.flowNow(kaat, "2026-09-27", dry30, [normal30, normal30]);
+assert(k1.flow >= 65 && k0.flow < 25, `rain-fed fall responds to rain: ${k1.flow} vs ${k0.flow}`);
+const b1 = WF.flowNow(burney, "2026-09-27", soaked, [normal30]), b0 = WF.flowNow(burney, "2026-09-27", dry30, [normal30]);
+assert(Math.abs(b1.flow - b0.flow) <= 6, "spring-fed fall barely changes");
+assert(WF.flowNow(kaat, "2026-01-20", normal30, [normal30], [-8, -9, -10, -7, -6]).frozen);
+const ol = WF.outlook(kaat, k0, k0.norm, { date: ["2026-09-27", "2026-09-28", "2026-09-29"], precip: [0, 50, 0], tmax: [20, 18, 20], cloud: [20, 100, 10] });
+assert(ol[2].flow > ol[0].flow + 20, "storm ahead raises flow");
+assert(ol[2].score > ol[1].score, "day after the storm beats the storm day");
+assert.equal(WF.flowClass(90).label, "Roaring"); assert.equal(WF.flowClass(5).label, "Trickle");
+
+console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp and waterfall (${FALLS.length}) models`);
