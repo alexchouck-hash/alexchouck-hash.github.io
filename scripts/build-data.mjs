@@ -140,8 +140,14 @@ async function learnedSargassum() {
   const get = async (f) => { try { const r = await fetch(SARG_BASE + f); return r.ok ? await r.json() : null; } catch { return null; } };
   const [model, climatology, latest, skill] = await Promise.all(["model.json", "climatology.json", "latest.json", "skill.json"].map(get));
   if (!climatology?.segments) { console.log("sargassum: no trained climatology yet; using built-in seasonal model"); return null; }
+  // Quality gate: only use what beats the simpler alternative on held-out years.
+  const auc = (n) => skill?.results?.find((r) => r.name === n)?.auc ?? null;
+  const [aModel, aClim, aLegacy] = [auc("model"), auc("climatology"), auc("legacy-seasonal")];
+  if (aClim != null && aLegacy != null && aClim <= aLegacy) { console.log(`sargassum: learned climatology (AUC ${aClim}) not better than seasonal model (${aLegacy}); keeping seasonal model`); return null; }
+  const useWeekAhead = aModel != null && aClim != null && aModel > aClim;
+  if (!useWeekAhead) console.log(`sargassum: week-ahead model (AUC ${aModel}) not better than climatology (${aClim}); using climatology only`);
   const nextWeek = {};
-  if (model?.weights && latest?.segments) {
+  if (useWeekAhead && model?.weights && latest?.segments) {
     for (const seg of SEGMENTS) {
       const sat = latest.segments[seg.key]; if (!sat) continue;
       // Forecast drivers for the coming week: mean wind over days 0–6 and the current surface current.

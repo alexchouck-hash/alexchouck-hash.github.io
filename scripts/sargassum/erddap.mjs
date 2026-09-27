@@ -66,11 +66,15 @@ export function boxQuery(meta, { lat, lon, t0, t1, timeStride = 1, pixelKm = 8 }
   const stride = Math.max(1, Math.round(pixelKm / 111 / degPerPx));
   // Respect the axis order ERDDAP stores (ascending or descending latitude).
   const latDesc = la.range.length === 2 && la.spacing < 0;
-  const [a, b] = latDesc ? [lat + BOX_DEG, lat - BOX_DEG] : [lat - BOX_DEG, lat + BOX_DEG];
+  // Clip the box to the dataset's grid (e.g. its western edge is 98°W, inside
+  // the box for Texas/Tamaulipas segments); out-of-range requests return 404.
+  const clip = (v, ax) => (ax.range.length === 2 ? Math.min(Math.max(v, Math.min(...ax.range)), Math.max(...ax.range)) : v);
+  const [lat0, lat1] = [clip(lat - BOX_DEG, la), clip(lat + BOX_DEG, la)];
+  const [a, b] = latDesc ? [lat1, lat0] : [lat0, lat1];
   const sel = meta.axes.map((ax) => {
     if (ax === ti) return `[(${t0}):${timeStride}:(${t1})]`;
     if (ax === la) return `[(${a.toFixed(3)}):${stride}:(${b.toFixed(3)})]`;
-    if (ax === lo) return `[(${(lon - BOX_DEG).toFixed(3)}):${stride}:(${(lon + BOX_DEG).toFixed(3)})]`;
+    if (ax === lo) return `[(${clip(lon - BOX_DEG, lo).toFixed(3)}):${stride}:(${clip(lon + BOX_DEG, lo).toFixed(3)})]`;
     return "[0]"; // e.g. altitude
   }).join("");
   return `${SERVER}/griddap/${meta.id}.csv?${meta.dataVar}${sel}`;
