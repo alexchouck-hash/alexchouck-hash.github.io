@@ -9,7 +9,9 @@
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { RESORTS, REGIONS, AIRPORTS } from "../js/resorts.js";
-import { iso, addDays, doy, buildDay, normalsFromArchive } from "../js/model.js";
+import { iso, addDays, doy, buildDay, normalsFromArchive, setLearnedSargassum } from "../js/model.js";
+import { SEGMENTS } from "../js/sargassum/segments.js";
+import { features, predict } from "../js/sargassum/features.js";
 import * as api from "../js/api.js";
 
 const root = new URL((process.env.FEED_DIR || "feed").replace(/\/?$/, "/"), new URL("../", import.meta.url));
@@ -131,6 +133,37 @@ const FC = await pullGroups("forecast", (r) => [r.lat, r.lon], api.forecastMany)
 const MR = await pullGroups("marine", api.marinePoint, api.marineMany);
 const normalsFor = await loadNormals();
 const ALERTS = await loadAlerts();
+
+// ---------- learned sargassum model (from the sargassum-data branch) ----------
+const SARG_BASE = process.env.SARG_BASE || "https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/sargassum-data/";
+async function learnedSargassum() {
+  const get = async (f) => { try { const r = await fetch(SARG_BASE + f); return r.ok ? await r.json() : null; } catch { return null; } };
+  const [model, climatology, latest, skill] = await Promise.all(["model.json", "climatology.json", "latest.json", "skill.json"].map(get));
+  if (!climatology?.segments) { console.log("sargassum: no trained climatology yet; using built-in seasonal model"); return null; }
+  const nextWeek = {};
+  if (model?.weights && latest?.segments) {
+    for (const seg of SEGMENTS) {
+      const sat = latest.segments[seg.key]; if (!sat) continue;
+      // Forecast drivers for the coming week: mean wind over days 0–6 and the current surface current.
+      const rid = seg.resorts[0], F = FC.get(rid), M = MR.get(rid);
+      const days = Object.values(F?.days || {}).slice(0, 7).filter((x) => x.windMph != null && x.windDir != null);
+      if (!days.length) continue;
+      let wu = 0, wv = 0;
+      for (const x of days) { const r = ((x.windDir + 180) * Math.PI) / 180, ms = x.windMph * 0.447; wu += ms * Math.sin(r); wv += ms * Math.cos(r); }
+      const c = M?.current, cr = c?.currentDir != null ? (c.currentDir * Math.PI) / 180 : null, cms = c?.currentKmh != null ? c.currentKmh / 3.6 : null;
+      const drv = { windU: wu / days.length, windV: wv / days.length, curU: cr != null && cms != null ? cms * Math.sin(cr) : null, curV: cr != null && cms != null ? cms * Math.cos(cr) : null };
+      const wk = Math.min(52, Math.floor((doy(TODAY) - 1) / 7));
+      nextWeek[seg.key] = +predict(model, features(sat, drv, { facing: seg.facing, doy: doy(TODAY), clim: climatology.segments[seg.key]?.[wk] })).toFixed(3);
+    }
+  }
+  const learned = { climatology, nextWeek, satelliteDate: latest?.date ?? null, trainedAt: model?.trainedAt ?? null,
+    skill: skill?.results ? { testYears: skill.testYears, results: skill.results, nTest: skill.nTest } : null };
+  console.log(`sargassum: learned climatology for ${Object.keys(climatology.segments).length} segments, week-ahead for ${Object.keys(nextWeek).length} (satellite ${latest?.date ?? "n/a"})`);
+  return learned;
+}
+const LEARNED = await learnedSargassum();
+setLearnedSargassum(LEARNED);
+if (LEARNED) await writeFile(f("sargassum.json"), JSON.stringify({ generated: new Date().toISOString(), ...LEARNED }));
 
 const index = [];
 for (const r of RESORTS) {

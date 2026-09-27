@@ -1,7 +1,8 @@
 // Pure forecasting models shared by the browser app and the data-feed builder.
 // Nothing here touches the network or the DOM.
 
-import { REGIONS, CLEANUP, SAFETY } from "./resorts.js";
+import { REGIONS, CLEANUP, SAFETY, RESORTS } from "./resorts.js";
+import { SEGMENT_OF } from "./sargassum/segments.js";
 
 // ---------- date helpers ----------
 export const DAY = 86400000;
@@ -110,6 +111,31 @@ export function onshore(facing, windFromDeg) {
   return Math.cos(((windFromDeg - facing) * Math.PI) / 180);
 }
 
+// ---------- learned model (scripts/sargassum/train.mjs) ----------
+// When the trained climatology / week-ahead forecast are loaded, they replace
+// the hand-drawn seasonal curves: P(notable nearshore sargassum) per segment.
+let LEARNED = null;
+const SEG_EXPOSURE = {};
+for (const r of RESORTS) (SEG_EXPOSURE[SEGMENT_OF[r.id]] ||= []).push(r.exposure);
+export function setLearnedSargassum(v) { LEARNED = v && v.climatology?.segments ? v : null; }
+export const learnedSargassum = () => LEARNED;
+function learnedProbability(resort, d, daysOut) {
+  const seg = SEGMENT_OF[resort.id], clim = LEARNED?.climatology?.segments?.[seg];
+  if (!clim) return null;
+  const week = Math.min(52, Math.floor((doy(d) - 1) / 7));
+  // Scale climatology by this year's expected bloom size relative to the training years.
+  const intensity = ANNUAL_INTENSITY[d.getUTCFullYear()] ?? 1.0;
+  const pc = clamp(clim[week] * intensity, 0, 0.99);
+  const pw = LEARNED.nextWeek?.[seg];
+  let p = pc, source = "learned climatology";
+  if (pw != null && daysOut <= 7) { p = pw; source = "week-ahead model (satellite + drift)"; }
+  else if (pw != null && daysOut <= 42) { const w = (daysOut - 7) / 35; p = pw * (1 - w) + pc * w; source = "week-ahead model blended to climatology"; }
+  // Beaches more exposed than their segment's average get more.
+  const exps = SEG_EXPOSURE[seg], mean = exps.reduce((a, b) => a + b, 0) / exps.length;
+  const adj = clamp(resort.exposure / (mean || 1), 0.4, 1.6);
+  return { p: 1 - (1 - p) ** adj, source };
+}
+
 export function sargassum(resort, d, { windDir, windMph, daysOut = 999 } = {}) {
   const season = monthly(SARG_SEASON[basinOf(resort)] ?? SARG_SEASON.none, d);
   const intensity = ANNUAL_INTENSITY[d.getUTCFullYear()] ?? 1.0;
@@ -118,15 +144,21 @@ export function sargassum(resort, d, { windDir, windMph, daysOut = 999 } = {}) {
     const on = onshore(resort.facing, windDir);
     windFactor = 1 + 0.45 * on * clamp(windMph / 18, 0.2, 1);
   }
-  const score = Math.round(clamp(season * resort.exposure * intensity * windFactor * 100, 0, 100));
+  const learned = basinOf(resort) === "none" ? null : learnedProbability(resort, d, daysOut);
+  const score = learned
+    ? Math.round(clamp(learned.p * 100 * Math.sqrt(windFactor), 0, 100))
+    : Math.round(clamp(season * resort.exposure * intensity * windFactor * 100, 0, 100));
   const effect = REGIONS[resort.region].cleanupEffect ?? 0.4;
   const afterCleanup = Math.round(score * (1 - effect));
-  const confidence = daysOut <= 7 ? "moderate (wind-adjusted)" : daysOut <= 30 ? "low-moderate (seasonal + monthly outlook)" : "low (climatology)";
+  const confidence = learned
+    ? (learned.source.startsWith("week-ahead model (") ? "model: satellite + drift" : learned.source)
+    : daysOut <= 7 ? "moderate (wind-adjusted)" : daysOut <= 30 ? "low-moderate (seasonal + monthly outlook)" : "low (climatology)";
   const [, label, color] = level(score);
   const [, afterLabel] = level(afterCleanup);
   return {
     score, label, color,
     seasonal: Math.round(season * 100),
+    model: learned ? { probability: Math.round(learned.p * 100), source: learned.source } : null,
     windAdjusted: windFactor !== 1,
     onshoreWind: windDir != null ? onshore(resort.facing, windDir) > 0.3 : null,
     beachAfterCleanup: afterCleanup, beachAfterCleanupLabel: afterLabel,

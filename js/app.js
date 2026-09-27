@@ -1,5 +1,5 @@
 import { RESORTS, REGIONS, AIRPORTS, TOURISM, CLEANUP } from "./resorts.js";
-import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, METRICS, SCORE_LEVELS, normalsFromArchive, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
+import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, setLearnedSargassum, learnedSargassum, METRICS, SCORE_LEVELS, normalsFromArchive, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -246,6 +246,7 @@ const TABS = {
         ${stat("Onshore wind", s.onshoreWind == null ? "n/a" : s.onshoreWind ? "Yes" : "No", s.windAdjusted ? "Wind-adjusted" : "Beyond wind forecast")}
       </div>
       <p class="small muted">Confidence: ${esc(s.confidence)}. ${esc(s.smellRisk)}. Exposure factor for this beach: ${Math.round(r.exposure * 100)}% (faces ${compass(r.facing)}).</p></div>
+      ${sargModelCard(s)}
       <div class="card"><h3>Barriers & cleanup</h3>
       <table><tr><th>Offshore barriers</th><td>${esc(cl.barriers)}</td></tr><tr><th>Public cleanup</th><td>${esc(cl.cleanup)}</td></tr><tr><th>Resort crews</th><td>${esc(cl.resort)}</td></tr><tr><th>Typical clearing time</th><td>${esc(cl.speed)}</td></tr></table>
       <p class="small muted">Programs change year to year. Confirm with the resort before booking during peak season.</p></div>
@@ -458,6 +459,20 @@ setupControls();
 setupMap();
 document.addEventListener("click", (e) => { const a = e.target.closest("[data-resort]"); if (a) { e.preventDefault(); selectResort(a.dataset.resort, true); } });
 render(); paintMap();
+function sargModelCard(s) {
+  const L = learnedSargassum();
+  if (!L) return `<div class="card small"><h3>Forecast method</h3><p style="margin:0">Seasonal model (basin seasonality × beach exposure × onshore wind). A satellite-trained model replaces it automatically once enough history has been collected.</p></div>`;
+  const rows = L.skill?.results || [];
+  return `<div class="card small"><h3>Forecast method</h3>
+    <p style="margin:0">${s.model ? `Chance of a notable nearshore sargassum week: <b>${s.model.probability}%</b> (${esc(s.model.source)}).` : ""}
+    Trained on NOAA AOML satellite sargassum (AFAI) history with wind and surface-current drift; latest satellite composite ${esc(L.satelliteDate || "n/a")}, model trained ${esc((L.trainedAt || "").slice(0, 10) || "n/a")}.</p>
+    ${rows.length ? `<table style="margin-top:6px"><tr><th>Held-out test (${esc((L.skill.testYears || []).join(", "))})</th><th>AUC ↑</th><th>Brier ↓</th></tr>${rows.map((x) => `<tr><td>${esc(x.name)}</td><td>${x.auc ?? "—"}</td><td>${x.brier ?? "—"}</td></tr>`).join("")}</table>` : ""}</div>`;
+}
+
+api.getJSON(api.FEED_BASE + "sargassum.json", 60)
+  .then((j) => { setLearnedSargassum(j); scoreCache.clear(); render(); paintMap(); })
+  .catch(() => {});
+
 const loadIndex = () => api.getJSON(api.FEED_BASE + "index.json", 15)
   .then((j) => { state.index = Object.fromEntries(j.resorts.map((x) => [x.id, x])); state.indexStart = j.start; paintMap(); })
   .catch(() => {});
