@@ -2,6 +2,8 @@
 // All key-less and CORS-enabled. Browser responses are cached in localStorage.
 import { MODELS, HOURLY_VARS, blend, regionalFor, runsFromOSM, finishRun } from "./model.js";
 
+// Prebuilt data (verification, trail maps) published on the data-feed branch.
+export const FEED_BASE = "https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/";
 const store = typeof localStorage !== "undefined" ? localStorage : null;
 async function getJSON(url, ttlMin, init) {
   const key = "ski:" + url + (init?.body || "");
@@ -24,13 +26,13 @@ async function getJSON(url, ttlMin, init) {
 // with 7 past days so the snowpack simulation has recent history.
 // High-res regional models come from a second, optional request so an
 // unavailable model can never break the main forecast.
-export async function forecast(resort, ttlMin = 30) {
+export async function forecast(resort, ttlMin = 30, weights = {}) {
   const mid = Math.round((resort.base + resort.summit) / 2);
   const u = (models) => `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lon}&elevation=${mid}` +
     `&hourly=${HOURLY_VARS.join(",")}&models=${models.join(",")}&past_days=7&forecast_days=10&timezone=auto`;
   const reg = regionalFor(resort);
   const [main, regional] = await Promise.all([getJSON(u(Object.keys(MODELS)), ttlMin), reg.length ? getJSON(u(reg), ttlMin).catch(() => null) : null]);
-  return blend(main, regional);
+  return blend(main, regional, weights);
 }
 
 export async function elevations(points) {
@@ -45,7 +47,12 @@ export async function elevations(points) {
 
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
 // Downhill runs from OpenStreetMap with elevation, aspect and slope per run.
+// Runs precomputed weekly by scripts/build-runs.mjs; live OSM fallback.
 export async function runs(resort) {
+  try { const j = await getJSON(`${FEED_BASE}ski/runs/${resort.id}.json`, 60 * 24); if (j.runs?.length) return j.runs; } catch {}
+  return liveRuns(resort);
+}
+export async function liveRuns(resort) {
   const q = `[out:json][timeout:40];way["piste:type"="downhill"](around:${resort.r * 1000},${resort.lat},${resort.lon});out geom;`;
   let j, err;
   for (const url of OVERPASS) {
@@ -66,5 +73,4 @@ export async function leaderboard(resorts) {
 }
 
 // Verification scores published by ski-conditions/scripts/verify.mjs on the data-feed branch.
-export const FEED_BASE = "https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/";
 export const verification = () => getJSON(FEED_BASE + "ski/verification.json", 60);

@@ -1,5 +1,5 @@
 import { RESORTS } from "./resorts.js";
-import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
+import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, skillWeights, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -35,7 +35,9 @@ async function load(id) {
   if (c.ready || c.loading) return c.loading;
   status("Loading multi-model forecast and trail map…");
   c.loading = (async () => {
-    const [fc, runs] = await Promise.allSettled([api.forecast(r), api.runs(r)]);
+    const runsP = api.runs(r);
+    c.skill = skillWeights((await getVerif())?.skill, r.id);
+    const [fc, runs] = await Promise.allSettled([api.forecast(r, 30, c.skill.weights), runsP]);
     if (fc.status === "rejected") throw fc.reason;
     c.h = fc.value;
     c.runsErr = runs.status === "rejected" || !runs.value.length;
@@ -93,6 +95,7 @@ function summary(r, c) {
   <div class="card">
     <h2>${esc(r.name)}</h2>
     <div class="muted small">${esc(r.region)}, ${esc(r.country)} · ${m(r.base)} – ${m(r.summit)} · treeline ≈ ${m(r.treeline)} · models: ${c.h.models.map((k) => MODEL_LABEL[k]).join(", ")}</div>
+    <div class="muted small">${c.skill?.source ? `Blend weighted by verified skill (${c.skill.source === "resort" ? "this resort's station" : c.skill.source === "global" ? "all SNOTEL stations" : "this resort's station and all stations"}, ≥${c.skill.n} scored days): ${Object.entries(c.skill.weights).sort((a, b) => b[1] - a[1]).map(([k, w]) => `${MODEL_LABEL[k]} ×${w}`).join(" · ")}` : "Equal model weights (high-res regional ×2) until enough forecasts are verified."}</div>
     <div class="kpis">
       <div class="kpi"><b>${open.length ? avg : "–"}</b><span>Avg run score (${state.tod === "am" ? "morning" : "afternoon"})</span></div>
       <div class="kpi"><b>${open.length}/${scored.length}</b><span>Runs with enough snow</span></div>
@@ -190,10 +193,11 @@ async function leaderboard() {
 }
 
 // Forecast accuracy from the daily SNOTEL verification.
-let verif;
+let verifP;
+// Verification feed (never blocks the forecast for more than 4 s).
+const getVerif = () => (verifP ||= Promise.race([api.verification().catch(() => null), new Promise((res) => setTimeout(() => res(null), 4000))]));
 async function accuracy(r) {
-  try { verif ||= await api.verification(); } catch { verif = null; }
-  const v = verif, el = $("#accuracy");
+  const v = await getVerif(), el = $("#accuracy");
   if (!v?.byLead?.blend) { el.innerHTML = ""; return; }
   const leads = [1, 2, 3, 5].filter((l) => v.byLead.blend[l]);
   const models = Object.keys(v.byLead).sort((a, b) => (a === "blend" ? -1 : b === "blend" ? 1 : (v.byLead[a][1]?.mae ?? 99) - (v.byLead[b][1]?.mae ?? 99)));

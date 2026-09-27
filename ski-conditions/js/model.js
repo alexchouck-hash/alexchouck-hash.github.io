@@ -31,18 +31,39 @@ export const HOURLY_VARS = ["temperature_2m", "precipitation", "freezing_level_h
 // ---------- multi-model blend ----------
 // Open-Meteo returns each variable once per model, suffixed with the model name.
 // Regional models (if any) arrive in a second response on the same time axis.
-export function blend(j, regional) {
+// Skill weights from SNOTEL verification (see scripts/verify.mjs `skill`).
+// Uses a resort's own station scores when there are enough, else all stations.
+// Weight ∝ 1 / (MAE + 1 cm), normalised to average 1, clamped to 0.4–2.5.
+export const SKILL_MIN = { resort: 10, global: 30 };
+export function skillWeights(skill, resortId) {
+  if (!skill) return { weights: {}, source: null };
+  const mine = skill.byResort?.[resortId] || {};
+  const scored = {};
+  let source = null;
+  for (const [m, g] of Object.entries(skill.global || {})) {
+    if (mine[m]?.n >= SKILL_MIN.resort) { scored[m] = mine[m]; source = source || "resort"; }
+    else if (g.n >= SKILL_MIN.global) { scored[m] = g; source = source === "resort" ? "mixed" : source || "global"; }
+  }
+  const ms = Object.keys(scored);
+  if (ms.length < 2) return { weights: {}, source: null };
+  const raw = Object.fromEntries(ms.map((m) => [m, 1 / (scored[m].mae + 1)]));
+  const avg = ms.reduce((a, m) => a + raw[m], 0) / ms.length;
+  return { weights: Object.fromEntries(ms.map((m) => [m, +clamp(raw[m] / avg, 0.4, 2.5).toFixed(2)])), source, n: Math.min(...ms.map((m) => scored[m].n)) };
+}
+
+// weights: optional per-model weights (from skillWeights); others use the defaults.
+export function blend(j, regional, weights = {}) {
   const h = { ...j.hourly }, n = h.time.length;
   if (regional?.hourly?.time?.length === n) for (const [k, v] of Object.entries(regional.hourly)) if (k !== "time") h[k] = v;
   const all = [...Object.keys(MODELS), ...Object.keys(REGIONAL)];
   const models = all.filter((m) => h[`temperature_2m_${m}`]?.some((v) => v != null));
-  const weight = (m) => (REGIONAL[m] ? 2 : 1);
+  const weight = (m) => weights[m] ?? (REGIONAL[m] ? 2 : 1);
   const series = (v) => Array.from({ length: n }, (_, i) => {
     let s = 0, w = 0;
     for (const m of models) { const x = h[`${v}_${m}`]?.[i]; if (x == null || Number.isNaN(x)) continue; s += x * weight(m); w += weight(m); }
     return w ? s / w : null;
   });
-  const out = { time: h.time, utcOffset: j.utc_offset_seconds || 0, refElev: j.elevation, models };
+  const out = { time: h.time, utcOffset: j.utc_offset_seconds || 0, refElev: j.elevation, models, weights: Object.fromEntries(models.map((m) => [m, weight(m)])) };
   for (const v of HOURLY_VARS) out[v] = series(v);
   // Wind direction must be averaged as a vector.
   out.wind_direction_10m = h.time.map((_, i) => {
