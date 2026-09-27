@@ -1,7 +1,8 @@
 import { DESTINATIONS, AIRPORTS } from "./destinations.js";
-import { ACTIVITIES, METRICS, SCORE_LEVELS, CROWD_TYPES, buildDay, mainActivity } from "./model.js";
+import { ACTIVITIES, METRICS, SCORE_LEVELS, CROWD_TYPES, ADVISORY, buildDay, mainActivity } from "./model.js";
 import { iso, parseISO, addDays, DAY, level, WMO } from "../../js/model.js";
 import * as api from "./api.js";
+import { nwsAlerts } from "../../js/api.js";
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -11,6 +12,7 @@ const TODAY = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()
 const MAX = addDays(TODAY, 365);
 const state = { activity: "all", id: DESTINATIONS[0]?.id, date: iso(TODAY), tab: "overview", scope: "all" };
 const cache = {};
+let space = null; // NOAA Kp outlook by date (shared by all destinations)
 
 // ---------- URL state ----------
 function readHash() {
@@ -27,18 +29,24 @@ const visible = () => DESTINATIONS.filter((d) => state.activity === "all" || d.t
 // ---------- data ----------
 function day(dest, d) {
   const c = cache[dest.id] || {};
-  return buildDay(dest, d, TODAY, { fc: c.fc?.days[iso(d)] || null, live: c.fc?.live, activity: pref() });
+  return buildDay(dest, d, TODAY, { fc: c.fc?.days[iso(d)] || null, live: c.fc?.live, activity: pref(), aq: c.aq?.days, alerts: c.alerts, space });
 }
 const memo = new Map();
 function allFor(d) {
-  const k = iso(d) + state.activity + Object.keys(cache).length;
+  const k = iso(d) + state.activity + Object.keys(cache).length + (space ? 1 : 0);
   if (!memo.has(k)) { memo.clear(); memo.set(k, new Map(DESTINATIONS.map((x) => [x.id, day(x, d)]))); }
   return memo.get(k);
 }
 async function load(id, force) {
   const dest = byId[id], c = (cache[id] ||= {});
   if (c.fc && !force) return;
-  try { c.fc = await api.forecast(dest.lat, dest.lon); c.err = null; } catch (e) { c.err = e.message; }
+  const [fc, aq, al] = await Promise.allSettled([
+    api.forecast(dest.lat, dest.lon), api.airQuality(dest.lat, dest.lon),
+    dest.country === "US" ? nwsAlerts(dest.lat, dest.lon) : Promise.resolve(null),
+  ]);
+  if (fc.status === "fulfilled") { c.fc = fc.value; c.err = null; } else c.err = fc.reason?.message;
+  if (aq.status === "fulfilled") c.aq = aq.value;
+  if (al.status === "fulfilled") c.alerts = al.value;
   memo.clear();
   if (state.id === id) { render(); paint(); }
 }
@@ -133,7 +141,7 @@ function render() {
       <span class="chip soft">${rec.weather.source === "forecast" ? `Forecast · ${rec.daysOut} days out` : `Typical conditions · ${rec.daysOut} days out`}</span>
       <span class="types">${dest.types.map((t) => `<span class="chip soft">${ACTIVITIES[t].icon} ${ACTIVITIES[t].label}</span>`).join("")}</span>
       ${[...rec.crowds.drivers].map((x) => `<span class="chip soft">${esc(x)}</span>`).join(" ")}</div>`;
-  $("#now").innerHTML = nowCard(c);
+  $("#now").innerHTML = nowCard(c) + (rec.alerts?.length ? rec.alerts.slice(0, 3).map((a) => `<div class="alert"><b>${esc(a.event)}</b>: ${esc(a.headline || "")}</div>`).join("") : "");
   $("#tab").innerHTML = (TABS[state.tab] || TABS.overview)(dest, d, rec);
   const rs = $("#scope"); if (rs) rs.onchange = () => { state.scope = rs.value; render(); };
   const dl = $("#tab [data-download]"); if (dl) dl.onclick = () => download(dest, dl.dataset.download);
@@ -188,6 +196,24 @@ function activityCards(dest, rec) {
       return `<div class="bugrow"><span>${esc(x.name)}</span><div class="meter"><i style="width:${x.index}%;--c:${col}"></i></div><b>${esc(x.label)}</b></div>`; }).join("")}
       ${dest.hike ? `<p class="small muted">Best months: ${esc(dest.hike.bestMonths || "—")} · Permits: ${esc(dest.hike.permits || "—")}</p>` : ""}</div>`);
   }
+  if (rec.aurora) {
+    const a = rec.aurora;
+    out.push(`<div class="card"><h3>🌌 Northern lights: ${esc(a.label)}</h3><div class="grid">
+      ${stat("Chance that night", `${a.chance}%`, "Activity × clear skies × darkness")}
+      ${stat("Kp needed here", a.kpNeeded, a.kpForecast != null ? `Forecast Kp ${a.kpForecast} (${a.source})` : "Typical odds for this month")}
+      ${stat("Geomagnetic odds", `${a.activityPct}%`, `Chance of Kp ≥ ${a.kpNeeded}`)}
+      ${stat("Dark hours", `${Math.max(0, Math.round((24 - rec.daylightHours) * 10) / 10)} h`, rec.daylightHours >= 21 ? "Midnight sun: no aurora" : "Night length")}
+    </div><p class="small muted">Kp forecast from <a href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast" target="_blank" rel="noopener">NOAA SWPC</a> (3-day and 27-day outlooks); later dates use typical odds, which peak near the equinoxes.</p></div>`);
+  }
+  if (rec.sky) {
+    const k = rec.sky;
+    out.push(`<div class="card"><h3>🔭 Night sky</h3><div class="grid">
+      ${stat("Moon", `${rec.moon.illumination}%`, rec.moon.phase)}
+      ${stat("Cloud cover", k.cloud != null ? `${k.cloud}%` : "—", rec.weather.source === "forecast" ? "Forecast" : "Typical night")}
+      ${stat("Bortle class", k.bortle, k.bortle <= 2 ? "Pristine dark sky" : k.bortle <= 4 ? "Rural sky" : "Light-polluted")}
+      ${stat("Best season", esc(k.season || "—"), esc(k.darkSkyPlace || ""))}
+    </div></div>`);
+  }
   if (dest.types.some((t) => CROWD_TYPES.includes(t))) {
     const cr = rec.crowds;
     out.push(`<div class="card"><h3>🎢 Crowds</h3><div class="row"><span class="big10">${cr.level}/10</span>${chip(cr.label, cr.color)}</div>
@@ -207,7 +233,7 @@ function swaps(dest, d, rec) {
   const all = allFor(d), act = rec.score.activity;
   const radius = CROWD_TYPES.includes(act) ? 300 : 400;
   const list = DESTINATIONS.filter((x) => x.id !== dest.id && x.types.includes(act))
-    .map((x) => ({ x, mi: dist(dest.lat, dest.lon, x.lat, x.lon), q: buildDay(x, d, TODAY, { fc: cache[x.id]?.fc?.days[iso(d)] || null, live: cache[x.id]?.fc?.live, activity: act }).score }))
+    .map((x) => ({ x, mi: dist(dest.lat, dest.lon, x.lat, x.lon), q: buildDay(x, d, TODAY, { fc: cache[x.id]?.fc?.days[iso(d)] || null, live: cache[x.id]?.fc?.live, activity: act, space }).score }))
     .filter((c) => c.mi <= radius && c.q.total >= rec.score.total + 5).sort((a, b) => b.q.total - a.q.total).slice(0, 5);
   if (!list.length) return `<div class="card"><h3>Nearby swaps</h3><p class="small" style="margin:0">Nothing within ${radius} miles scores meaningfully better for ${ACTIVITIES[act].label.toLowerCase()} on this date.</p></div>`;
   return `<div class="card"><h3>Nearby swaps for this date</h3><table>${list.map((c, i) => `<tr data-dest="${c.x.id}" style="cursor:pointer"><td><span class="chip soft">${i ? "Better" : "Best"}</span></td><td><b>${esc(c.x.name)}</b><br><span class="muted small">${esc(c.x.area)} · ${Math.round(c.mi)} mi</span></td><td>${scoreChip(c.q)}</td><td class="small">+${c.q.total - rec.score.total}</td></tr>`).join("")}</table></div>`;
@@ -229,6 +255,8 @@ const TABS = {
         ${stat("Crowds", chip(rec.crowds.label, rec.crowds.color), `${rec.crowds.level}/10`)}
         ${stat("Flights", chip(cst.flight.label, cst.flight.color), `${pct(cst.flight.pct)} vs avg`)}
         ${stat("Hotels", chip(cst.hotel.label, cst.hotel.color), `${pct(cst.hotel.pct)} vs avg`)}
+        ${stat("Air quality", rec.air ? `AQI ${rec.air.aqi}` : "—", rec.air ? esc(rec.air.label) : "Forecast covers ~5 days")}
+        ${stat("Travel advisory", ADVISORY[dest.country] ? `Level ${ADVISORY[dest.country]}` : dest.country === "US" ? "Domestic" : "—", "US State Dept (verify)")}
         ${stat("Daylight", `${rec.daylightHours} h`, w.sunrise ? `${w.sunrise}–${w.sunset}` : "Sunrise to sunset")}
         ${stat("Moon", `${rec.moon.illumination}%`, `${rec.moon.phase}${rec.moon.darkSky ? " · dark skies" : ""}`)}
       </div>
@@ -240,7 +268,7 @@ const TABS = {
     const all = allFor(d);
     const act = state.activity === "all" ? mainActivity(dest) : state.activity;
     const pool = DESTINATIONS.filter((x) => x.types.includes(act) && (state.scope === "all" || (state.scope === "near" ? dist(dest.lat, dest.lon, x.lat, x.lon) <= 600 : x.country === state.scope)));
-    const rows = pool.map((x) => ({ x, q: state.activity === "all" && all.get(x.id).score.activity !== act ? buildDay(x, d, TODAY, { activity: act }).score : all.get(x.id).score }))
+    const rows = pool.map((x) => ({ x, q: state.activity === "all" && all.get(x.id).score.activity !== act ? buildDay(x, d, TODAY, { activity: act, space }).score : all.get(x.id).score }))
       .sort((a, b) => b.q.total - a.q.total).slice(0, 40);
     const countries = [...new Set(DESTINATIONS.map((x) => x.country))].sort();
     return `<div class="card"><h3>Best for ${ACTIVITIES[act].icon} ${esc(ACTIVITIES[act].label)} on ${esc(state.date)}</h3>
@@ -313,4 +341,5 @@ readHash();
 setupMap();
 setup();
 select(state.id, false);
+api.spaceWeather().then((s) => { space = Object.keys(s).length ? s : null; memo.clear(); render(); paint(); }).catch(() => {});
 setInterval(() => load(state.id, true), 15 * 60 * 1000);
