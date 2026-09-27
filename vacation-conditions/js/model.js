@@ -13,7 +13,14 @@ export const ACTIVITIES = {
   park: { label: "Theme parks", icon: "🎢", weights: { crowds: 0.45, temperature: 0.1, rain: 0.1, heat: 0.1, cost: 0.25 }, critical: [] },
   city: { label: "Cities & events", icon: "🏙️", weights: { crowds: 0.3, temperature: 0.2, rain: 0.15, heat: 0.05, cost: 0.3 }, critical: [] },
   attraction: { label: "Attractions & landmarks", icon: "🏛️", weights: { crowds: 0.4, temperature: 0.15, rain: 0.15, heat: 0.05, cost: 0.25 }, critical: [] },
+  aurora: { label: "Northern lights", icon: "🌌", weights: { aurora: 0.4, clouds: 0.2, dark: 0.15, moonlight: 0.05, crowds: 0.1, cost: 0.1 }, critical: ["aurora", "dark", "clouds"] },
+  stars: { label: "Stargazing & dark skies", icon: "🔭", weights: { moonlight: 0.3, clouds: 0.3, skydark: 0.15, temperature: 0.05, crowds: 0.1, cost: 0.1 }, critical: ["moonlight", "clouds"] },
 };
+// Metrics every activity also considers (when data exists for that day).
+export const COMMON_WEIGHTS = { air: 0.05, alerts: 0.05, safety: 0.04 };
+
+// US State Dept advisory level by country (1–4; 0 = domestic US). Verify at travel.state.gov.
+export const ADVISORY = { US: 0, CA: 1, JP: 1, NO: 1, FI: 1, IS: 1, GL: 1, IE: 1, NZ: 1, NA: 1, CH: 1, AT: 1, FR: 2, IT: 2, ES: 2, DE: 2, GB: 2, SE: 2, CL: 2, MX: 2 };
 export const SCORE_LEVELS = [[40, "Poor", "#c8372d"], [55, "Fair", "#e0772b"], [70, "Good", "#e3b52a"], [85, "Very good", "#8bbf3f"], [101, "Excellent", "#2e9e6b"]];
 export const CROWD_LEVELS = [[25, "Quiet", "#2e9e6b"], [45, "Moderate", "#8bbf3f"], [65, "Busy", "#e3b52a"], [82, "Very busy", "#e0772b"], [101, "Packed", "#c8372d"]];
 export const COST_LEVELS = [[0.85, "Low", "#2e9e6b"], [0.97, "Below avg", "#8bbf3f"], [1.08, "Average", "#e3b52a"], [1.3, "High", "#e0772b"], [99, "Peak", "#c8372d"]];
@@ -149,10 +156,51 @@ export function moon(d) {
 export const METRICS = {
   snow: "Snow", skitemp: "Ski temperature", color: "Fall color", temperature: "Temperature", rain: "Rain/snow chance",
   bugs: "Bugs", trailsnow: "Trail snow", heat: "Heat", crowds: "Crowds", cost: "Travel cost",
+  aurora: "Aurora chance", clouds: "Clear skies", dark: "Darkness", moonlight: "Moonlight", skydark: "Light pollution",
+  air: "Air quality", alerts: "Weather alerts", safety: "Travel safety",
 };
+
+// ---------- air quality, alerts, safety ----------
+export const aqiLabel = (a) => a == null ? null : a <= 50 ? "Good" : a <= 100 ? "Moderate" : a <= 150 ? "Unhealthy for sensitive groups" : a <= 200 ? "Unhealthy" : a <= 300 ? "Very unhealthy" : "Hazardous";
+const ALERT_RANK = { Extreme: 5, Severe: 30, Moderate: 70, Minor: 90 };
+function alertsScore(alerts) {
+  if (!alerts) return null;
+  if (!alerts.length) return 100;
+  return Math.min(...alerts.map((a) => ALERT_RANK[a.severity] ?? 85));
+}
+
+// ---------- northern lights & stargazing ----------
+// Chance a night reaches Kp >= k (all nights, solar-cycle-25 declining phase),
+// boosted around the equinoxes when geomagnetic activity peaks.
+const KP_ODDS = [0.97, 0.9, 0.72, 0.45, 0.22, 0.09, 0.04, 0.02, 0.008, 0.003];
+const EQUINOX = [0.85, 1.0, 1.25, 1.2, 0.95, 0.8, 0.8, 0.9, 1.2, 1.25, 1.0, 0.85];
+export function auroraFor(dest, d, { kp = null, cloud = null, daylightH } = {}) {
+  const s = dest.sky; if (!s || s.kpNeeded == null) return null;
+  const need = s.kpNeeded;
+  const clim = Math.min(0.97, (KP_ODDS[Math.max(0, Math.min(9, Math.ceil(need)))] ?? 0.003) * EQUINOX[d.getUTCMonth()]);
+  const activity = kp == null ? clim : kp >= need ? 0.85 : kp >= need - 1 ? 0.35 : 0.08;
+  const night = Math.max(0, 24 - daylightH - 3); // hours of real darkness (rough)
+  const clear = 1 - (cloud ?? 50) / 100;
+  const chance = Math.round(activity * clear * Math.min(1, night / 6) * 100);
+  return { kpNeeded: need, kpForecast: kp, activityPct: Math.round(activity * 100), chance, source: kp == null ? "climatology" : "NOAA forecast",
+    label: night < 1 ? "Too bright (midnight sun)" : chance >= 50 ? "Good" : chance >= 25 ? "Possible" : chance >= 10 ? "Low" : "Unlikely" };
+}
+export function skyFor(dest, d, w) {
+  const s = dest.sky; if (!s) return null;
+  const cloud = w.source === "forecast" && w.cloud != null ? w.cloud : s.cloudPct ? Math.round(monthly(s.cloudPct, d)) : null;
+  return { bortle: s.bortle, cloud, season: s.season, darkSkyPlace: s.darkSkyPlace };
+}
 function score(activity, rec) {
   const w = rec.weather, parts = {};
-  const need = ACTIVITIES[activity].weights;
+  const need = { ...ACTIVITIES[activity].weights, ...COMMON_WEIGHTS };
+  if (need.aurora) parts.aurora = rec.aurora ? s100(rec.aurora.activityPct * 1.1) : null;
+  if (need.clouds) parts.clouds = rec.sky?.cloud == null ? null : s100(100 - rec.sky.cloud);
+  if (need.dark) parts.dark = s100((24 - rec.daylightHours - 4) * 11);
+  if (need.moonlight) parts.moonlight = s100(100 - rec.moon.illumination * (activity === "aurora" ? 0.5 : 1));
+  if (need.skydark) parts.skydark = rec.sky ? s100(100 - (rec.sky.bortle - 1) * 12) : null;
+  parts.air = rec.air?.aqi == null ? null : s100(100 - Math.max(0, rec.air.aqi - 40) * 0.6);
+  parts.alerts = alertsScore(rec.alerts);
+  parts.safety = rec.advisory == null ? null : [100, 100, 85, 45, 10][rec.advisory];
   if (need.snow) parts.snow = !rec.ski?.open ? 1 : s100(35 + Math.min(45, (rec.ski.liveDepthIn ?? rec.ski.typicalBaseIn) * 0.6) + Math.min(20, rec.ski.newSnowIn * 6));
   if (need.skitemp) parts.skitemp = band(w.tmaxF, 22, 38, 3);
   if (need.color) parts.color = rec.fall ? s100(rec.fall.color) : null;
@@ -166,11 +214,13 @@ function score(activity, rec) {
   parts.cost = s100(100 - (rec.cost.combined.index - 0.8) * 110);
   let tot = 0, wt = 0;
   for (const [k, v] of Object.entries(parts)) if (v != null && need[k]) { tot += v * need[k]; wt += need[k]; }
-  const drag = ACTIVITIES[activity].critical.reduce((a, k) => a + (parts[k] != null && need[k] ? Math.max(0, 35 - parts[k]) * 0.4 : 0), 0);
+  const drag = [...ACTIVITIES[activity].critical, "air", "alerts"].reduce((a, k) => a + (parts[k] != null && need[k] ? Math.max(0, 35 - parts[k]) * 0.4 : 0), 0);
   const closed = CROWD_TYPES.includes(activity) && rec.crowds.closed;
   let total = closed ? 1 : s100(tot / (wt || 1) - drag);
   // Water parks are only worth it on hot days.
   if (rec.waterPark && parts.temperature != null) total = Math.min(total, parts.temperature);
+  // No point going for the aurora if you can't actually see it (midnight sun, clouds, quiet sun).
+  if (activity === "aurora" && rec.aurora) total = Math.max(1, Math.min(total, Math.round(15 + rec.aurora.chance * 1.5)));
   if (closed) return { activity, total, label: "Closed", color: "#8a8f94", parts: {} };
   if (CROWD_TYPES.includes(activity) && rec.crowds.limited && total > 50) return { activity, total: 50, label: "Limited", color: "#e0772b", parts: Object.fromEntries(Object.entries(parts).filter(([k]) => need[k])) };
   return { activity, total, ...lab(total, SCORE_LEVELS), parts: Object.fromEntries(Object.entries(parts).filter(([k]) => need[k])) };
@@ -181,7 +231,7 @@ export function mainActivity(dest, pref) {
 }
 
 // Everything for one destination on one date.
-export function buildDay(dest, d, today, { fc = null, live = null, activity } = {}) {
+export function buildDay(dest, d, today, { fc = null, live = null, activity, aq = null, alerts = null, space = null } = {}) {
   const act = mainActivity(dest, activity);
   const weather = weatherFor(dest, d, fc);
   const rec = {
@@ -193,7 +243,13 @@ export function buildDay(dest, d, today, { fc = null, live = null, activity } = 
     events: eventsOn(dest, d).map((e) => e.name),
     daylightHours: daylight(dest.lat, d), moon: moon(d), waterPark: dest.park?.kind === "water",
     monthSnowIn: dest.climate?.snowIn ? Math.round(monthly(dest.climate.snowIn, d)) : 0,
+    air: aq?.[iso(d)] ? { ...aq[iso(d)], label: aqiLabel(aq[iso(d)].aqi) } : null,
+    // Live alerts describe the next few days only.
+    alerts: alerts && Math.round((d - today) / DAY) <= 2 ? alerts : null,
+    advisory: ADVISORY[dest.country] ?? null,
   };
+  rec.sky = skyFor(dest, d, weather);
+  rec.aurora = auroraFor(dest, d, { kp: space?.[iso(d)] ?? null, cloud: rec.sky?.cloud, daylightH: rec.daylightHours });
   rec.score = score(act, rec);
   rec.scores = Object.fromEntries(dest.types.map((t) => [t, t === act ? rec.score : score(t, rec)]));
   return rec;

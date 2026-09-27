@@ -12,6 +12,8 @@ The app is built around an **activity registry** (`js/model.js` → `ACTIVITIES`
 | 🍁 Fall colors | **Live**: typical peak timing, color index, weather, crowds, costs |
 | 🥾 Hiking & national parks | **Live**: temperature, rain, bugs (mosquito, black fly, tick, biting fly), trail snow, crowds, costs |
 | 🎢 Theme parks & cities | **Live**: crowd level 1–10 with holidays/events/day of week, heat, rain, costs |
+| 🌌 Northern lights | **Live**: NOAA SWPC 3-day/27-day Kp outlook, Kp needed per site, clouds, darkness, moon (23 sites) |
+| 🔭 Stargazing & dark skies | **Live**: moonlight, clouds, Bortle class (23 sites) |
 | 🏖️ Beaches & sargassum | **Live** as the sister site (`../`); to be merged in as an activity |
 
 ## Cross-cutting metrics (every destination)
@@ -23,10 +25,10 @@ The app is built around an **activity registry** (`js/model.js` → `ACTIVITIES`
 | Flight & hotel cost | Modeled index | Seasonality, holidays, events, day of week. Next: live fares via Amadeus / Travelpayouts API key |
 | Daylight hours, moon phase | Live (calculated) | Astronomy |
 | UV, heat index | Live 16 days | Open-Meteo |
-| Air quality & wildfire smoke | Planned | Open-Meteo Air Quality (AQI, PM2.5) |
+| Air quality & wildfire smoke | **Live** (5 days) | Open-Meteo Air Quality (US AQI, PM2.5) |
 | Pollen / allergies | Planned | Open-Meteo Air Quality (Europe) / Pollen APIs |
-| Severe weather, hurricanes | Planned | NWS alerts, NHC |
-| Travel advisories & safety | Planned | US State Dept feed |
+| Severe weather alerts | **Live** (US) | NWS alerts; hurricanes (NHC) planned |
+| Travel advisories & safety | **Static levels** (verify) | US State Dept; live feed planned |
 | Road/park closures, timed-entry permits | Planned | NPS API (free key) |
 | Currency / exchange rate | Planned | Frankfurter (ECB rates, free) |
 | Time zone & jet lag | Planned | Calculated from home airport |
@@ -65,8 +67,8 @@ The app is built around an **activity registry** (`js/model.js` → `ACTIVITIES`
 
 ## Next steps (suggested order)
 
-1. Air quality/smoke, severe weather alerts and travel advisories on every destination (free, no keys).
-2. Northern lights and stargazing (NOAA SWPC + clouds + moon) — mostly calculable.
+1. ~~Air quality/smoke, severe weather alerts and travel advisories on every destination.~~ Done.
+2. ~~Northern lights and stargazing.~~ Done.
 3. Concerts & festivals via Ticketmaster/SeatGeek (needs a free API key stored as a repo secret, fetched by a scheduled Action).
 4. Live flight/hotel prices (API key) layered over the modeled index.
 5. Diving, surfing and whale watching (Open-Meteo Marine + curated seasons).

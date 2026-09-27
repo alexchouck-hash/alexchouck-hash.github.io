@@ -7,7 +7,8 @@
 import * as ski from "../data/ski.js";
 import * as outdoors from "../data/outdoors.js";
 import * as parks from "../data/parks.js";
+import * as sky from "../data/sky.js";
 
-const PARTS = [ski, outdoors, parks];
+const PARTS = [ski, outdoors, parks, sky];
 export const AIRPORTS = Object.assign({}, ...PARTS.map((p) => p.AIRPORTS));
 export const DESTINATIONS = PARTS.flatMap((p) => p.DESTINATIONS);
