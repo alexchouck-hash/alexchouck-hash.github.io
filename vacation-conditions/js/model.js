@@ -219,6 +219,8 @@ function score(activity, rec) {
   let total = closed ? 1 : s100(tot / (wt || 1) - drag);
   // Water parks are only worth it on hot days.
   if (rec.waterPark && parts.temperature != null) total = Math.min(total, parts.temperature);
+  // No point going for the aurora if you can't actually see it (midnight sun, clouds, quiet sun).
+  if (activity === "aurora" && rec.aurora) total = Math.max(1, Math.min(total, Math.round(15 + rec.aurora.chance * 1.5)));
   if (closed) return { activity, total, label: "Closed", color: "#8a8f94", parts: {} };
   if (CROWD_TYPES.includes(activity) && rec.crowds.limited && total > 50) return { activity, total: 50, label: "Limited", color: "#e0772b", parts: Object.fromEntries(Object.entries(parts).filter(([k]) => need[k])) };
   return { activity, total, ...lab(total, SCORE_LEVELS), parts: Object.fromEntries(Object.entries(parts).filter(([k]) => need[k])) };
