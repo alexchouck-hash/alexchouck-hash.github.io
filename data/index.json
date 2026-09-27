@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-27T05:28:01.009Z",
+ "generated": "2026-09-27T12:10:01.733Z",
  "count": 36,
  "resorts": [
   {
@@ -13,9 +13,9 @@
     "sargassum": "Low",
     "sargassumScore": 13,
     "tmaxF": 84,
-    "sstF": 85,
-    "waveFt": 1,
-    "uv": 5.95,
+    "sstF": 86,
+    "waveFt": 0.9,
+    "uv": 5.9,
     "crowd": "Moderate"
    },
    "url": "resorts/ritz-naples.json"
@@ -32,8 +32,8 @@
     "sargassumScore": 12,
     "tmaxF": 86,
     "sstF": 85,
-    "waveFt": 1.1,
-    "uv": 6.85,
+    "waveFt": 1,
+    "uv": 6.7,
     "crowd": "Moderate"
    },
    "url": "resorts/marco-marriott.json"
@@ -47,11 +47,11 @@
    "lon": -82.192,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 12,
-    "tmaxF": 82,
+    "sargassumScore": 11,
+    "tmaxF": 81,
     "sstF": 85,
-    "waveFt": 1.5,
-    "uv": 6.8,
+    "waveFt": 1.6,
+    "uv": 6.65,
     "crowd": "Moderate"
    },
    "url": "resorts/south-seas.json"
@@ -68,8 +68,8 @@
     "sargassumScore": 10,
     "tmaxF": 84,
     "sstF": 85,
-    "waveFt": 1.2,
-    "uv": 6.55,
+    "waveFt": 1.1,
+    "uv": 6.4,
     "crowd": "Moderate"
    },
    "url": "resorts/pink-shell.json"
@@ -84,10 +84,10 @@
    "today": {
     "sargassum": "Low",
     "sargassumScore": 11,
-    "tmaxF": 86,
+    "tmaxF": 83,
     "sstF": 85,
     "waveFt": 1.2,
-    "uv": 7.9,
+    "uv": 7.2,
     "crowd": "Moderate"
    },
    "url": "resorts/lido-beach.json"
@@ -101,11 +101,11 @@
    "lon": -82.74,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 10,
-    "tmaxF": 87,
-    "sstF": 85,
-    "waveFt": 1.6,
-    "uv": 7.9,
+    "sargassumScore": 11,
+    "tmaxF": 83,
+    "sstF": 84,
+    "waveFt": 0.9,
+    "uv": 7,
     "crowd": "Moderate"
    },
    "url": "resorts/don-cesar.json"
@@ -120,10 +120,10 @@
    "today": {
     "sargassum": "Low",
     "sargassumScore": 11,
-    "tmaxF": 84,
-    "sstF": 83,
-    "waveFt": null,
-    "uv": 7.2,
+    "tmaxF": 83,
+    "sstF": 84,
+    "waveFt": 0.9,
+    "uv": 7,
     "crowd": "Moderate"
    },
    "url": "resorts/tradewinds.json"
@@ -136,12 +136,12 @@
    "lat": 27.976,
    "lon": -82.829,
    "today": {
-    "sargassum": "Very low",
-    "sargassumScore": 9,
-    "tmaxF": 86,
+    "sargassum": "Low",
+    "sargassumScore": 10,
+    "tmaxF": 83,
     "sstF": 84,
-    "waveFt": 1.1,
-    "uv": 7.9,
+    "waveFt": 1,
+    "uv": 6.8,
     "crowd": "Moderate"
    },
    "url": "resorts/opal-sands.json"
@@ -155,11 +155,11 @@
    "lon": -87.142,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 13,
+    "sargassumScore": 14,
     "tmaxF": 86,
-    "sstF": 84,
-    "waveFt": 2.5,
-    "uv": 6.65,
+    "sstF": 85,
+    "waveFt": 0.7,
+    "uv": 6.75,
     "crowd": "Moderate"
    },
    "url": "resorts/hilton-pensacola.json"
@@ -173,11 +173,11 @@
    "lon": -86.446,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 16,
-    "tmaxF": 84,
+    "sargassumScore": 15,
+    "tmaxF": 85,
     "sstF": 86,
-    "waveFt": 1,
-    "uv": 7.7,
+    "waveFt": 0.9,
+    "uv": 6.45,
     "crowd": "Moderate"
    },
    "url": "resorts/henderson.json"
@@ -191,11 +191,11 @@
    "lon": -86.329,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 18,
-    "tmaxF": 84,
-    "sstF": 84,
-    "waveFt": 2,
-    "uv": 6.85,
+    "sargassumScore": 15,
+    "tmaxF": 87,
+    "sstF": 85,
+    "waveFt": 1,
+    "uv": 6.4,
     "crowd": "Moderate"
    },
    "url": "resorts/sandestin.json"
@@ -209,11 +209,11 @@
    "lon": -86.159,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 15,
-    "tmaxF": 84,
+    "sargassumScore": 14,
+    "tmaxF": 88,
     "sstF": 85,
-    "waveFt": 1.1,
-    "uv": 7.8,
+    "waveFt": 1,
+    "uv": 6.6,
     "crowd": "Moderate"
    },
    "url": "resorts/watercolor.json"
@@ -227,11 +227,11 @@
    "lon": -85.8,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 18,
-    "tmaxF": 83,
+    "sargassumScore": 15,
+    "tmaxF": 85,
     "sstF": 85,
     "waveFt": 0.9,
-    "uv": 6.95,
+    "uv": 6.85,
     "crowd": "Moderate"
    },
    "url": "resorts/edgewater-pcb.json"
@@ -245,11 +245,11 @@
    "lon": -87.645,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 16,
-    "tmaxF": 85,
+    "sargassumScore": 17,
+    "tmaxF": 86,
     "sstF": 85,
-    "waveFt": 0.9,
-    "uv": 6.5,
+    "waveFt": 0.7,
+    "uv": 6.9,
     "crowd": "Moderate"
    },
    "url": "resorts/lodge-gsp.json"
@@ -263,11 +263,11 @@
    "lon": -87.525,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 19,
-    "tmaxF": 83,
-    "sstF": 84,
-    "waveFt": 2.1,
-    "uv": 7.7,
+    "sargassumScore": 16,
+    "tmaxF": 89,
+    "sstF": 85,
+    "waveFt": 0.6,
+    "uv": 6.85,
     "crowd": "Moderate"
    },
    "url": "resorts/perdido-beach.json"
@@ -282,10 +282,10 @@
    "today": {
     "sargassum": "Very low",
     "sargassumScore": 6,
-    "tmaxF": 87,
-    "sstF": 85,
-    "waveFt": 0.7,
-    "uv": 6.9,
+    "tmaxF": 88,
+    "sstF": 86,
+    "waveFt": 0.6,
+    "uv": 7.05,
     "crowd": "Moderate"
    },
    "url": "resorts/beau-rivage.json"
@@ -299,11 +299,11 @@
    "lon": -89.987,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 12,
-    "tmaxF": 84,
+    "sargassumScore": 16,
+    "tmaxF": 83,
     "sstF": 86,
     "waveFt": 0.9,
-    "uv": 7.15,
+    "uv": 7.05,
     "crowd": "Moderate"
    },
    "url": "resorts/grand-isle.json"
@@ -318,10 +318,10 @@
    "today": {
     "sargassum": "Moderate",
     "sargassumScore": 35,
-    "tmaxF": 85,
+    "tmaxF": 88,
     "sstF": 87,
-    "waveFt": 1.5,
-    "uv": 7.1,
+    "waveFt": 1.8,
+    "uv": 7,
     "crowd": "Moderate"
    },
    "url": "resorts/san-luis.json"
@@ -335,11 +335,11 @@
    "lon": -94.853,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 32,
-    "tmaxF": 84,
-    "sstF": 87,
-    "waveFt": 1.5,
-    "uv": 7.1,
+    "sargassumScore": 25,
+    "tmaxF": 83,
+    "sstF": 85,
+    "waveFt": 2,
+    "uv": 7.6,
     "crowd": "Moderate"
    },
    "url": "resorts/moody-gardens.json"
@@ -353,11 +353,9 @@
    "lon": -97.1,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 38,
-    "tmaxF": 89,
+    "sargassumScore": 28,
     "sstF": 87,
-    "waveFt": 1.6,
-    "uv": 7.05,
+    "waveFt": 1.8,
     "crowd": "Moderate"
    },
    "url": "resorts/cinnamon-shore.json"
@@ -371,11 +369,11 @@
    "lon": -97.164,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 39,
-    "tmaxF": 86,
-    "sstF": 87,
-    "waveFt": 1.6,
-    "uv": 7.25,
+    "sargassumScore": 38,
+    "tmaxF": 85,
+    "sstF": 86,
+    "waveFt": 2.2,
+    "uv": 7.4,
     "crowd": "Moderate"
    },
    "url": "resorts/pearl-spi.json"
@@ -389,11 +387,11 @@
    "lon": -97.165,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 39,
-    "tmaxF": 86,
+    "sargassumScore": 38,
+    "tmaxF": 85,
     "sstF": 87,
-    "waveFt": 1.6,
-    "uv": 7.25,
+    "waveFt": 1.7,
+    "uv": 7.4,
     "crowd": "Moderate"
    },
    "url": "resorts/isla-grand.json"
@@ -407,10 +405,10 @@
    "lon": -81.788,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 34,
+    "sargassumScore": 33,
     "tmaxF": 88,
     "sstF": 87,
-    "waveFt": 1,
+    "waveFt": 1.2,
     "uv": 7.9,
     "crowd": "Moderate"
    },
@@ -426,10 +424,10 @@
    "today": {
     "sargassum": "Moderate",
     "sargassumScore": 29,
-    "tmaxF": 85,
-    "sstF": 86,
-    "waveFt": 1.8,
-    "uv": 6.15,
+    "tmaxF": 87,
+    "sstF": 85,
+    "waveFt": 2,
+    "uv": 6,
     "crowd": "Quiet"
    },
    "url": "resorts/riu-peninsula.json"
@@ -444,9 +442,11 @@
    "today": {
     "sargassum": "Moderate",
     "sargassumScore": 37,
-    "sstF": 86,
-    "waveFt": 1.8,
-    "crowd": "Moderate"
+    "tmaxF": 87,
+    "sstF": 85,
+    "waveFt": 2,
+    "uv": 6,
+    "crowd": "Quiet"
    },
    "url": "resorts/hyatt-ziva-cun.json"
   },
@@ -459,12 +459,12 @@
    "lon": -86.746,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 34,
-    "tmaxF": 85,
+    "sargassumScore": 30,
+    "tmaxF": 87,
     "sstF": 85,
-    "waveFt": 2.9,
-    "uv": 8.2,
-    "crowd": "Moderate"
+    "waveFt": 2,
+    "uv": 6,
+    "crowd": "Quiet"
    },
    "url": "resorts/fiesta-coral.json"
   },
@@ -477,11 +477,11 @@
    "lon": -86.778,
    "today": {
     "sargassum": "High",
-    "sargassumScore": 67,
+    "sargassumScore": 66,
     "tmaxF": 89,
     "sstF": 86,
-    "waveFt": 3,
-    "uv": 6.15,
+    "waveFt": 2.1,
+    "uv": 6,
     "crowd": "Quiet"
    },
    "url": "resorts/iberostar-cun.json"
@@ -494,12 +494,12 @@
    "lat": 21.26,
    "lon": -86.752,
    "today": {
-    "sargassum": "Moderate",
-    "sargassumScore": 27,
-    "tmaxF": 87,
+    "sargassum": "Low",
+    "sargassumScore": 23,
+    "tmaxF": 90,
     "sstF": 87,
-    "waveFt": 2,
-    "uv": 8,
+    "waveFt": 2.1,
+    "uv": 6.7,
     "crowd": "Quiet"
    },
    "url": "resorts/impression-isla.json"
@@ -513,12 +513,12 @@
    "lon": -87.379,
    "today": {
     "sargassum": "Moderate",
-    "sargassumScore": 26,
-    "tmaxF": 85,
+    "sargassumScore": 28,
+    "tmaxF": 86,
     "sstF": 85,
-    "waveFt": 0.8,
-    "uv": 6.9,
-    "crowd": "Quiet"
+    "waveFt": 0.7,
+    "uv": 6.5,
+    "crowd": "Moderate"
    },
    "url": "resorts/holbox.json"
   },
@@ -531,11 +531,11 @@
    "lon": -87.07,
    "today": {
     "sargassum": "High",
-    "sargassumScore": 68,
+    "sargassumScore": 69,
     "tmaxF": 90,
-    "sstF": 87,
+    "sstF": 86,
     "waveFt": 1,
-    "uv": 7.8,
+    "uv": 7.25,
     "crowd": "Quiet"
    },
    "url": "resorts/playa-del-carmen.json"
@@ -549,11 +549,11 @@
    "lon": -87.465,
    "today": {
     "sargassum": "High",
-    "sargassumScore": 61,
-    "tmaxF": 87,
+    "sargassumScore": 69,
+    "tmaxF": 90,
     "sstF": 87,
-    "waveFt": 2.4,
-    "uv": 8,
+    "waveFt": 1.6,
+    "uv": 7.6,
     "crowd": "Quiet"
    },
    "url": "resorts/tulum.json"
@@ -568,10 +568,10 @@
    "today": {
     "sargassum": "Low",
     "sargassumScore": 13,
-    "tmaxF": 92,
+    "tmaxF": 94,
     "sstF": 88,
     "waveFt": 1.2,
-    "uv": 8.05,
+    "uv": 8.1,
     "crowd": "Quiet"
    },
    "url": "resorts/progreso.json"
@@ -586,10 +586,10 @@
    "today": {
     "sargassum": "Very low",
     "sargassumScore": 6,
-    "tmaxF": 90,
+    "tmaxF": 91,
     "sstF": 89,
-    "waveFt": 0.6,
-    "uv": 8.3,
+    "waveFt": 0.7,
+    "uv": 7.9,
     "crowd": "Moderate"
    },
    "url": "resorts/campeche.json"
@@ -607,7 +607,7 @@
     "tmaxF": 87,
     "sstF": 86,
     "waveFt": null,
-    "uv": 8.35,
+    "uv": 8.1,
     "crowd": "Quiet"
    },
    "url": "resorts/boca-del-rio.json"
@@ -622,11 +622,11 @@
    "today": {
     "sargassum": "Low",
     "sargassumScore": 15,
-    "tmaxF": 88,
+    "tmaxF": 89,
     "sstF": 87,
-    "waveFt": 1.4,
-    "uv": 7.75,
-    "crowd": "Moderate"
+    "waveFt": 1.6,
+    "uv": 8.1,
+    "crowd": "Quiet"
    },
    "url": "resorts/miramar-tampico.json"
   },
@@ -639,12 +639,12 @@
    "lon": -81.15,
    "today": {
     "sargassum": "Low",
-    "sargassumScore": 24,
-    "tmaxF": 86,
+    "sargassumScore": 23,
+    "tmaxF": 88,
     "sstF": 87,
     "waveFt": 1.5,
-    "uv": 7.6,
-    "crowd": "Quiet"
+    "uv": 6.95,
+    "crowd": "Moderate"
    },
    "url": "resorts/varadero.json"
   }
