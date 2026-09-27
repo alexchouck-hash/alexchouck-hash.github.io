@@ -1,5 +1,5 @@
 import { RESORTS, REGIONS, AIRPORTS, TOURISM, CLEANUP } from "./resorts.js";
-import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, normalsFromArchive, fallbackSstF, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
+import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, normalsFromArchive, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -9,7 +9,7 @@ const now = new Date();
 const TODAY = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12));
 const MAX = addDays(TODAY, 365);
 
-const state = { id: "lodge-gsp", date: iso(TODAY), tab: "overview", metric: "sargassum", data: {}, overview: null };
+const state = { id: "lodge-gsp", date: iso(TODAY), tab: "overview", metric: "sargassum", data: {}, index: null };
 const cache = state.data;
 
 // ---------- URL state ----------
@@ -32,6 +32,16 @@ function setupControls() {
   }
   sel.value = state.id;
   sel.onchange = () => selectResort(sel.value, true);
+  const q = $("#search"), dl = $("#resortlist");
+  const label = (r) => `${r.name} (${r.city})`;
+  const byLabel = new Map(RESORTS.map((r) => [label(r).toLowerCase(), r.id]));
+  dl.innerHTML = RESORTS.map((r) => `<option value="${esc(label(r))}"></option>`).join("");
+  q.placeholder = `Search ${RESORTS.length} resorts…`;
+  q.onchange = () => {
+    const v = q.value.trim().toLowerCase();
+    const id = byLabel.get(v) ?? RESORTS.find((r) => label(r).toLowerCase().includes(v))?.id;
+    if (v && id) { q.value = ""; selectResort(id, true); }
+  };
   const di = $("#date");
   di.min = iso(TODAY); di.max = iso(MAX); di.value = state.date;
   di.onchange = () => { if (di.value) setDate(di.value); };
@@ -49,26 +59,22 @@ function setDate(d) {
 // ---------- map ----------
 let map, markers = {};
 function setupMap() {
-  map = L.map("map", { zoomControl: true }).setView([24.5, -89.5], 5);
+  map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([19.5, -76], 4);
   const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
   const y = iso(addDays(TODAY, -1));
   const sat = L.tileLayer(`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${y}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`, { maxZoom: 9, attribution: "NASA GIBS / MODIS Terra" });
   L.control.layers({ "Street map": osm, [`Satellite (MODIS, ${y})`]: sat }).addTo(map);
   for (const r of RESORTS) {
-    markers[r.id] = L.circleMarker([r.lat, r.lon], { radius: 8, weight: 2, color: "#fff", fillOpacity: 0.95 })
+    markers[r.id] = L.circleMarker([r.lat, r.lon], { radius: 6, weight: 1.5, color: "#fff", fillOpacity: 0.95 })
       .addTo(map).on("click", () => selectResort(r.id, false));
   }
 }
+// Map values from the prebuilt feed index (16-day wind/temperature, today's water).
 function overviewFor(r, d) {
-  const o = state.overview; if (!o) return {};
-  const i = RESORTS.indexOf(r); const k = iso(d);
-  const w = o.weather[i], m = o.marine[i];
-  const wi = w?.daily?.time.indexOf(k) ?? -1, mi = m?.daily?.time.indexOf(k) ?? -1;
-  return {
-    windDir: wi >= 0 ? w.daily.wind_direction_10m_dominant[wi] : null, windMph: wi >= 0 ? w.daily.wind_speed_10m_max[wi] : null,
-    tmaxF: wi >= 0 ? Math.round(w.daily.temperature_2m_max[wi]) : null,
-    sstF: k === iso(TODAY) && m?.current?.sea_surface_temperature != null ? Math.round(m.current.sea_surface_temperature * 1.8 + 32) : null,
-  };
+  const x = state.index?.[r.id]; if (!x) return {};
+  const i = Math.round((d - parseISO(state.indexStart)) / DAY);
+  const at = (a) => (i >= 0 && i < (a?.length ?? 0) ? a[i] : null);
+  return { windDir: at(x.next16?.windDir), windMph: at(x.next16?.windMph), tmaxF: at(x.next16?.tmaxF), sstF: i === 0 ? x.today?.sstF : null };
 }
 const TEMP_LEVELS = [[60, "<60°", "#3b6fb6"], [70, "60s", "#4fa3c7"], [80, "70s", "#8bbf3f"], [90, "80s", "#e3b52a"], [200, "90+", "#e0772b"]];
 function paintMap() {
@@ -83,13 +89,14 @@ function paintMap() {
     } else if (state.metric === "crowd") {
       const c = crowds(r, d).resort; color = c.color; text = `Crowds ${c.label}`;
     } else if (state.metric === "temp") {
-      const n = cache[r.id]?.normals?.[doy(d)];
-      val = o.tmaxF ?? n?.tmaxF; color = val != null ? level(val, TEMP_LEVELS)[2] : "#999"; text = val != null ? `High ${val}°F` : "Open resort to load climate outlook";
+      const n = cache[r.id]?.normals?.[doy(d)] ?? regionalNormal(r, d);
+      val = o.tmaxF ?? n?.tmaxF; color = val != null ? level(val, TEMP_LEVELS)[2] : "#999"; text = val != null ? `High ${val}°F${o.tmaxF != null ? "" : " (typical)"}` : "No data";
     } else {
       val = o.sstF ?? cache[r.id]?.normals?.[doy(d)]?.sstF ?? fallbackSstF(r, d); color = level(val, TEMP_LEVELS)[2]; text = `Water ~${val}°F`;
     }
     const m = markers[r.id];
-    m.setStyle({ fillColor: color, radius: r.id === state.id ? 12 : 8, weight: r.id === state.id ? 3 : 2, color: r.id === state.id ? "#14212b" : "#fff" });
+    m.setStyle({ fillColor: color, radius: r.id === state.id ? 11 : 6, weight: r.id === state.id ? 3 : 1.5, color: r.id === state.id ? "#14212b" : "#fff" });
+    if (r.id === state.id) m.bringToFront();
     m.bindTooltip(`<b>${esc(r.name)}</b><br>${esc(r.city)}<br>${esc(text)}`);
   }
   $("#legend").innerHTML = legends[state.metric].map(([, l, c]) => `<span style="--c:${c}">${l}</span>`).join("");
@@ -109,7 +116,7 @@ async function loadResort(id, force = false) {
   const jobs = [];
   if (force || !c.fc) jobs.push(api.forecast(r.lat, r.lon).then((v) => (c.fc = v)).catch((e) => (c.fcErr = e.message)));
   if (force || !c.mar) jobs.push(api.marine(...api.marinePoint(r)).then((v) => (c.mar = v)).catch((e) => (c.marErr = e.message)));
-  if (!c.alerts && REGIONS[r.region].country === "US") jobs.push(api.nwsAlerts(r.lat, r.lon).then((v) => (c.alerts = v)).catch(() => (c.alerts = [])));
+  if (!c.alerts && ["US", "PR", "VI"].includes(REGIONS[r.region].country)) jobs.push(api.nwsAlerts(r.lat, r.lon).then((v) => (c.alerts = v)).catch(() => (c.alerts = [])));
   if (!c.normals) jobs.push(loadNormals(r).then((v) => (c.normals = v)).catch((e) => (c.normErr = e.message)));
   // re-render as each piece arrives
   jobs.forEach((j) => j.then(() => { if (state.id === id) { render(); paintMap(); } }));
@@ -117,11 +124,17 @@ async function loadResort(id, force = false) {
   c.loadedAt = new Date();
   if (state.id === id) render();
 }
+// Location climate normals: the feed's shared 0.5° cell first, then a live
+// ERA5 pull (cached locally for 30 days).
 async function loadNormals(r) {
-  const key = "gsf:normals:v2:" + r.id;
+  const key = "gsf:normals:v3:" + r.id;
   try {
     const hit = JSON.parse(localStorage.getItem(key) || "null");
     if (hit && Date.now() - hit.t < 30 * DAY) return hit.v;
+  } catch {}
+  try {
+    const j = await api.getJSON(`${api.FEED_BASE}normals/${api.cellKey([r.lat, r.lon], 0.5)}.json`, 0);
+    if (j?.normals) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: j.normals })); } catch {} return j.normals; }
   } catch {}
   const h = await api.history(r.lat, r.lon, api.marinePoint(r));
   const v = normalsFromArchive(h.daily, h.marine);
@@ -141,7 +154,7 @@ const chip = (label, color) => `<span class="chip" style="--c:${color}">${esc(la
 const stat = (k, v, d = "", pct = null, color = "") => `<div class="stat"><div class="k">${k}</div><div class="v">${v ?? "—"}</div><div class="d">${d}</div>${pct != null ? `<div class="meter"><i style="width:${pct}%;--c:${color}"></i></div>` : ""}</div>`;
 const compass = (deg) => deg == null ? "" : ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"][Math.round(deg / 22.5) % 16];
 const fmtDate = (d) => d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
-const srcNote = (rec) => rec.source === "forecast" ? `<span class="chip soft">Forecast · ${rec.daysOut} day${rec.daysOut === 1 ? "" : "s"} out</span>` : `<span class="chip soft">Climate outlook · ${rec.daysOut} days out</span>`;
+const srcNote = (rec) => rec.source === "forecast" ? `<span class="chip soft">Forecast · ${rec.daysOut} day${rec.daysOut === 1 ? "" : "s"} out</span>` : `<span class="chip soft">Climate outlook${rec.source === "regional-climate" ? " (regional)" : ""} · ${rec.daysOut} days out</span>`;
 
 function render() {
   writeHash();
@@ -171,7 +184,7 @@ function renderNow(r, c) {
       ${stat("Cloud cover", `${cur.cloud_cover}%`, cur.precipitation > 0 ? `Rain ${cur.precipitation}" last hr` : "No rain now")}
       ${stat("Water temp", m?.sstF != null ? `${m.sstF}°F` : "—", "Sea surface")}
       ${stat("Waves", m?.waveFt != null ? `${m.waveFt} ft` : "—", m?.periodS ? `${m.periodS}s period, from ${compass(m.waveDir)}` : "")}
-    </div>${alerts || (REGIONS[r.region].country === "US" ? `<p class="muted small" style="margin:8px 0 0">No active NWS alerts.</p>` : "")}`;
+    </div>${alerts || (["US", "PR", "VI"].includes(REGIONS[r.region].country) ? `<p class="muted small" style="margin:8px 0 0">No active NWS alerts.</p>` : "")}`;
 }
 
 // ---------- tabs ----------
@@ -232,7 +245,7 @@ const TABS = {
       ${stat("UV max", w.uv != null ? w.uv : "—", uvCategory(w.uv) || "")}
       ${w.sunrise ? stat("Sun", w.sunrise, "set " + w.sunset) : ""}
     </div>
-    <p class="small muted">${rec.source === "forecast" ? "Day-specific forecast from Open-Meteo (blend of NOAA GFS/HRRR, ECMWF and others)." : "More than 16 days out, no model can forecast a specific day. These are 10-year ERA5 normals for this date (±5 days), which is the most reliable long-range guidance."}</p></div>
+    <p class="small muted">${rec.source === "forecast" ? "Day-specific forecast from Open-Meteo (blend of NOAA GFS/HRRR, ECMWF and others)." : rec.source === "regional-climate" ? "More than 16 days out, no model can forecast a specific day. These are regional monthly averages until this location's own climate normals are built." : "More than 16 days out, no model can forecast a specific day. These are 6-year ERA5 normals for this date (±5 days), which is the most reliable long-range guidance."}</p></div>
     ${hourly}${forecastStrip(r, d)}`;
   },
 
@@ -279,7 +292,9 @@ const TABS = {
       ${sf.actions.length ? `<h3 style="margin-top:10px">For ${esc(state.date)}</h3><ul class="clean">${sf.actions.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}</div>
     <div class="card small"><h3>Live safety sources</h3><ul class="clean">
       <li><a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">National Hurricane Center</a></li>
-      ${REGIONS[r.region].country === "US" ? `<li><a href="https://forecast.weather.gov/MapClick.php?lat=${r.lat}&lon=${r.lon}" target="_blank" rel="noopener">NWS point forecast & hazards</a></li><li><a href="https://myfwc.com/research/redtide/statewide/" target="_blank" rel="noopener">FWC red tide status (FL)</a></li>` : `<li><a href="https://smn.conagua.gob.mx/" target="_blank" rel="noopener">SMN Mexico weather service</a></li>`}
+      ${["US", "PR", "VI"].includes(REGIONS[r.region].country) ? `<li><a href="https://forecast.weather.gov/MapClick.php?lat=${r.lat}&lon=${r.lon}" target="_blank" rel="noopener">NWS point forecast & hazards</a></li>` : ""}
+      ${r.city.endsWith(", FL") ? `<li><a href="https://myfwc.com/research/redtide/statewide/" target="_blank" rel="noopener">FWC red tide status (FL)</a></li>` : ""}
+      ${REGIONS[r.region].country === "MX" ? `<li><a href="https://smn.conagua.gob.mx/" target="_blank" rel="noopener">SMN Mexico weather service</a></li>` : ""}
       <li>Beach flags: Green low · Yellow medium · Red high · Double red water closed · Purple marine pests</li></ul></div>`;
   },
 
@@ -292,15 +307,14 @@ const TABS = {
   },
 
   data(r) {
-    const base = location.origin + location.pathname.replace(/index\.html$/, "");
     return `<div class="card"><h3>Download this resort</h3>
       <p>Full 365-day dataset (sargassum, weather/climate, water, waves, UV, crowds, safety) as generated in your browser right now.</p>
       <button data-download="json">Download JSON</button> <button data-download="csv">Download CSV</button></div>
     <div class="card"><h3>JSON data feed</h3>
-      <p class="small">A GitHub Action rebuilds a static JSON feed for every resort every 3 hours. No key needed.</p>
-      <pre>GET ${esc(base)}data/index.json
-GET ${esc(base)}data/resorts/${esc(r.id)}.json</pre>
-      <p class="small">Each resort file contains <code>current</code> (live conditions), <code>days[]</code> for the next 365 days (16-day forecast, then climate outlook) and <code>meta</code>. See <a href="data/README.md">field reference</a>.</p></div>`;
+      <p class="small">A GitHub Action rebuilds a static JSON feed for all ${RESORTS.length} resorts every 6 hours and publishes it on the <code>data-feed</code> branch. No key needed.</p>
+      <pre>GET ${esc(api.FEED_BASE)}index.json
+GET ${esc(api.FEED_BASE)}resorts/${esc(r.id)}.json</pre>
+      <p class="small">Each resort file contains <code>current</code> (live conditions and alerts), <code>days[]</code> with full detail for the next 16 days, and <code>outlook</code> with day-by-day columns for the rest of the year. See <a href="https://github.com/alexchouck-hash/alexchouck-hash.github.io/blob/main/data/README.md" target="_blank" rel="noopener">field reference</a>.</p></div>`;
   },
 };
 
@@ -383,6 +397,9 @@ setupControls();
 setupMap();
 document.addEventListener("click", (e) => { const a = e.target.closest("[data-resort]"); if (a) { e.preventDefault(); selectResort(a.dataset.resort, true); } });
 render(); paintMap();
-api.overview(RESORTS).then((o) => { state.overview = o; paintMap(); }).catch(() => {});
+const loadIndex = () => api.getJSON(api.FEED_BASE + "index.json", 15)
+  .then((j) => { state.index = Object.fromEntries(j.resorts.map((x) => [x.id, x])); state.indexStart = j.start; paintMap(); })
+  .catch(() => {});
+loadIndex();
 selectResort(state.id, true);
-setInterval(() => { loadResort(state.id, true); api.overview(RESORTS).then((o) => { state.overview = o; paintMap(); }).catch(() => {}); }, 10 * 60 * 1000);
+setInterval(() => { loadResort(state.id, true); loadIndex(); }, 10 * 60 * 1000);

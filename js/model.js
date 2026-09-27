@@ -85,14 +85,19 @@ export const SARG_SEASON = {
   gulf_n: [0.02, 0.02, 0.05, 0.2, 0.45, 0.75, 0.9, 0.8, 0.5, 0.2, 0.05, 0.02],
   gulf_e: [0.02, 0.02, 0.05, 0.15, 0.35, 0.6, 0.75, 0.7, 0.45, 0.2, 0.05, 0.02],
   gulf_s: [0.05, 0.05, 0.1, 0.3, 0.55, 0.75, 0.8, 0.7, 0.45, 0.2, 0.08, 0.05],
+  // Lesser Antilles / Greater Antilles windward coasts: first landfall of the belt.
+  carib_e: [0.25, 0.3, 0.5, 0.75, 0.95, 1.0, 0.95, 0.85, 0.6, 0.4, 0.3, 0.25],
+  // Southern Caribbean (ABC islands, Trinidad, Central America south of Honduras, Colombia).
+  carib_s: [0.1, 0.1, 0.2, 0.35, 0.5, 0.6, 0.6, 0.5, 0.35, 0.2, 0.1, 0.1],
+  // Bahamas / Turks & Caicos (Atlantic side).
+  atl_n: [0.1, 0.1, 0.2, 0.4, 0.65, 0.85, 0.9, 0.85, 0.6, 0.35, 0.15, 0.1],
+  none: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 };
+export const basinOf = (resort) => resort.basin ?? REGIONS[resort.region]?.basin ?? "none";
 // Year-to-year bloom intensity multiplier. 2025 set records; keep elevated
 // until the USF monthly outlook says otherwise. Update as bulletins arrive.
 export const ANNUAL_INTENSITY = { 2026: 1.1, 2027: 1.0 };
 
-// Barrier / cleanup effectiveness at resort frontage (fraction removed by
-// morning on a typical day).
-const CLEANUP_EFFECT = { mx_cun: 0.6, mx_rm: 0.45, fl_sw: 0.6, fl_tb: 0.55, fl_ph: 0.55, al_ms: 0.65, la: 0.2, tx_up: 0.55, tx_lo: 0.55, fl_keys: 0.55, mx_yuc: 0.4, mx_ver: 0.35, cu: 0.5 };
 
 export const SARG_LEVELS = [
   [10, "Very low", "#2e9e6b"], [25, "Low", "#8bbf3f"], [45, "Moderate", "#e3b52a"], [70, "High", "#e0772b"], [101, "Very high", "#c8372d"],
@@ -106,7 +111,7 @@ export function onshore(facing, windFromDeg) {
 }
 
 export function sargassum(resort, d, { windDir, windMph, daysOut = 999 } = {}) {
-  const season = monthly(SARG_SEASON[resort.basin], d);
+  const season = monthly(SARG_SEASON[basinOf(resort)] ?? SARG_SEASON.none, d);
   const intensity = ANNUAL_INTENSITY[d.getUTCFullYear()] ?? 1.0;
   let windFactor = 1;
   if (windDir != null && windMph != null) {
@@ -114,7 +119,7 @@ export function sargassum(resort, d, { windDir, windMph, daysOut = 999 } = {}) {
     windFactor = 1 + 0.45 * on * clamp(windMph / 18, 0.2, 1);
   }
   const score = Math.round(clamp(season * resort.exposure * intensity * windFactor * 100, 0, 100));
-  const effect = CLEANUP_EFFECT[resort.region] ?? 0.4;
+  const effect = REGIONS[resort.region].cleanupEffect ?? 0.4;
   const afterCleanup = Math.round(score * (1 - effect));
   const confidence = daysOut <= 7 ? "moderate (wind-adjusted)" : daysOut <= 30 ? "low-moderate (seasonal + monthly outlook)" : "low (climatology)";
   const [, label, color] = level(score);
@@ -132,31 +137,14 @@ export function sargassum(resort, d, { windDir, windMph, daysOut = 999 } = {}) {
 }
 
 // ---------- crowds ----------
-const CROWD_BASE = {
-  fl_sw: [0.8, 0.95, 1.0, 0.8, 0.5, 0.45, 0.55, 0.5, 0.3, 0.4, 0.55, 0.7],
-  fl_tb: [0.6, 0.75, 0.95, 0.8, 0.6, 0.7, 0.8, 0.6, 0.35, 0.45, 0.5, 0.6],
-  fl_ph: [0.2, 0.3, 0.75, 0.6, 0.7, 1.0, 1.0, 0.75, 0.45, 0.5, 0.3, 0.25],
-  al_ms: [0.2, 0.3, 0.7, 0.6, 0.7, 1.0, 1.0, 0.7, 0.45, 0.5, 0.3, 0.25],
-  la: [0.1, 0.15, 0.3, 0.4, 0.6, 0.8, 0.8, 0.6, 0.35, 0.3, 0.15, 0.1],
-  tx_up: [0.2, 0.3, 0.7, 0.55, 0.7, 1.0, 1.0, 0.75, 0.4, 0.35, 0.25, 0.25],
-  tx_lo: [0.35, 0.45, 1.0, 0.5, 0.6, 0.9, 0.95, 0.7, 0.35, 0.35, 0.35, 0.35],
-  fl_keys: [0.85, 0.95, 1.0, 0.85, 0.6, 0.55, 0.65, 0.55, 0.3, 0.45, 0.6, 0.85],
-  mx_cun: [0.9, 0.95, 1.0, 0.85, 0.55, 0.6, 0.85, 0.8, 0.35, 0.45, 0.65, 0.95],
-  mx_rm: [0.9, 0.95, 1.0, 0.85, 0.55, 0.6, 0.85, 0.8, 0.35, 0.45, 0.65, 0.95],
-  mx_yuc: [0.5, 0.5, 0.6, 0.8, 0.5, 0.5, 0.9, 0.85, 0.3, 0.35, 0.45, 0.7],
-  mx_ver: [0.4, 0.35, 0.5, 0.9, 0.5, 0.5, 0.9, 0.85, 0.3, 0.35, 0.4, 0.7],
-  cu: [0.9, 0.95, 0.95, 0.8, 0.5, 0.5, 0.7, 0.7, 0.35, 0.4, 0.6, 0.9],
-};
-// Share of visitors from the US vs Mexico by region.
-const MARKET = { mx_cun: [0.7, 0.3], mx_rm: [0.65, 0.35], mx_yuc: [0.2, 0.8], mx_ver: [0.05, 0.95], cu: [0.15, 0.1] };
 export const CROWD_LEVELS = [[25, "Quiet", "#2e9e6b"], [45, "Moderate", "#8bbf3f"], [65, "Busy", "#e3b52a"], [82, "Very busy", "#e0772b"], [101, "Packed", "#c8372d"]];
 // Airport day-of-week pattern (Sun..Sat).
 const AIRPORT_DOW = [1.08, 0.95, 0.72, 0.75, 1.02, 1.08, 0.85];
 const RESORT_DOW = [0.95, 0.85, 0.82, 0.85, 0.95, 1.12, 1.15];
 
 export function crowds(resort, d, { weatherPenalty = 0 } = {}) {
-  const [usShare, mxShare] = MARKET[resort.region] || [1, 0];
-  const base = monthly(CROWD_BASE[resort.region], d);
+  const [usShare, mxShare] = REGIONS[resort.region].market || [1, 0];
+  const base = monthly(REGIONS[resort.region].crowd, d);
   const hols = holidaysOn(d);
   let boost = 0; const reasons = [];
   let travelPeak = false;
@@ -164,7 +152,7 @@ export function crowds(resort, d, { weatherPenalty = 0 } = {}) {
     if (h.cities && !h.cities.some((c) => resort.city.includes(c))) continue;
     let w = h.us * usShare + h.mx * mxShare;
     // spring break matters most at the classic spring-break beaches
-    if (h.name.startsWith("College") && !["fl_ph", "tx_lo", "tx_up", "al_ms", "mx_cun"].includes(resort.region)) w *= 0.5;
+    if (h.name.startsWith("College") && !["fl_ph", "tx_lo", "tx_up", "al_ms", "mx_cun", "bs", "jm", "do_e", "pr"].includes(resort.region)) w *= 0.5;
     if (w > 0.05) { boost += w; reasons.push(h.name); }
     if (h.travel) travelPeak = true;
   }
@@ -188,7 +176,7 @@ export function tropicalRisk(resort, d) {
   const md = d.getUTCMonth() * 31 + d.getUTCDate();
   if (md < 5 * 31 + 1 || md > 10 * 31 + 30) return { pct: 0, label: "Outside hurricane season" };
   const x = (doy(d) - 253) / 32;
-  const regional = { fl_ph: 1.1, al_ms: 1.1, la: 1.2, tx_up: 1.05, tx_lo: 0.9, fl_sw: 0.9, fl_tb: 0.8, fl_keys: 1.0, mx_cun: 0.9, mx_rm: 0.9, mx_yuc: 0.7, mx_ver: 0.7, cu: 0.9 }[resort.region] ?? 1;
+  const regional = REGIONS[resort.region].tropical ?? 1;
   const pct = Math.round(Math.exp(-x * x) * 9 * regional * 10) / 10;
   return { pct, label: pct >= 6 ? "Peak hurricane season" : pct >= 2 ? "Active hurricane season" : "Hurricane season (quiet phase)" };
 }
@@ -291,11 +279,20 @@ export const WMO = {
 };
 export const describeClimate = (n) => n.thunderPct >= 25 ? ["Typical: sun + p.m. storms", "⛈️"] : n.precipProb >= 45 ? ["Typical: showery", "🌦️"] : n.cloud >= 60 ? ["Typical: mostly cloudy", "☁️"] : n.cloud >= 35 ? ["Typical: partly cloudy", "⛅"] : ["Typical: mostly sunny", "🌤️"];
 
+// Monthly regional climate, used until location normals are available.
+export function regionalNormal(resort, d) {
+  const c = REGIONS[resort.region].climate;
+  if (!c) return null;
+  const m = (k) => (c[k] ? Math.round(monthly(c[k], d)) : null);
+  return { regional: true, tmaxF: m("tmaxF"), tminF: m("tminF"), precipProb: m("rainPct"), precipIn: null, cloud: m("cloud"), uv: c.uv ? Math.round(monthly(c.uv, d) * 10) / 10 : null, windMph: null, rh: null, thunderPct: null, sstF: fallbackSstF(resort, d), waveFt: null };
+}
+
 // ---------- unify one day ----------
 // fc: forecast-day record or null; nm: climate normal for that doy or null.
 export function buildDay(resort, d, today, { fc = null, marine = null, nm = null } = {}) {
   const daysOut = Math.round((d - today) / DAY);
-  const source = fc ? "forecast" : "climate-outlook";
+  nm = nm ?? regionalNormal(resort, d);
+  const source = fc ? "forecast" : nm?.regional ? "regional-climate" : "climate-outlook";
   const w = fc ? {
     summary: WMO[fc.code]?.[0] ?? "—", icon: WMO[fc.code]?.[1] ?? "", tmaxF: fc.tmaxF, tminF: fc.tminF, feelsF: fc.feelsF,
     precipProb: fc.precipProb, precipIn: fc.precipIn, cloud: fc.cloud, uv: fc.uv, windMph: fc.windMph, gustMph: fc.gustMph, windDir: fc.windDir,
