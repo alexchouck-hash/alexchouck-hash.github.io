@@ -57,8 +57,10 @@ export async function describe(id) {
 
 const axisOf = (meta, re) => meta.axes.find((a) => re.test(a.name));
 
-// Build a griddap CSV query for a box and a time range with strides.
-export function boxQuery(meta, { lat, lon, t0, t1, timeStride = 1, pixelKm = 4 }) {
+// Build a griddap CSV query for a box and a time range with strides. AFAI pixels
+// are ~1.7 km; sampling every ~8 km keeps a full-history backfill to a few GB
+// while the 0–20 km ring still gets a dozen-plus pixels.
+export function boxQuery(meta, { lat, lon, t0, t1, timeStride = 1, pixelKm = 8 }) {
   const la = axisOf(meta, /^lat/i), lo = axisOf(meta, /^lon/i), ti = axisOf(meta, /^time/i);
   const degPerPx = Math.abs(la.spacing) || 0.01;
   const stride = Math.max(1, Math.round(pixelKm / 111 / degPerPx));
