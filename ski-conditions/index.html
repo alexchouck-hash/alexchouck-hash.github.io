@@ -33,6 +33,7 @@
       <div id="status" class="status"></div>
       <div id="summary"></div>
       <div id="runs"></div>
+      <div id="accuracy"></div>
       <details class="card" id="board-wrap"><summary><h3>Where it's snowing: next 7 days, all resorts</h3></summary><div id="board">Loading…</div></details>
       <details class="card"><summary><h3>How this forecast works</h3></summary>
         <ol class="small">
@@ -41,6 +42,9 @@
           <li><b>Elevation:</b> temperature follows a lapse rate fitted to the freezing level, so the rain/snow line lands on the right runs. Precipitation grows ~4% per 100 m, and colder snow is fluffier (Kuchera snow-to-liquid ratio).</li>
           <li><b>Wind:</b> new snow is loaded onto lee slopes and scoured off windward ones, mostly above treeline.</li>
           <li><b>Sun:</b> the real sun angle on each slope drives melt, crusts and spring corn cycles.</li>
+          <li><b>Segments:</b> every run is simulated at its top, middle and bottom, so a long run can show powder up high and crust or slush lower down.</li>
+          <li><b>High-resolution models</b> (HRRR, HRDPS, AROME, ICON-D2, JMA MSM) join the blend at double weight where they cover the resort.</li>
+          <li><b>Verified daily:</b> forecasts are saved every day and scored against SNOTEL snow stations near US resorts.</li>
           <li><b>People:</b> groomed runs reset at 4 am; skier traffic tracks out powder and builds bumps through the day.</li>
         </ol>
         <p class="small muted">Early-stage model with approximate resort data. Resort and patrol reports always win: check them before committing to steep terrain, and read the local avalanche forecast before going off-piste.</p>

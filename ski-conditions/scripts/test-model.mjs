@@ -11,7 +11,7 @@ for (const r of RESORTS) {
 }
 
 // Synthetic 17-day hourly series: 3 dry cold days, a 24 h storm with NW wind, then sunny warm spring days.
-const res = { lat: 39.6, lon: -106.35, treeline: 3400 };
+const res = { lat: 39.6, lon: -106.35, treeline: 3200 };
 const n = 17 * 24, time = [], T = [], P = [], FL = [], W = [], D = [], SW = [], depth = [];
 for (let i = 0; i < n; i++) {
   const day = Math.floor(i / 24), hr = i % 24;
@@ -47,6 +47,21 @@ console.log("Spring days (south vs north):", [8, 10, 12].map((k) => `${south[d(k
 assert(south[d(12)].pm.Teff > north[d(12)].pm.Teff + 2, "south face warmer in the sun");
 assert(["corn", "wet", "slush"].includes(south[d(12)].pm.surface), "south face softens in spring afternoons");
 assert(["crust", "ice", "hardpack", "packed", "cord"].includes(south[d(12)].am.surface), "refrozen in the morning");
+
+// Segments: a long run that crosses the rain/snow line is snowy on top, wetter at the bottom
+const hRain = { ...h, temperature_2m: T.map(() => 1), freezing_level_height: T.map(() => 3150), precipitation: P.map((_, i) => (i >= 72 && i < 96 ? 1.5 : 0)) };
+const seg = M.simulateSegments({ top: 3800, bottom: 2400, aspect: 0, slope: 25, difficulty: "advanced", groomed: false }, res, hRain);
+console.log("Rain-line run, day after storm AM:", { top: seg.top[d(4)].am.surface, mid: seg.mid[d(4)].am.surface, bottom: seg.bottom[d(4)].am.surface });
+assert(seg.top[d(3)].pm.fresh > 10 && seg.bottom[d(3)].pm.fresh < 2, "snow up top, rain at the bottom");
+const short = M.simulateSegments({ top: 3100, bottom: 3000, aspect: 0, slope: 10, difficulty: "easy", groomed: true }, res, h);
+assert.equal(short.top, short.mid);
+
+// Regional blend: high-res model gets double weight, confidence ignores it
+const j = { elevation: 3000, utc_offset_seconds: 0, hourly: { time: ["2026-03-01T00:00"], temperature_2m_gfs_seamless: [0], precipitation_gfs_seamless: [1] } };
+const b = M.blend(j, { hourly: { time: ["2026-03-01T00:00"], temperature_2m_ncep_hrrr_conus: [-3], precipitation_ncep_hrrr_conus: [4] } });
+assert.deepEqual(b.models, ["gfs_seamless", "ncep_hrrr_conus"]); assert.equal(b.temperature_2m[0], -2); assert.equal(b.precipitation[0], 3);
+assert.deepEqual(M.regionalFor({ lat: 39.6, lon: -106.35 }), ["ncep_hrrr_conus", "gem_hrdps_continental"]);
+assert.deepEqual(M.regionalFor({ lat: -32.8, lon: -70.1 }), []);
 
 // Rain/snow line
 const low = M.atElevation(h, 72, 2000), high = M.atElevation(h, 72, 3500);

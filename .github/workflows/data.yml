@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["js/**", "scripts/**", ".github/workflows/data.yml"]
+    paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", ".github/workflows/data.yml"]
 
 permissions:
   contents: write
@@ -36,6 +36,11 @@ jobs:
         env:
           FEED_DIR: feed
           NORMALS_BUDGET: "3"
+      - name: Verify ski forecasts against SNOTEL
+        run: node ski-conditions/scripts/verify.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
       - name: Publish to data-feed branch
         run: |
           cp data/README.md feed/README.md

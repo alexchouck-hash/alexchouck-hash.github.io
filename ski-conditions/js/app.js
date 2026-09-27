@@ -1,5 +1,5 @@
 import { RESORTS } from "./resorts.js";
-import { SURFACES, DIFFICULTY, MODELS, simulateRun, runDays, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
+import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -40,7 +40,7 @@ async function load(id) {
     c.h = fc.value;
     c.runsErr = runs.status === "rejected" || !runs.value.length;
     c.runs = c.runsErr ? virtualRuns(r) : runs.value;
-    c.sim = c.runs.map((run) => ({ run, byDay: runDays(simulateRun(run, r, c.h), c.h) }));
+    c.sim = c.runs.map((run) => { const seg = simulateSegments(run, r, c.h); return { run, seg, byDay: seg.mid }; });
     c.days = days(c.h);
     c.snow = { base: dailySnow(c.h, r.base), mid: dailySnow(c.h, (r.base + r.summit) / 2), summit: dailySnow(c.h, r.summit) };
     c.ready = true;
@@ -87,12 +87,12 @@ function summary(r, c) {
   const fell = past.reduce((a, k) => a + (c.snow.summit[k]?.snow || 0), 0);
   const upcoming = c.days.filter((x) => x >= todayAt(c.h)).slice(0, 10);
   const maxS = Math.max(1, ...upcoming.map((k) => c.snow.summit[k]?.snow || 0));
-  const modelTotals = Object.entries(conf.totals).map(([k, v]) => `${MODELS[k]} ${cm(v)}`).join(" · ");
+  const modelTotals = Object.entries(conf.totals).map(([k, v]) => `${MODEL_LABEL[k]} ${cm(v)}`).join(" · ");
 
   $("#summary").innerHTML = `
   <div class="card">
     <h2>${esc(r.name)}</h2>
-    <div class="muted small">${esc(r.region)}, ${esc(r.country)} · ${m(r.base)} – ${m(r.summit)} · treeline ≈ ${m(r.treeline)} · models: ${c.h.models.map((k) => MODELS[k]).join(", ")}</div>
+    <div class="muted small">${esc(r.region)}, ${esc(r.country)} · ${m(r.base)} – ${m(r.summit)} · treeline ≈ ${m(r.treeline)} · models: ${c.h.models.map((k) => MODEL_LABEL[k]).join(", ")}</div>
     <div class="kpis">
       <div class="kpi"><b>${open.length ? avg : "–"}</b><span>Avg run score (${state.tod === "am" ? "morning" : "afternoon"})</span></div>
       <div class="kpi"><b>${open.length}/${scored.length}</b><span>Runs with enough snow</span></div>
@@ -115,9 +115,16 @@ function summary(r, c) {
   document.querySelectorAll("#summary tr[data-day]").forEach((tr) => tr.onclick = () => { state.day = tr.dataset.day; $("#day").value = state.day; update(); });
 }
 
+// "Top: powder · Bottom: slush" when the ends of a run differ from its middle.
+function ends(s, d) {
+  const t = s.seg.top[d]?.[state.tod], b = s.seg.bottom[d]?.[state.tod], mid = s.byDay[d]?.[state.tod];
+  if (!t || !b || (t.surface === mid?.surface && b.surface === mid?.surface)) return "";
+  return `Top: ${SURFACES[t.surface].label.toLowerCase()} · Bottom: ${SURFACES[b.surface].label.toLowerCase()}`;
+}
+
 function runsTable(c) {
   const d = state.day;
-  let rows = c.sim.map((s) => ({ run: s.run, st: s.byDay[d]?.[state.tod], rd: s.byDay[d] })).filter((x) => x.st);
+  let rows = c.sim.map((s) => ({ run: s.run, st: s.byDay[d]?.[state.tod], rd: s.byDay[d], ends: ends(s, d) })).filter((x) => x.st);
   const f = state.filter;
   if (f !== "all") rows = rows.filter((x) => (f === "groomed" ? x.run.groomed : f === "ungroomed" ? !x.run.groomed : f === "easy" ? ["novice", "easy"].includes(x.run.difficulty) : f === "expert" ? ["expert", "freeride", "extreme"].includes(x.run.difficulty) : x.run.difficulty === f));
   const key = { score: (x) => -x.st.score, name: (x) => x.run.name, snow: (x) => -(x.rd.snow24 || 0), top: (x) => -x.run.top, aspect: (x) => x.run.aspect };
@@ -134,7 +141,7 @@ function runsTable(c) {
         const df = DIFFICULTY[x.run.difficulty] || DIFFICULTY.intermediate;
         return `<tr data-id="${esc(x.run.id)}" class="${state.sel === x.run.id ? "sel" : ""}">
           <td><span style="color:${df.color}" title="${df.label}">${df.sym}</span> ${esc(x.run.name)}${x.run.groomed ? ' <span class="muted small" title="Groomed overnight">≡</span>' : ""}</td>
-          <td class="num score">${x.st.score}</td><td>${pill(x.st.surface)}</td>
+          <td class="num score">${x.st.score}</td><td>${pill(x.st.surface)}${x.ends ? `<div class="small muted">${x.ends}</div>` : ""}</td>
           <td class="num">${cm(x.rd.snow24)}</td><td class="num">${cm(x.st.depth)}</td><td class="num">${deg(x.st.T)}</td>
           <td class="num">${m(x.run.top)}–${m(x.run.bottom)}</td><td>${compass(x.run.aspect)} · ${x.run.slope}°</td></tr>`;
       }).join("")}</tbody>
@@ -159,7 +166,7 @@ function drawMap(r, c, focus) {
     const selected = state.sel === s.run.id;
     for (const w of s.run.ways) {
       const pl = L.polyline(w, { color: SURFACES[st.surface].color, weight: selected ? 7 : 4, opacity: selected ? 1 : 0.85 })
-        .bindTooltip(`<b>${esc(s.run.name)}</b><br>${SURFACES[st.surface].label} · score ${st.score}<br>new snow ${cm(s.byDay[state.day].snow24)} · ${deg(st.T)}`)
+        .bindTooltip(`<b>${esc(s.run.name)}</b><br>${SURFACES[st.surface].label} · score ${st.score}<br>new snow ${cm(s.byDay[state.day].snow24)} · ${deg(st.T)}${ends(s, state.day) ? "<br>" + ends(s, state.day) : ""}`)
         .on("click", () => { state.sel = s.run.id; runsTable(c); drawMap(r, c); });
       pl.addTo(layer); lines.push(pl);
       if (selected && focus) map.fitBounds(pl.getBounds(), { maxZoom: 15, padding: [40, 40] });
@@ -182,12 +189,31 @@ async function leaderboard() {
   } catch (e) { $("#board").textContent = `Could not load: ${e.message}`; }
 }
 
+// Forecast accuracy from the daily SNOTEL verification.
+let verif;
+async function accuracy(r) {
+  try { verif ||= await api.verification(); } catch { verif = null; }
+  const v = verif, el = $("#accuracy");
+  if (!v?.byLead?.blend) { el.innerHTML = ""; return; }
+  const leads = [1, 2, 3, 5].filter((l) => v.byLead.blend[l]);
+  const models = Object.keys(v.byLead).sort((a, b) => (a === "blend" ? -1 : b === "blend" ? 1 : (v.byLead[a][1]?.mae ?? 99) - (v.byLead[b][1]?.mae ?? 99)));
+  const st = v.stations?.[r.id], mine = v.byResort?.[r.id], rec = v.recent?.[r.id] || [];
+  el.innerHTML = `<details class="card"><summary><h3>Forecast accuracy (SNOTEL-verified)</h3></summary>
+    <p class="small muted">${v.forecastDays} days of saved forecasts scored against observed snow-depth gain at ${new Set(Object.values(v.stations).map((s) => s.triplet)).size} SNOTEL stations. Lower error is better. Depth gain undercounts real snowfall a little because new snow settles.</p>
+    <div class="scroll"><table><thead><tr><th>Model</th>${leads.map((l) => `<th class="num">Day ${l} error</th>`).join("")}<th class="num">Day 1 bias</th><th class="num">Big days caught</th></tr></thead><tbody>
+    ${models.map((mo) => { const b = v.byLead[mo]; return `<tr><td>${mo === "blend" ? "<b>Our blend</b>" : esc(v.labels?.[mo] || mo)}</td>${leads.map((l) => `<td class="num">${b[l] ? cm(b[l].mae) : "–"}</td>`).join("")}<td class="num">${b[1] ? (b[1].bias > 0 ? "+" : "") + cm(b[1].bias) : "–"}</td><td class="num">${b[1]?.pod != null ? Math.round(b[1].pod * 100) + "%" : "–"}</td></tr>`; }).join("")}
+    </tbody></table></div>
+    ${st ? `<p class="small">${esc(r.name)} is checked against <b>${esc(st.name)}</b> SNOTEL (${m(st.elevM)}, ${st.km} km away)${mine?.n ? `: day-1 error ${cm(mine.mae)} over ${mine.n} days` : ""}.</p>
+      ${rec.length ? `<p class="small muted">Last 2 weeks, forecast vs observed: ${rec.map((x) => `${dayLabel(x.date)} ${cm(x.forecast)} / ${cm(x.observed)}`).join(" · ")}</p>` : ""}` : `<p class="small muted">No SNOTEL station near ${esc(r.name)} yet; verification covers US resorts for now.</p>`}
+  </details>`;
+}
+
 function update() {
   const r = byId[state.id], c = cache[state.id];
   writeHash();
   if (!c?.ready) { drawMap(r, null); $("#summary").innerHTML = ""; $("#runs").innerHTML = ""; return; }
   fillDays(c); writeHash();
-  summary(r, c); runsTable(c); drawMap(r, c);
+  summary(r, c); runsTable(c); drawMap(r, c); accuracy(r);
 }
 async function select(id) {
   state.id = id; state.sel = null; $("#resort").value = id;

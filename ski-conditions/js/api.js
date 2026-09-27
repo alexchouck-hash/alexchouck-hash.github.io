@@ -1,6 +1,6 @@
 // Network: Open-Meteo multi-model forecast + elevation, OpenStreetMap runs via Overpass.
 // All key-less and CORS-enabled. Browser responses are cached in localStorage.
-import { MODELS, HOURLY_VARS, blend, runsFromOSM, finishRun } from "./model.js";
+import { MODELS, HOURLY_VARS, blend, regionalFor, runsFromOSM, finishRun } from "./model.js";
 
 const store = typeof localStorage !== "undefined" ? localStorage : null;
 async function getJSON(url, ttlMin, init) {
@@ -22,11 +22,15 @@ async function getJSON(url, ttlMin, init) {
 
 // Hourly forecast from several models at the resort's mid-mountain elevation,
 // with 7 past days so the snowpack simulation has recent history.
-export async function forecast(resort) {
+// High-res regional models come from a second, optional request so an
+// unavailable model can never break the main forecast.
+export async function forecast(resort, ttlMin = 30) {
   const mid = Math.round((resort.base + resort.summit) / 2);
-  const u = `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lon}&elevation=${mid}` +
-    `&hourly=${HOURLY_VARS.join(",")}&models=${Object.keys(MODELS).join(",")}&past_days=7&forecast_days=10&timezone=auto`;
-  return blend(await getJSON(u, 30));
+  const u = (models) => `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lon}&elevation=${mid}` +
+    `&hourly=${HOURLY_VARS.join(",")}&models=${models.join(",")}&past_days=7&forecast_days=10&timezone=auto`;
+  const reg = regionalFor(resort);
+  const [main, regional] = await Promise.all([getJSON(u(Object.keys(MODELS)), ttlMin), reg.length ? getJSON(u(reg), ttlMin).catch(() => null) : null]);
+  return blend(main, regional);
 }
 
 export async function elevations(points) {
@@ -60,3 +64,7 @@ export async function leaderboard(resorts) {
   const j = await getJSON(u, 60);
   return (Array.isArray(j) ? j : [j]).map((x, k) => ({ id: resorts[k].id, days: x.daily.time, snow: x.daily.snowfall_sum, tmax: x.daily.temperature_2m_max }));
 }
+
+// Verification scores published by ski-conditions/scripts/verify.mjs on the data-feed branch.
+export const FEED_BASE = "https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/";
+export const verification = () => getJSON(FEED_BASE + "ski/verification.json", 60);
