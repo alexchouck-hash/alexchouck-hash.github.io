@@ -24,7 +24,7 @@
       <div class="card">
         <h2>Free conditions widgets</h2>
         <p class="small">For resorts, hotels, vacation rentals and digital guidebooks. Put live snow or beach conditions on your own website (Lodgify, Hostaway, Guesty, OwnerRez, WordPress, Squarespace…). Airbnb and VRBO listings don't allow embeds, so there, share the <b>link</b> version in your house manual or check-in message instead.</p>
-        <div class="tabs"><button data-k="snow" class="on">❄️ Snow</button><button data-k="beach">🏝️ Beach</button></div>
+        <div class="tabs"><button data-k="snow" class="on">❄️ Snow</button><button data-k="beach">🏝️ Beach</button><button data-k="events">📅 What's on</button></div>
         <div class="controls">
           <label>Name shown <input type="text" id="name" placeholder="e.g. Aspen Hideaway Cabin" maxlength="60" /></label>
           <label>Or a resort <select id="resort"></select></label>
@@ -46,6 +46,8 @@
     const KIND = {
       snow: { list: SKI, path: "ski-conditions/embed.html", idParam: "r", center: [42, -100], zoom: 3, height: 440 },
       beach: { list: BEACH, path: "beach-widget.html", idParam: "id", center: [20, -80], zoom: 4, height: 400 },
+      // Events work by location only; picking a resort just places the point.
+      events: { list: SKI, path: "bluebird/events/embed.html", idParam: null, center: [42, -100], zoom: 3, height: 460 },
     };
     const st = { kind: "snow", pt: null, id: "", units: /^en-US/.test(navigator.language) ? "us" : "metric" };
     const map = baseMap("map", KIND.snow.center, KIND.snow.zoom);
@@ -58,10 +60,11 @@
     }
     function url(absolute) {
       const k = KIND[st.kind], q = new URLSearchParams();
-      if (st.id) q.set(k.idParam, st.id);
+      if (st.id && k.idParam) q.set(k.idParam, st.id);
+      else if (st.id) { const r = k.list.find((x) => x.id === st.id); q.set("lat", r.lat.toFixed(4)); q.set("lon", r.lon.toFixed(4)); if (r.country) q.set("cc", r.country); }
       else if (st.pt) { q.set("lat", st.pt[0].toFixed(4)); q.set("lon", st.pt[1].toFixed(4)); }
       const name = $("#name").value.trim();
-      if (name && !st.id) q.set("name", name);
+      if (name && (!st.id || !k.idParam)) q.set("name", name);
       q.set("u", st.units);
       return `${absolute ? SITE + "/" : "../../"}${k.path}?${q}`;
     }
@@ -69,7 +72,7 @@
       if (!st.id && !st.pt) { $("#code").value = "Click the map or pick a resort first."; return; }
       const k = KIND[st.kind];
       $("#frame").height = k.height; $("#frame").src = url(false);
-      const title = esc(((st.id && k.list.find((r) => r.id === st.id)?.name) || $("#name").value.trim() || "Local") + (st.kind === "snow" ? " snow forecast" : " beach conditions"));
+      const title = esc(((st.id && k.list.find((r) => r.id === st.id)?.name) || $("#name").value.trim() || "Local") + ({ snow: " snow forecast", beach: " beach conditions", events: " events" }[st.kind]));
       $("#code").value = `<iframe src="${url(true)}" width="340" height="${k.height}" style="border:0;border-radius:12px" title="${title}" loading="lazy"></iframe>`;
       $("#open").href = url(true);
     }

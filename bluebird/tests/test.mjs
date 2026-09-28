@@ -7,10 +7,14 @@ import * as R from "../rivers/model.js";
 import * as O from "../offshore/model.js";
 import { nights } from "../camp/model.js";
 import { FALLS } from "../waterfalls/spots.js";
+import { EVENTS } from "../events/catalog.js";
+import * as EV from "../events/model.js";
+process.env.EVENTS_NO_MAIN = "1";
+const { parseTicketmaster } = await import("../scripts/build-events.mjs");
 import * as WF from "../waterfalls/model.js";
 
 // Shared
-assert.equal(SITES.length, 7);
+assert.equal(SITES.length, 8);
 assert(moon(new Date("2026-01-03T10:00Z")).illum > 0.95, "full moon Jan 3 2026");
 assert(moon(new Date("2026-01-18T19:00Z")).illum < 0.05, "new moon Jan 18 2026");
 assert.equal(grade(90).label, "Bluebird"); assert.equal(grade(10).label, "Stay home");
@@ -88,4 +92,28 @@ assert(ol[2].flow > ol[0].flow + 20, "storm ahead raises flow");
 assert(ol[2].score > ol[1].score, "day after the storm beats the storm day");
 assert.equal(WF.flowClass(90).label, "Roaring"); assert.equal(WF.flowClass(5).label, "Trickle");
 
-console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp and waterfall (${FALLS.length}) models`);
+// Events
+assert.equal(EV.iso(EV.easter(2026)), "2026-04-05"); assert.equal(EV.iso(EV.easter(2027)), "2027-03-28");
+assert.equal(EV.iso(EV.nthWeekday(2026, 10, 4, 4)), "2026-11-26"); // Thanksgiving
+assert.equal(EV.iso(EV.nthWeekday(2026, 8, 1, 1)), "2026-09-07"); // Labor Day
+assert.equal(EV.iso(EV.nthWeekday(2026, 3, 5, -1)), "2026-04-24"); // last Friday of April
+const byId = Object.fromEntries(EVENTS.map((e) => [e.id, e]));
+assert.equal(new Set(EVENTS.map((e) => e.id)).size, EVENTS.length);
+for (const e of EVENTS) for (const y of [2026, 2027]) { const r = EV.resolve(e.rule, y); assert(r && r.start <= r.end, `${e.id} ${y}`); assert(e.impact >= 1 && e.impact <= 3); }
+assert.deepEqual(EV.resolve(byId["mardi-gras-nola"].rule, 2026), { start: "2026-02-05", end: "2026-02-17" }); // ends Fat Tuesday
+assert.deepEqual(EV.resolve(byId["telluride-film"].rule, 2026), { start: "2026-09-04", end: "2026-09-07" }); // Labor Day weekend
+assert.deepEqual(EV.resolve(byId["nozawa-fire"].rule, 2027), { start: "2027-01-15", end: "2027-01-15" });
+const aspen = EV.eventsNear(EVENTS, [{ name: "Concert", start: "2027-06-20", lat: 39.19, lon: -106.82 }, { name: "Far", start: "2027-06-20", lat: 10, lon: 10 }], [39.19, -106.82], "2027-06-01", "2027-06-30", 80);
+assert(aspen.some((e) => e.id === "food-wine-aspen") && aspen.some((e) => e.name === "Concert") && !aspen.some((e) => e.name === "Far"));
+assert(!aspen.some((e) => e.id === "telluride-film"), "outside date range");
+const peaks = EV.usTravelPeaks(2026);
+const xmas = EV.demandFor("2026-12-26", { peaks }), quiet = EV.demandFor("2026-10-13", { peaks });
+assert(xmas.score >= 80 && EV.demandLabel(xmas.score).label === "Peak", JSON.stringify(xmas));
+assert(quiet.score < 40 && EV.demandLabel(quiet.score).label === "Low");
+assert(EV.demandFor("2026-10-13", { peaks, events: [{ name: "Big", start: "2026-10-13", end: "2026-10-13", impact: 3 }] }).score > quiet.score + 30);
+const ics = EV.toICS([{ id: "x", name: "Fest, big; fun", start: "2026-02-05", end: "2026-02-17", approximate: true }]);
+assert(ics.includes("DTSTART;VALUE=DATE:20260205") && ics.includes("DTEND;VALUE=DATE:20260218") && ics.includes("SUMMARY:Fest\\, big\\; fun") && ics.startsWith("BEGIN:VCALENDAR"));
+const tm = parseTicketmaster({ _embedded: { events: [{ id: "1", name: "Show", url: "https://x", dates: { start: { localDate: "2026-12-01" } }, classifications: [{ segment: { name: "Music" } }], _embedded: { venues: [{ name: "Hall", city: { name: "Aspen" }, state: { stateCode: "CO" }, location: { latitude: "39.19", longitude: "-106.82" } }] } }, { id: "2", name: "No venue", dates: { start: { localDate: "2026-12-01" } } }] } });
+assert.equal(tm.length, 1); assert.equal(tm[0].town, "Aspen, CO"); assert.equal(tm[0].category, "music");
+
+console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp, waterfall (${FALLS.length}) and events (${EVENTS.length}) models`);
