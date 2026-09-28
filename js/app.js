@@ -9,7 +9,7 @@ const now = new Date();
 const TODAY = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12));
 const MAX = addDays(TODAY, 365);
 
-const DEFAULT_ID = "me-cancun"; // Cancún Hotel Zone
+const DEFAULT_ID = "cancun-hotel-zone"; // public beach, not a single hotel
 const state = { id: DEFAULT_ID, date: iso(TODAY), tab: "overview", metric: "score", data: {}, index: null };
 const cache = state.data;
 
@@ -43,7 +43,7 @@ function setupControls() {
 }
 // ---------- search dropdown ----------
 // Shown when the search box is empty: top picks, then popular spots by region.
-const TOP_PICKS = ["me-cancun", "secrets-maroma", "tulum", "beaches-turks-caicos", "bucuti-tara-aruba", "sandals-grande-st-lucian", "ritz-carlton-grand-cayman", "sanctuary-cap-cana"];
+const TOP_PICKS = ["cancun-hotel-zone", "secrets-maroma", "tulum", "beaches-turks-caicos", "bucuti-tara-aruba", "sandals-grande-st-lucian", "ritz-carlton-grand-cayman", "sanctuary-cap-cana"];
 const POPULAR = [
   ["Mexico (Yucatán)", ["riu-peninsula", "excellence-playa-mujeres", "impression-isla", "holbox", "playa-del-carmen", "secrets-aura-cozumel", "bacalar"]],
   ["Bahamas & Turks and Caicos", ["atlantis-paradise-island", "baha-mar-grand-hyatt", "sandals-emerald-bay", "coral-sands-harbour-island", "long-bay-providenciales"]],
@@ -59,7 +59,7 @@ function setupSearch() {
   const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const hay = new Map(RESORTS.map((r) => [r.id, norm(`${r.name} ${r.city} ${REGIONS[r.region].name}`)]));
   let items = [], active = -1;
-  const opt = (r, tag) => `<li role="option" id="so-${r.id}" data-id="${r.id}">${esc(r.id === DEFAULT_ID ? "Cancún (Hotel Zone)" : r.name)}<span>${esc(tag || r.city)}</span></li>`;
+  const opt = (r, tag) => `<li role="option" id="so-${r.id}" data-id="${r.id}">${esc(r.name)}<span>${esc(tag || r.city)}</span></li>`;
   const group = (name, ids) => `<li class="grp" role="presentation">${esc(name)}</li>` + ids.filter((id) => byId[id]).map((id) => opt(byId[id])).join("");
   function draw() {
     const v = norm(q.value.trim());
