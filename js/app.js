@@ -1,5 +1,5 @@
 import { RESORTS, REGIONS, AIRPORTS, TOURISM, CLEANUP } from "./resorts.js";
-import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, setLearnedSargassum, learnedSargassum, METRICS, SCORE_LEVELS, normalsFromArchive, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
+import { iso, parseISO, addDays, doy, DAY, buildDay, sargassum, crowds, setLearnedSargassum, learnedSargassum, METRICS, SCORE_LEVELS, fallbackSstF, regionalNormal, SARG_LEVELS, CROWD_LEVELS, level, WMO, uvCategory } from "./model.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -167,6 +167,8 @@ async function loadResort(id, force = false) {
   const r = byId[id];
   const c = (cache[id] ||= {});
   const jobs = [];
+  // Prebuilt feed snapshot (<= 6 h old) paints current conditions right away; live data replaces it.
+  if (!c.feedCur) jobs.push(api.getJSON(`${api.FEED_BASE}resorts/${id}.json`, 30).then((j) => (c.feedCur = j.current)).catch(() => {}));
   if (force || !c.fc) jobs.push(api.forecast(r.lat, r.lon).then((v) => (c.fc = v)).catch((e) => (c.fcErr = e.message)));
   if (force || !c.mar) jobs.push(api.marine(...api.marinePoint(r)).then((v) => (c.mar = v)).catch((e) => (c.marErr = e.message)));
   if (!c.alerts && ["US", "PR", "VI"].includes(REGIONS[r.region].country)) jobs.push(api.nwsAlerts(r.lat, r.lon).then((v) => (c.alerts = v)).catch(() => (c.alerts = [])));
@@ -189,10 +191,9 @@ async function loadNormals(r) {
     const j = await api.getJSON(`${api.FEED_BASE}normals/${api.cellKey([r.lat, r.lon], 0.5)}.json`, 0);
     if (j?.normals) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: j.normals })); } catch {} return j.normals; }
   } catch {}
-  const h = await api.history(r.lat, r.lon, api.marinePoint(r));
-  const v = normalsFromArchive(h.daily, h.marine);
-  try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v })); } catch {}
-  return v;
+  // No prebuilt cell yet: fall back to the regional climate table rather than
+  // pulling 6 years of ERA5 history in the browser (tens of MB, very slow).
+  throw new Error("no location normals yet");
 }
 
 // ---------- day record ----------
@@ -251,11 +252,12 @@ function render() {
 }
 
 function renderNow(r, c) {
-  const cur = c.fc?.current, m = c.mar?.current;
+  const cur = c.fc?.current || c.feedCur?.weather, m = c.mar?.current || c.feedCur?.marine;
+  if (!c.alerts && c.feedCur?.alerts) c = { ...c, alerts: c.feedCur.alerts };
   if (!cur) return `<h3>Current conditions</h3><p class="muted">${c.fcErr ? "Live data unavailable: " + esc(c.fcErr) : "Loading live conditions…"}</p>`;
   const [desc, icon] = WMO[cur.weather_code] || ["", ""];
   const alerts = (c.alerts || []).slice(0, 4).map((a) => `<div class="alert"><b>${esc(a.event)}</b>: ${esc(a.headline || "")}</div>`).join("");
-  return `<h3>Current conditions <span class="muted small">· updated ${esc(cur.time.replace("T", " "))} local · refreshes every 10 min</span></h3>
+  return `<h3>Current conditions <span class="muted small">· updated ${esc(cur.time.replace("T", " "))} local · ${c.fc?.current ? "refreshes every 10 min" : c.fcErr ? "6-hourly snapshot, live data unavailable" : "snapshot, live update loading…"}</span></h3>
     <div class="row"><span class="big">${icon} ${Math.round(cur.temperature_2m)}°F</span>
     <span>${esc(desc)} · feels ${Math.round(cur.apparent_temperature)}°F · humidity ${cur.relative_humidity_2m}%</span></div>
     <div class="grid" style="margin-top:8px">
