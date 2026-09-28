@@ -51,8 +51,13 @@ export function skillWeights(skill, resortId) {
   return { weights: Object.fromEntries(ms.map((m) => [m, +clamp(raw[m] / avg, 0.4, 2.5).toFixed(2)])), source, n: Math.min(...ms.map((m) => scored[m].n)) };
 }
 
+// Per-resort snowfall bias correction from verification (1 = none).
+export const biasFactor = (correction, id) => correction?.[id]?.factor ?? 1;
+
 // weights: optional per-model weights (from skillWeights); others use the defaults.
-export function blend(j, regional, weights = {}) {
+// factor: precipitation multiplier from the resort's verified bias (applied to
+// the blend and to each model, so ranges stay consistent).
+export function blend(j, regional, weights = {}, factor = 1) {
   const h = { ...j.hourly }, n = h.time.length;
   if (regional?.hourly?.time?.length === n) for (const [k, v] of Object.entries(regional.hourly)) if (k !== "time") h[k] = v;
   const all = [...Object.keys(MODELS), ...Object.keys(REGIONAL)];
@@ -72,7 +77,10 @@ export function blend(j, regional, weights = {}) {
     return k ? (Math.atan2(x, y) / RAD + 360) % 360 : null;
   });
   // Per-model liquid precip so we can show spread (confidence).
-  out.perModel = Object.fromEntries(models.map((m) => [m, { P: h[`precipitation_${m}`], T: h[`temperature_2m_${m}`], FL: h[`freezing_level_height_${m}`] }]));
+  const scale = (a) => (factor === 1 || !a ? a : a.map((v) => (v == null ? v : v * factor)));
+  out.precipitation = scale(out.precipitation);
+  out.perModel = Object.fromEntries(models.map((m) => [m, { P: scale(h[`precipitation_${m}`]), T: h[`temperature_2m_${m}`], FL: h[`freezing_level_height_${m}`] }]));
+  out.correction = factor;
   return out;
 }
 
@@ -269,6 +277,15 @@ export function simulateSegments(run, resort, h) {
   }
   if (short) { out.top = out.bottom = out.mid; out.hourly.top = out.hourly.bottom = out.hourly.mid; } // short runs: one segment
   return out;
+}
+
+// ---------- climate ----------
+// Snow (cm) from a daily precipitation total and mean temperature at elevation.
+export const dailySnowFromMean = (P, Tmean) => (P == null || Tmean == null ? 0 : (P * snowFraction(Tmean) * slr(Tmean)) / 10);
+// Ski season starts Oct 1 in the north, Apr 1 in the south.
+export function seasonStart(lat, iso) {
+  const y = +iso.slice(0, 4), md = lat >= 0 ? "10-01" : "04-01";
+  return `${iso.slice(5) >= md ? y : y - 1}-${md}`;
 }
 
 // ---------- summaries ----------

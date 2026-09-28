@@ -46,6 +46,16 @@ jobs:
         continue-on-error: true
         env:
           FEED_DIR: feed
+      - name: Build ski season context
+        run: node ski-conditions/scripts/build-climate.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
+      - name: Build public ski forecast feed
+        run: node ski-conditions/scripts/build-forecasts.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
       - name: Publish to data-feed branch
         run: |
           cp data/README.md feed/README.md

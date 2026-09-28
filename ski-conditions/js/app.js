@@ -1,5 +1,5 @@
 import { RESORTS } from "./resorts.js";
-import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, skillWeights, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
+import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, skillWeights, biasFactor, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
 import { snowRange, snowQuality, windHolds, LIFT_TYPES } from "./ops.js";
 import * as api from "./api.js";
 
@@ -37,8 +37,11 @@ async function load(id) {
   status("Loading multi-model forecast and trail map…");
   c.loading = (async () => {
     const runsP = api.mapData(r);
-    c.skill = skillWeights((await getVerif())?.skill, r.id);
-    const [fc, runs] = await Promise.allSettled([api.forecast(r, 30, c.skill.weights), runsP]);
+    const v = await getVerif();
+    c.skill = skillWeights(v?.skill, r.id);
+    c.corr = v?.correction?.[r.id] || null;
+    c.climateP = api.climate(r.id).catch(() => null);
+    const [fc, runs] = await Promise.allSettled([api.forecast(r, 30, c.skill.weights, biasFactor(v?.correction, r.id)), runsP]);
     if (fc.status === "rejected") throw fc.reason;
     c.h = fc.value;
     c.runsErr = runs.status === "rejected" || !runs.value.runs.length;
@@ -100,7 +103,9 @@ function summary(r, c) {
     <h2>${esc(r.name)}</h2>
     <div class="muted small">${esc(r.region)}, ${esc(r.country)} · ${m(r.base)} – ${m(r.summit)} · treeline ≈ ${m(r.treeline)} · models: ${c.h.models.map((k) => MODEL_LABEL[k]).join(", ")}</div>
     <div class="muted small">${c.skill?.source ? `Blend weighted by verified skill (${c.skill.source === "resort" ? "this resort's station" : c.skill.source === "global" ? "all SNOTEL stations" : "this resort's station and all stations"}, ≥${c.skill.n} scored days): ${Object.entries(c.skill.weights).sort((a, b) => b[1] - a[1]).map(([k, w]) => `${MODEL_LABEL[k]} ×${w}`).join(" · ")}` : "Equal model weights (high-res regional ×2) until enough forecasts are verified."}</div>
+    ${c.corr ? `<div class="muted small">Snowfall bias-corrected ×${c.corr.factor} for ${esc(r.name)} (learned from ${c.corr.n} verified days at its SNOTEL station).</div>` : ""}
     <div class="kpis">
+      <div class="kpi" id="season-kpi" hidden></div>
       <div class="kpi"><b>${open.length ? avg : "–"}</b><span>Avg run score (${state.tod === "am" ? "morning" : "afternoon"})</span></div>
       <div class="kpi"><b>${open.length}/${scored.length}</b><span>Runs with enough snow</span></div>
       <div class="kpi"><b>${cm(fell)}</b><span>Summit snow, last 3 days</span></div>
@@ -121,6 +126,13 @@ function summary(r, c) {
       }).join("")}</tbody>
     </table></div>
   </div>`;
+  c.climateP?.then((cl) => {
+    const el = document.getElementById("season-kpi"), se = cl?.season;
+    if (!el || !se?.through) return;
+    el.hidden = false;
+    el.innerHTML = `<b>${se.pctOfNormal != null ? se.pctOfNormal + "%" : cm(se.toDate)}</b><span>${se.pctOfNormal != null ? `of normal season snow to date (${cm(se.toDate)} vs ${cm(se.normalToDate)})` : "season snow to date"}${cl.thisWeek ? `; typical this week ${cm(cl.thisWeek.normal)}` : ""}</span>`;
+    el.title = "From 10 years of ERA5 reanalysis at summit elevation. Best read as a relative comparison.";
+  });
   document.querySelectorAll("#summary tr[data-day]").forEach((tr) => tr.onclick = () => { state.day = tr.dataset.day; $("#day").value = state.day; update(); });
 }
 
