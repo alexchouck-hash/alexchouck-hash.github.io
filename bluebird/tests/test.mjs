@@ -88,4 +88,14 @@ assert(ol[2].flow > ol[0].flow + 20, "storm ahead raises flow");
 assert(ol[2].score > ol[1].score, "day after the storm beats the storm day");
 assert.equal(WF.flowClass(90).label, "Roaring"); assert.equal(WF.flowClass(5).label, "Trickle");
 
-console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp and waterfall (${FALLS.length}) models`);
+// Hub pulse
+const P = await import("../assets/pulse.js");
+const sep = P.seasonOrder(SITES, new Date("2026-09-28T12:00Z")).map((s) => s.id), jan = P.seasonOrder(SITES, new Date("2026-01-15T12:00Z")).map((s) => s.id);
+assert.equal(sep[0], "foliage", "foliage leads in late September"); assert.equal(jan[0], "snow", "snow leads in January");
+assert.equal(sep.length, SITES.length);
+assert.deepEqual([4, 7, 12, 19, 23].map(P.sky), ["night", "dawn", "day", "dusk", "night"]);
+assert.match(P.foliageReading("2026-09-28").text, /peak|Turning/i); assert.equal(P.foliageReading("2026-06-15").text, "Off season");
+assert.equal(P.snowReading([{ name: "A", cm: 0 }]).score, undefined); assert.equal(P.snowReading([{ name: "A", cm: 5 }, { name: "B", cm: 30 }]).text, "Most new snow: B");
+assert(P.beachDay("x", { temperature_2m_max: [0, 29], precipitation_probability_max: [0, 0], wind_speed_10m_max: [0, 10] }, 1).score === 100);
+
+console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp, waterfall (${FALLS.length}) and hub pulse models`);
