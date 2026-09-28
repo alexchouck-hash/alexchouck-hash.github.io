@@ -116,4 +116,17 @@ assert(ics.includes("DTSTART;VALUE=DATE:20260205") && ics.includes("DTEND;VALUE=
 const tm = parseTicketmaster({ _embedded: { events: [{ id: "1", name: "Show", url: "https://x", dates: { start: { localDate: "2026-12-01" } }, classifications: [{ segment: { name: "Music" } }], _embedded: { venues: [{ name: "Hall", city: { name: "Aspen" }, state: { stateCode: "CO" }, location: { latitude: "39.19", longitude: "-106.82" } }] } }, { id: "2", name: "No venue", dates: { start: { localDate: "2026-12-01" } } }] } });
 assert.equal(tm.length, 1); assert.equal(tm[0].town, "Aspen, CO"); assert.equal(tm[0].category, "music");
 
-console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp, waterfall (${FALLS.length}) and events (${EVENTS.length}) models`);
+
+// Hub pulse
+const P = await import("../assets/pulse.js");
+const sep = P.seasonOrder(SITES, new Date("2026-09-28T12:00Z")).map((s) => s.id), jan = P.seasonOrder(SITES, new Date("2026-01-15T12:00Z")).map((s) => s.id);
+assert.equal(sep[0], "foliage", "foliage leads in late September"); assert.equal(jan[0], "snow", "snow leads in January");
+assert.equal(sep.length, SITES.length);
+assert.deepEqual([4, 7, 12, 19, 23].map(P.sky), ["night", "dawn", "day", "dusk", "night"]);
+assert.match(P.foliageReading("2026-09-28").text, /peak|Turning/i); assert.equal(P.foliageReading("2026-06-15").text, "Off season");
+assert.equal(P.snowReading([{ name: "A", cm: 0 }]).score, undefined); assert.equal(P.snowReading([{ name: "A", cm: 5 }, { name: "B", cm: 30 }]).text, "Most new snow: B");
+assert(P.beachDay("x", { temperature_2m_max: [0, 29], precipitation_probability_max: [0, 0], wind_speed_10m_max: [0, 10] }, 1).score === 100);
+const tp = P.topPicks([null, { score: 90, place: "A" }, { score: 50, place: "B" }, { score: 70, place: "C" }, { score: 99 }, { score: 80, place: "D" }, { score: 66, place: "E" }]);
+assert.deepEqual(tp.map((x) => x.place), ["A", "D", "C", "E"], "picks: Good or better, placed, best first, max 4");
+
+console.log(`OK: shared, foliage (${SPOTS.length} spots), rivers, offshore, camp, waterfall (${FALLS.length}), events (${EVENTS.length}) and hub pulse models`);
