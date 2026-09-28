@@ -12,7 +12,7 @@
     .hero[data-sky="dawn"]  { --sky: linear-gradient(180deg, #ffd9b0 0%, #ffe9d2 45%, var(--bg) 100%); }
     .hero[data-sky="day"]   { --sky: linear-gradient(180deg, #bfe0ff 0%, #e3f1ff 50%, var(--bg) 100%); }
     .hero[data-sky="dusk"]  { --sky: linear-gradient(180deg, #f3a37a 0%, #f6cfa8 45%, var(--bg) 100%); }
-    .hero[data-sky="night"] { --sky: linear-gradient(180deg, #13223a 0%, #2a3d5c 55%, var(--bg) 100%); }
+    .hero[data-sky="night"] { --sky: linear-gradient(180deg, #13223a 0%, #2a3d5c 88%, var(--bg) 100%); }
     .hero[data-sky="night"] h1, .hero[data-sky="night"] p { color: #eef3fa; }
     .hero svg { width: 88px; height: 88px; overflow: visible; }
     .hero .bird { animation: glide 5s ease-in-out infinite; transform-origin: 32px 40px; }
@@ -23,6 +23,13 @@
     .pulse { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; min-height: 52px; }
     .pulse b { display: block; color: var(--ink); } .pulse .pill { float: right; margin-left: 8px; }
     .pulse.load { color: var(--muted); } .pulse.load::after { content: "Checking live conditions…"; }
+    .picks { margin: 0 0 20px; } .picks[hidden] { display: none; }
+    .picks h2 { margin-bottom: 10px; }
+    .picks li { display: flex; } .picks ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+    .pick { flex: 1; display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--ink); padding: 12px 14px; margin: 0; border-left: 4px solid var(--c); }
+    .pick .n { font-size: 26px; font-weight: 700; color: var(--g); min-width: 38px; text-align: center; line-height: 1; }
+    .pick .n small { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
+    .pick b { display: block; } .pick span { font-size: 13px; color: var(--muted); }
     .site .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--c); margin-left: 6px; }
     .hero h1 { font-size: 40px; letter-spacing: -.02em; margin: 8px 0 6px; }
     .hero p { font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 auto; }
@@ -44,6 +51,10 @@
     <p>A <i>bluebird day</i> is the clear, perfect day after the storm. We forecast yours: on the mountain, on the water, in the woods and at the beach.</p>
   </section>
   <main class="wrap">
+    <section class="picks" id="picks" hidden aria-live="polite">
+      <h2>Where it's bluebird next</h2>
+      <ol id="picklist"></ol>
+    </section>
     <div class="grid" id="sites"></div>
     <h2 style="margin-top:28px">How Bluebird forecasts</h2>
     <div class="how">
@@ -54,8 +65,8 @@
   </main>
   <footer class="bb-foot">Bluebird · forecasts are guidance, not guarantees. Always check local conditions and official warnings.</footer>
   <script type="module">
-    import { SITES, header, esc, gradePill } from "./assets/shared.js";
-    import { seasonOrder, inSeason, sky, READINGS } from "./assets/pulse.js";
+    import { SITES, header, esc, gradePill, grade } from "./assets/shared.js";
+    import { seasonOrder, inSeason, sky, READINGS, topPicks } from "./assets/pulse.js";
     header(null, ".");
     const hero = document.querySelector(".hero");
     const setSky = () => (hero.dataset.sky = sky(new Date().getHours()));
@@ -64,14 +75,24 @@
     document.getElementById("sites").innerHTML = sites.map((s) => `<a class="card site" style="--c:${s.color}" href="${s.href.replace(/^\.\.\//, "./")}">
       <div class="ic">${s.icon}</div><h2>Bluebird ${esc(s.name)}${inSeason(s.id) >= 3 ? `<span class="tag">In season</span>` : ""}</h2><p>${esc(s.blurb)}</p>
       <div class="pulse load" id="pulse-${s.id}" aria-live="polite"></div></a>`).join("");
-    for (const s of sites) {
+    const href = (s) => s.href.replace(/^\.\.\//, "./");
+    const jobs = sites.map((s) => {
       const el = document.getElementById(`pulse-${s.id}`);
-      Promise.resolve().then(() => READINGS[s.id]?.()).then((r) => {
+      return Promise.resolve().then(() => READINGS[s.id]?.()).then((r) => {
         el.classList.remove("load");
-        if (!r) { el.remove(); return; }
+        if (!r) { el.remove(); return null; }
         el.innerHTML = `${r.score != null ? gradePill(r.score) : ""}<b>${esc(r.text)}</b><span class="muted">${esc(r.sub || "")}</span>`;
-      }).catch(() => el.remove());
-    }
+        return { ...r, site: s };
+      }).catch(() => { el.remove(); return null; });
+    });
+    Promise.all(jobs).then((rs) => {
+      const picks = topPicks(rs);
+      if (!picks.length) return;
+      document.getElementById("picklist").innerHTML = picks.map((p) => `<li><a class="card pick" style="--c:${p.site.color};--g:${grade(p.score).color}" href="${href(p.site)}">
+        <div class="n">${p.score}<small>${grade(p.score).label}</small></div>
+        <div><b>${p.site.icon} ${esc(p.place)}</b><span>${esc(p.site.name)} · ${esc(p.when)}</span></div></a></li>`).join("");
+      document.getElementById("picks").hidden = false;
+    });
   </script>
 </body>
 </html>
