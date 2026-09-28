@@ -1,5 +1,6 @@
 import { RESORTS } from "./resorts.js";
 import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, skillWeights, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
+import { snowRange, snowQuality, windHolds, LIFT_TYPES } from "./ops.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
@@ -35,16 +36,19 @@ async function load(id) {
   if (c.ready || c.loading) return c.loading;
   status("Loading multi-model forecast and trail map…");
   c.loading = (async () => {
-    const runsP = api.runs(r);
+    const runsP = api.mapData(r);
     c.skill = skillWeights((await getVerif())?.skill, r.id);
     const [fc, runs] = await Promise.allSettled([api.forecast(r, 30, c.skill.weights), runsP]);
     if (fc.status === "rejected") throw fc.reason;
     c.h = fc.value;
-    c.runsErr = runs.status === "rejected" || !runs.value.length;
-    c.runs = c.runsErr ? virtualRuns(r) : runs.value;
+    c.runsErr = runs.status === "rejected" || !runs.value.runs.length;
+    c.runs = c.runsErr ? virtualRuns(r) : runs.value.runs;
+    c.lifts = runs.status === "fulfilled" ? runs.value.lifts : [];
     c.sim = c.runs.map((run) => { const seg = simulateSegments(run, r, c.h); return { run, seg, byDay: seg.mid }; });
     c.days = days(c.h);
     c.snow = { base: dailySnow(c.h, r.base), mid: dailySnow(c.h, (r.base + r.summit) / 2), summit: dailySnow(c.h, r.summit) };
+    c.quality = snowQuality(c.h, r.summit);
+    c.holds = c.lifts.map((l) => ({ lift: l, days: windHolds(l, c.h) }));
     c.ready = true;
   })();
   try { await c.loading; status(""); } catch (e) { c.loading = null; status(`Could not load forecast: ${e.message}`, true); }
@@ -104,18 +108,54 @@ function summary(r, c) {
       <div class="kpi"><b class="conf-${conf.level}">${conf.level}</b><span>Confidence (3-day summit snow)</span></div>
     </div>
     ${best.length ? `<p class="small"><b>Best bets:</b> ${best.map((x) => `${esc(x.run.name)} (${SURFACES[x.st.surface].label.toLowerCase()}, ${x.st.score})`).join("; ")}</p>` : ""}
+    ${storm3(c, keys)}
     <p class="small muted">${modelTotals ? `Model totals, next 3 days at summit: ${modelTotals}` : ""}</p>
     <div class="scroll"><table>
-      <thead><tr><th>Day</th><th class="num">Summit</th><th class="num">Mid</th><th class="num">Base</th><th></th><th class="num">Temp (summit)</th><th class="num">Wind max</th></tr></thead>
+      <thead><tr><th>Day</th><th class="num">Summit</th><th class="num" title="Low and high end of the forecast range (10th–90th percentile)">Range</th><th class="num">Mid</th><th class="num">Base</th><th></th><th class="num" title="Chance of 15 cm (6 in) or more at the summit">Powder chance</th><th>Snow type</th><th class="num">Temp (summit)</th><th class="num">Wind max</th></tr></thead>
       <tbody>${upcoming.map((k) => {
         const s = c.snow.summit[k], mi = c.snow.mid[k], b = c.snow.base[k];
         const rain = b.rain > 1 ? ` <span class="muted">+${us() ? (b.rain / 25.4).toFixed(2) + "″" : b.rain.toFixed(0) + " mm"} rain at base</span>` : "";
-        return `<tr data-day="${k}" class="${k === d ? "sel" : ""}"><td>${k === todayAt(c.h) ? "Today" : dayLabel(k)}</td><td class="num">${cm(s.snow)}</td><td class="num">${cm(mi.snow)}</td><td class="num">${cm(b.snow)}${rain}</td>
-          <td><span class="bar" style="width:${Math.round((s.snow / maxS) * 80)}px"></span></td><td class="num">${deg(s.Tmin)} / ${deg(s.Tmax)}</td><td class="num">${kmh(s.windMax)}</td></tr>`;
+        const rg = snowRange(s), q = c.quality[k];
+        return `<tr data-day="${k}" class="${k === d ? "sel" : ""}"><td>${k === todayAt(c.h) ? "Today" : dayLabel(k)}</td><td class="num">${cm(s.snow)}</td><td class="num muted">${rg && rg.p90 >= 1 ? `${cm(rg.p10)}–${cm(rg.p90)}` : "–"}</td><td class="num">${cm(mi.snow)}</td><td class="num">${cm(b.snow)}${rain}</td>
+          <td><span class="bar" style="width:${Math.round((s.snow / maxS) * 80)}px"></span></td><td class="num">${rg && rg.p90 >= 5 ? rg.chance + "%" : "–"}</td><td class="small" title="${esc(q?.desc || "")}">${q && q.snow >= 2 ? esc(q.label) : ""}</td><td class="num">${deg(s.Tmin)} / ${deg(s.Tmax)}</td><td class="num">${kmh(s.windMax)}</td></tr>`;
       }).join("")}</tbody>
     </table></div>
   </div>`;
   document.querySelectorAll("#summary tr[data-day]").forEach((tr) => tr.onclick = () => { state.day = tr.dataset.day; $("#day").value = state.day; update(); });
+}
+
+// Next-3-day summit total as a range, from the per-day model spread.
+function storm3(c, keys) {
+  const sum = { snow: 0, perModel: {} };
+  for (const k of keys) { const s = c.snow.summit[k]; if (!s) continue; sum.snow += s.snow; for (const [m, v] of Object.entries(s.perModel)) sum.perModel[m] = (sum.perModel[m] || 0) + v; }
+  const rg = snowRange(sum, 30);
+  if (!rg || rg.p90 < 2) return "";
+  return `<p class="small"><b>Next 3 days at the summit:</b> ${cm(rg.p50)} expected, range ${cm(rg.p10)} to ${cm(rg.p90)}. Chance of 30 cm (12″) or more: ${rg.chance}%.</p>`;
+}
+
+// Wind-hold risk for every lift on the selected day.
+function liftsCard(c) {
+  const el = $("#lifts");
+  if (!c.holds?.length) { el.innerHTML = ""; return; }
+  const d = state.day, RISK = { likely: ["Likely wind hold", "#c4553f"], possible: ["Possible holds", "#c9a93a"], low: ["Low", "#2fa36b"] };
+  const rows = c.holds.map((x) => ({ l: x.lift, h: x.days[d] })).filter((x) => x.h).sort((a, b) => b.h.maxGust - a.h.maxGust);
+  el.innerHTML = `<details class="card" ${rows.some((x) => x.h.risk !== "low") ? "open" : ""}><summary><h3>Lifts: wind-hold risk, ${dayLabel(d)}</h3></summary>
+    <p class="small muted">Gusts at each lift's top station during operating hours, compared with typical wind limits for the lift type. Operators decide actual holds.</p>
+    <div class="scroll"><table><thead><tr><th>Lift</th><th>Type</th><th class="num">Top</th><th class="num">Peak gust</th><th>Risk</th></tr></thead><tbody>
+    ${rows.map(({ l, h }) => `<tr><td>${esc(l.name)}</td><td class="small">${LIFT_TYPES[l.type]?.label || l.type}</td><td class="num">${m(l.top)}</td><td class="num">${kmh(h.maxGust)}</td><td><span class="pill" style="background:${RISK[h.risk][1]}">${RISK[h.risk][0]}</span></td></tr>`).join("")}
+    </tbody></table></div></details>`;
+}
+
+// Hour-by-hour surface on the selected run, at its top, middle and bottom.
+function timeline(c) {
+  const el = $("#timeline"), s = c.sim.find((x) => x.run.id === state.sel);
+  if (!s) { el.innerHTML = ""; return; }
+  const hrs = c.h.time.map((t, i) => [t, i]).filter(([t]) => t.startsWith(state.day) && +t.slice(11, 13) >= 7 && +t.slice(11, 13) <= 17);
+  const row = (k, label) => `<tr><th class="small">${label}</th>${hrs.map(([, i]) => { const st = s.seg.hourly?.[k]?.[i]; return st ? `<td title="${SURFACES[st.surface].label}, ${deg(st.T)}" style="background:${SURFACES[st.surface].color};border:2px solid var(--card);min-width:26px"></td>` : "<td></td>"; }).join("")}</tr>`;
+  el.innerHTML = `<div class="card"><h3>${esc(s.run.name)}: hour by hour, ${dayLabel(state.day)}</h3>
+    <div class="scroll"><table class="tl"><thead><tr><th></th>${hrs.map(([t]) => `<th class="small">${+t.slice(11, 13) % 12 || 12}${+t.slice(11, 13) < 12 ? "a" : "p"}</th>`).join("")}</tr></thead>
+    <tbody>${row("top", "Top")}${row("mid", "Middle")}${row("bottom", "Bottom")}</tbody></table></div>
+    <p class="small muted">Hover a cell for the surface and temperature. Colors match the map legend.</p></div>`;
 }
 
 // "Top: powder · Bottom: slush" when the ends of a run differ from its middle.
@@ -152,7 +192,7 @@ function runsTable(c) {
   </div>`;
   document.querySelectorAll("#runs [data-f]").forEach((b) => b.onclick = () => { state.filter = b.dataset.f; runsTable(c); });
   document.querySelectorAll("#runs th[data-sort]").forEach((th) => th.onclick = () => { state.sort = th.dataset.sort; runsTable(c); });
-  document.querySelectorAll("#runs tr[data-id]").forEach((tr) => tr.onclick = () => { state.sel = tr.dataset.id; runsTable(c); drawMap(byId[state.id], c, true); });
+  document.querySelectorAll("#runs tr[data-id]").forEach((tr) => tr.onclick = () => { state.sel = tr.dataset.id; runsTable(c); timeline(c); drawMap(byId[state.id], c, true); });
 }
 
 function drawMap(r, c, focus) {
@@ -170,11 +210,12 @@ function drawMap(r, c, focus) {
     for (const w of s.run.ways) {
       const pl = L.polyline(w, { color: SURFACES[st.surface].color, weight: selected ? 7 : 4, opacity: selected ? 1 : 0.85 })
         .bindTooltip(`<b>${esc(s.run.name)}</b><br>${SURFACES[st.surface].label} · score ${st.score}<br>new snow ${cm(s.byDay[state.day].snow24)} · ${deg(st.T)}${ends(s, state.day) ? "<br>" + ends(s, state.day) : ""}`)
-        .on("click", () => { state.sel = s.run.id; runsTable(c); drawMap(r, c); });
+        .on("click", () => { state.sel = s.run.id; runsTable(c); timeline(c); drawMap(r, c); });
       pl.addTo(layer); lines.push(pl);
       if (selected && focus) map.fitBounds(pl.getBounds(), { maxZoom: 15, padding: [40, 40] });
     }
   }
+  for (const l of c?.lifts || []) L.polyline(l.line, { color: "#222", weight: 2, dashArray: "4 4", opacity: 0.8 }).bindTooltip(`${esc(l.name)} (${LIFT_TYPES[l.type]?.label || l.type})`).addTo(layer);
   if (!focus) {
     if (lines.length && !c.fitted) { map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [20, 20] }); c.fitted = true; }
     else if (!lines.length) map.setView([r.lat, r.lon], 13);
@@ -212,12 +253,24 @@ async function accuracy(r) {
   </details>`;
 }
 
+// Sponsor slot: direct-sold sponsors from sponsors.json, targeted by resort or
+// region; falls back to a house ad for advertisers.
+let sponsorsP;
+async function sponsor(r) {
+  sponsorsP ||= fetch("sponsors.json").then((x) => (x.ok ? x.json() : [])).catch(() => []);
+  const list = (await sponsorsP).filter((s) => s.active !== false && (!s.resorts || s.resorts.includes(r.id)) && (!s.regions || s.regions.includes(r.region)));
+  const s = list.length ? list[Math.floor(Math.random() * list.length)] : null;
+  $("#sponsor").innerHTML = s
+    ? `<a class="card sponsor" href="${esc(s.url)}" target="_blank" rel="sponsored noopener">${s.image ? `<img src="${esc(s.image)}" alt="">` : ""}<span><span class="tag">Sponsored</span><b>${esc(s.name)}</b><br><span class="small">${esc(s.text)}</span></span></a>`
+    : `<a class="card sponsor house" href="for-resorts.html#advertise"><span><span class="tag">Advertise</span><b>Reach skiers when they're planning a day on the mountain.</b><br><span class="small">Sponsor ${esc(r.name)} or a whole region on Bluebird Snow.</span></span></a>`;
+}
+
 function update() {
   const r = byId[state.id], c = cache[state.id];
   writeHash();
   if (!c?.ready) { drawMap(r, null); $("#summary").innerHTML = ""; $("#runs").innerHTML = ""; return; }
   fillDays(c); writeHash();
-  summary(r, c); runsTable(c); drawMap(r, c); accuracy(r);
+  summary(r, c); timeline(c); runsTable(c); liftsCard(c); drawMap(r, c); accuracy(r); sponsor(r);
 }
 async function select(id) {
   state.id = id; state.sel = null; $("#resort").value = id;

@@ -49,3 +49,8 @@ tbody tr { cursor: pointer; }
   .mapwrap { position: static; height: 55vh; }
   #resort { min-width: 0; }
 }
+.sponsor { display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--ink); border-style: dashed; }
+.sponsor img { width: 56px; height: 56px; object-fit: contain; border-radius: 8px; }
+.sponsor .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-right: 8px; }
+.sponsor:hover { border-color: var(--accent); }
+table.tl { width: auto; } table.tl td { padding: 0; height: 22px; }

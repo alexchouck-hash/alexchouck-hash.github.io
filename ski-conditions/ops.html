@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resort Ops Board</title>
+  <meta name="description" content="Operations forecast for ski resorts: snowmaking windows, grooming priorities, lift wind holds, storm ranges and a drafted morning snow report." />
+  <link rel="icon" href="../bluebird/assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/ski.css" />
+  <style>
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 16px 20px; }
+    .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 14px; }
+    .cell { text-align: center; font-variant-numeric: tabular-nums; border-radius: 6px; color: #fff; font-weight: 600; }
+    textarea { width: 100%; min-height: 120px; font: inherit; font-size: 14px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+    .alert { border-left: 4px solid #c9a93a; padding: 6px 10px; margin: 6px 0; background: var(--accent-2); border-radius: 6px; font-size: 13px; }
+    @media print { .top, .noprint { display: none; } body { background: #fff; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><img src="../bluebird/assets/logo.svg" alt="" width="32" height="32" />
+      <div><h1>Resort Ops Board</h1><p class="sub">Bluebird Snow for resort teams · <a href="./">Public forecast</a> · <a href="for-resorts.html">About</a></p></div></div>
+    <div class="controls">
+      <label>Resort <select id="resort"></select></label>
+      <label>Units <select id="units"><option value="us">in / °F / ft</option><option value="metric">cm / °C / m</option></select></label>
+      <button class="noprint" onclick="print()" style="font:inherit;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)">Print</button>
+    </div>
+  </header>
+  <main class="wrap">
+    <div id="status" class="status"></div>
+    <div id="board"></div>
+  </main>
+  <script type="module" src="js/ops-board.js"></script>
+</body>
+</html>

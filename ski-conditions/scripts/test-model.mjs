@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { RESORTS } from "../js/resorts.js";
 import * as M from "../js/model.js";
+import * as O from "../js/ops.js";
 
 // Resort catalog sanity
 const ids = new Set();
@@ -89,5 +90,35 @@ assert.equal(rs.length, 1); assert.equal(rs[0].ways.length, 2); assert(rs[0].gro
 const fin = M.finishRun(rs[0], [3400, 3300, 3200, 3100, 3000]);
 assert.equal(M.compass(fin.aspect), "N"); assert(fin.slope > 5 && fin.slope < 20, `slope ${fin.slope}`);
 assert.equal(M.virtualRuns(RESORTS[0]).length, 12);
+
+// ---------- ops / deeper forecasts ----------
+assert.equal(O.quantile([1, 2, 3, 4, 5], 0.5), 3); assert.equal(O.quantile([0, 10], 0.1), 1);
+const rgDay = { snow: 20, perModel: { ecmwf_ifs025: 25, gfs_seamless: 10, icon_seamless: 30, gem_seamless: 18, ncep_hrrr_conus: 99 } };
+const rg = O.snowRange(rgDay);
+assert(rg.p10 < rg.p50 && rg.p50 < rg.p90 && rg.n === 5, JSON.stringify(rg)); // regional model excluded
+assert(rg.chance > 50 && rg.chance < 100);
+assert(Math.abs(O.wetBulb(20, 50) - 13.7) < 0.2, "Stull check: 20 °C, 50 % → 13.7 °C");
+assert(O.wetBulb(-2, 40) < -4, "dry air makes snowmaking possible above freezing wet-bulb");
+const mkH = { ...h, relative_humidity_2m: T.map(() => 40) };
+const nightsMk = O.snowmakingNights(mkH, 3000);
+assert(nightsMk.length >= 15 && nightsMk[1].hours === 17, JSON.stringify(nightsMk[1]));
+assert(nightsMk.at(-3).hours < nightsMk[1].hours, "warm spring nights: fewer snowmaking hours");
+const lifts = O.liftsFromOSM([{ type: "way", id: 9, tags: { aerialway: "chair_lift", name: "Lift 9" }, geometry: [{ lat: 1, lon: 1 }, { lat: 1.01, lon: 1 }] }, { type: "way", id: 10, tags: { aerialway: "goods" }, geometry: [{ lat: 1, lon: 1 }, { lat: 1, lon: 1 }] }]);
+assert.equal(lifts.length, 1); assert.equal(lifts[0].name, "Lift 9");
+const windy = { ...h, wind_gusts_10m: T.map((_, i) => (i >= 72 && i < 96 ? 90 : 20)) };
+const wh = O.windHolds({ type: "chair_lift", top: 3500 }, windy);
+assert.equal(wh[d(3)].risk, "likely"); assert.equal(wh[d(1)].risk, "low");
+assert.equal(O.windHolds({ type: "gondola", top: 3000 }, { ...h, wind_gusts_10m: T.map(() => 68) })[d(1)].risk, "possible");
+const q = O.snowQuality(h, 3500);
+assert(q[d(3)].snow > 10 && q[d(3)].slr >= 11.5, `cold storm = dry snow: ${JSON.stringify(q[d(3)])}`);
+const simG = [{ run: { name: "Bumpy", difficulty: "intermediate", groomed: false }, byDay: { [d(12)]: { pm: { surface: "slush" } } } }, { run: { name: "Fine", difficulty: "easy" }, byDay: { [d(12)]: { pm: { surface: "cord" } } } }];
+const gp = O.groomingPriorities(simG, d(12), d(13), h);
+assert.equal(gp.length, 1); assert.match(gp[0].why, /refreezing/);
+const snowMap = { base: M.dailySnow(h, 2400), summit: M.dailySnow(h, 3500) };
+const fmt = { cm: (v) => `${Math.round(v)} cm`, deg: (v) => `${Math.round(v)}°`, m: (v) => `${v} m` };
+const rep = O.draftReport({ name: "Test" }, { date: d(3), snow: snowMap, range: rg, quality: q[d(3)], best: [], holds: [{ name: "Lift 9", risk: "likely" }], making: { hours: 8, prime: 3 }, fmt });
+assert.match(rep, /new snow forecast at the summit/); assert.match(rep, /Lift 9/); assert.match(rep, /Snowmaking tonight/);
+const seg2 = M.simulateSegments({ top: 3500, bottom: 3000, aspect: 0, slope: 25, difficulty: "advanced", groomed: false }, res, h);
+assert.equal(seg2.hourly.mid.length, h.time.length);
 
 console.log(`OK: ${RESORTS.length} resorts, model checks passed`);

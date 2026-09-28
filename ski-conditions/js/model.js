@@ -26,7 +26,7 @@ export const REGIONAL = {
 };
 export const MODEL_LABEL = { ...MODELS, ...Object.fromEntries(Object.entries(REGIONAL).map(([k, v]) => [k, v.label])) };
 export const regionalFor = (r) => Object.keys(REGIONAL).filter((k) => { const [a, b, c, d] = REGIONAL[k].box; return r.lat >= a && r.lat <= b && r.lon >= c && r.lon <= d; });
-export const HOURLY_VARS = ["temperature_2m", "precipitation", "freezing_level_height", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "shortwave_radiation", "cloud_cover", "snow_depth"];
+export const HOURLY_VARS = ["temperature_2m", "precipitation", "freezing_level_height", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "shortwave_radiation", "cloud_cover", "snow_depth", "relative_humidity_2m"];
 
 // ---------- multi-model blend ----------
 // Open-Meteo returns each variable once per model, suffixed with the model name.
@@ -258,11 +258,16 @@ export function segments(run) {
   const drop = run.top - run.bottom;
   return { top: run.top - 0.15 * drop, mid: (run.top + run.bottom) / 2, bottom: run.bottom + 0.15 * drop };
 }
+// out.hourly keeps each segment's hour-by-hour states for the run timeline.
 export function simulateSegments(run, resort, h) {
-  const seg = segments(run);
-  const out = {};
-  for (const k of Object.keys(seg)) out[k] = runDays(k === "mid" || run.top - run.bottom > 120 ? simulateRun(run, resort, h, seg[k]) : null, h);
-  if (run.top - run.bottom <= 120) { out.top = out.mid; out.bottom = out.mid; } // short runs: one segment
+  const seg = segments(run), short = run.top - run.bottom <= 120;
+  const out = { hourly: {} };
+  for (const k of Object.keys(seg)) {
+    if (short && k !== "mid") continue;
+    out.hourly[k] = simulateRun(run, resort, h, seg[k]);
+    out[k] = runDays(out.hourly[k], h);
+  }
+  if (short) { out.top = out.bottom = out.mid; out.hourly.top = out.hourly.bottom = out.hourly.mid; } // short runs: one segment
   return out;
 }
 
