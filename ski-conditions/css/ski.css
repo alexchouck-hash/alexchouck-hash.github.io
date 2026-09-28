@@ -54,3 +54,9 @@ tbody tr { cursor: pointer; }
 .sponsor .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-right: 8px; }
 .sponsor:hover { border-color: var(--accent); }
 table.tl { width: auto; } table.tl td { padding: 0; height: 22px; }
+
+.finder-controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+.finder-controls label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; }
+button.go { font: inherit; padding: 6px 14px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; margin: 6px 0 10px; }
+.crowd-quiet { color: #2fa36b; } .crowd-moderate { color: #8a9a2a; } .crowd-busy { color: #c98a3a; } .crowd-packed { color: #c4553f; }
+.webcams a { white-space: nowrap; }
