@@ -1,6 +1,7 @@
 // Network: Open-Meteo multi-model forecast + elevation, OpenStreetMap runs via Overpass.
 // All key-less and CORS-enabled. Browser responses are cached in localStorage.
 import { MODELS, HOURLY_VARS, blend, regionalFor, runsFromOSM, finishRun } from "./model.js";
+import { liftsFromOSM } from "./ops.js";
 
 // Prebuilt data (verification, trail maps) published on the data-feed branch.
 export const FEED_BASE = "https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/";
@@ -47,22 +48,29 @@ export async function elevations(points) {
 
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
 // Downhill runs from OpenStreetMap with elevation, aspect and slope per run.
-// Runs precomputed weekly by scripts/build-runs.mjs; live OSM fallback.
-export async function runs(resort) {
-  try { const j = await getJSON(`${FEED_BASE}ski/runs/${resort.id}.json`, 60 * 24); if (j.runs?.length) return j.runs; } catch {}
-  return liveRuns(resort);
+// Runs and lifts, precomputed weekly by scripts/build-runs.mjs; live OSM fallback.
+export async function mapData(resort) {
+  try { const j = await getJSON(`${FEED_BASE}ski/runs/${resort.id}.json`, 60 * 24); if (j.runs?.length) return { runs: j.runs, lifts: j.lifts || [] }; } catch {}
+  return liveMap(resort);
 }
-export async function liveRuns(resort) {
-  const q = `[out:json][timeout:40];way["piste:type"="downhill"](around:${resort.r * 1000},${resort.lat},${resort.lon});out geom;`;
+export const runs = async (resort) => (await mapData(resort)).runs;
+export async function liveMap(resort) {
+  const around = `(around:${resort.r * 1000},${resort.lat},${resort.lon})`;
+  const q = `[out:json][timeout:40];(way["piste:type"="downhill"]${around};way["aerialway"]${around};);out geom;`;
   let j, err;
   for (const url of OVERPASS) {
     try { j = await getJSON(url, 60 * 24 * 7, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } }); break; } catch (e) { err = e; }
   }
   if (!j) throw err;
   const list = runsFromOSM(j.elements).slice(0, 250);
-  const el = await elevations(list.flatMap((r) => r.samples));
-  return list.map((r, k) => finishRun(r, el.slice(k * 5, k * 5 + 5)));
+  const lifts = liftsFromOSM(j.elements).slice(0, 80);
+  const el = await elevations([...list.flatMap((r) => r.samples), ...lifts.flatMap((l) => l.ends)]);
+  const runs = list.map((r, k) => finishRun(r, el.slice(k * 5, k * 5 + 5)));
+  const off = list.length * 5;
+  lifts.forEach((l, k) => { l.bottom = Math.round(el[off + 2 * k]); l.top = Math.round(el[off + 2 * k + 1]); if (l.top < l.bottom) [l.top, l.bottom] = [l.bottom, l.top]; delete l.ends; });
+  return { runs, lifts };
 }
+export const liveRuns = async (resort) => (await liveMap(resort)).runs;
 
 // Light global leaderboard: next 7 days of snowfall at every summit, one request.
 export async function leaderboard(resorts) {

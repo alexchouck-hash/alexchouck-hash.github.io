@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snow Forecast Widget</title>
+  <link rel="stylesheet" href="css/ski.css" />
+  <style>
+    body { background: var(--card); }
+    .w { padding: 14px 16px; font-size: 14px; }
+    .w h2 { font-size: 17px; margin: 0; } .big { font-size: 34px; font-weight: 700; line-height: 1.1; }
+    .row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 5px 0; }
+    .by { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 10px; text-decoration: none; }
+    .by img { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <div class="w" id="w">Loading forecast…</div>
+  <script type="module">
+    import { RESORTS } from "./js/resorts.js";
+    import { SURFACES, simulateSegments, skillWeights, dailySnow, days, virtualRuns } from "./js/model.js";
+    import { snowRange, snowQuality } from "./js/ops.js";
+    import { formatters, esc, dayLabel, todayAt } from "./js/fmt.js";
+    import * as api from "./js/api.js";
+    const p = new URLSearchParams(location.search), r = RESORTS.find((x) => x.id === p.get("r")) || RESORTS[0];
+    const F = formatters(() => (p.get("u") || (/^en-US/.test(navigator.language) ? "us" : "metric")) === "us");
+    const el = document.getElementById("w");
+    try {
+      const v = await Promise.race([api.verification().catch(() => null), new Promise((res) => setTimeout(() => res(null), 3000))]);
+      const [h, map] = await Promise.all([api.forecast(r, 30, skillWeights(v?.skill, r.id).weights), api.mapData(r).catch(() => ({ runs: [] }))]);
+      const today = todayAt(h), up = days(h).filter((d) => d >= today).slice(0, 5), summit = dailySnow(h, r.summit), q = snowQuality(h, r.summit);
+      const runs = map.runs.length ? map.runs : virtualRuns(r);
+      const best = runs.map((run) => ({ run, st: simulateSegments(run, r, h).mid[today]?.am })).filter((x) => x.st && x.st.surface !== "closed").sort((a, b) => b.st.score - a.st.score).slice(0, 3);
+      const s0 = summit[today], rg = snowRange(s0);
+      el.innerHTML = `<h2>${esc(r.name)}</h2><div class="small muted">Summit forecast · ${dayLabel(today)}</div>
+        <div class="big">${F.cm(s0.snow)}</div><div class="small">${rg && rg.p90 >= 1 ? `range ${F.cm(rg.p10)}–${F.cm(rg.p90)} · ` : ""}${q[today]?.snow >= 2 ? q[today].label.toLowerCase() + " · " : ""}${F.deg(s0.Tmin)} to ${F.deg(s0.Tmax)}</div>
+        <div style="margin-top:8px">${up.slice(1).map((d) => `<div class="row"><span>${dayLabel(d)}</span><b>${F.cm(summit[d].snow)}</b></div>`).join("")}</div>
+        ${best.length ? `<div style="margin-top:8px" class="small"><b>Best runs this morning</b>${best.map((b) => `<div class="row"><span>${esc(b.run.name)}</span><span class="pill" style="background:${SURFACES[b.st.surface].color}">${SURFACES[b.st.surface].label}</span></div>`).join("")}</div>` : ""}
+        <a class="by" href="https://alexchouck-hash.github.io/ski-conditions/#r=${r.id}" target="_blank" rel="noopener"><img src="../bluebird/assets/logo.svg" alt="">Run-by-run forecast by <b>Bluebird Snow</b></a>`;
+    } catch (e) { el.textContent = "Forecast unavailable right now."; }
+  </script>
+</body>
+</html>
