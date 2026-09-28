@@ -95,10 +95,11 @@ export function topRuns(sim, day, tod, cat, cr, n = 5) {
 }
 
 // ---------- webcams ----------
-// Link-outs only: a map of public webcams around the point and a web search.
-export function webcamLinks(name, lat, lon, kind = "ski resort") {
+// Link-outs only: the resort's official page when known, a map of public webcams around the point and a web search.
+export function webcamLinks(name, lat, lon, kind = "ski resort", official) {
   const q = encodeURIComponent(`${name} ${kind} webcam live`);
   return [
+    ...(official ? [{ label: "Official webcams", url: official }] : []),
     { label: "Webcam map", url: `https://www.windy.com/-Webcams/webcams?${lat.toFixed(3)},${lon.toFixed(3)},12` },
     { label: "Live streams", url: `https://www.youtube.com/results?search_query=${q}&sp=EgJAAQ%253D%253D` },
     { label: "Search webcams", url: `https://www.google.com/search?q=${q}` },
