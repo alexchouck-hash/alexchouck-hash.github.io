@@ -18,25 +18,62 @@
   <div class="w" id="w">Loading forecast…</div>
   <script type="module">
     import { RESORTS } from "./js/resorts.js";
-    import { SURFACES, simulateSegments, skillWeights, biasFactor, dailySnow, days, virtualRuns } from "./js/model.js";
+    import { SURFACES, simulateSegments, skillWeights, biasFactor, dailySnow, days, virtualRuns, distM } from "./js/model.js";
     import { snowRange, snowQuality } from "./js/ops.js";
     import { formatters, esc, dayLabel, todayAt } from "./js/fmt.js";
     import * as api from "./js/api.js";
-    const p = new URLSearchParams(location.search), r = RESORTS.find((x) => x.id === p.get("r")) || RESORTS[0];
-    const F = formatters(() => (p.get("u") || (/^en-US/.test(navigator.language) ? "us" : "metric")) === "us");
+    // Two modes: ?r=<resort id> for a resort, or ?lat=&lon=&name= for any property
+    // (a cabin, rental or small hill): snow at the property + the nearest resort.
+    const p = new URLSearchParams(location.search);
+    const lat = parseFloat(p.get("lat")), lon = parseFloat(p.get("lon"));
+    const place = Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon, name: (p.get("name") || "Your stay").slice(0, 60) } : null;
+    const nearest = place ? RESORTS.map((r) => ({ r, km: distM([lat, lon], [r.lat, r.lon]) / 1000 })).sort((a, b) => a.km - b.km)[0] : null;
+    const r = place ? nearest.r : RESORTS.find((x) => x.id === p.get("r")) || RESORTS[0];
+    const showResort = !place || nearest.km <= 80;
+    const us = (p.get("u") || (/^en-US/.test(navigator.language) ? "us" : "metric")) === "us";
+    const F = formatters(() => us);
     const el = document.getElementById("w");
+    const link = `https://alexchouck-hash.github.io/ski-conditions/#r=${r.id}`;
+
+    async function local() {
+      const j = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=snowfall_sum,precipitation_sum,temperature_2m_min,temperature_2m_max&forecast_days=5&timezone=auto`).then((x) => x.json());
+      const d = j.daily;
+      return d.time.map((t, i) => {
+        const snow = d.snowfall_sum[i] || 0, wet = (d.precipitation_sum[i] || 0) > 0.5, freeze = d.temperature_2m_min[i] <= 0;
+        const roads = snow >= 5 ? "Snowy roads: winter tires or chains" : snow >= 1 || (wet && freeze) ? "Possible slick roads" : freeze ? "Frost / black ice early" : null;
+        return { date: t, snow, tmin: d.temperature_2m_min[i], tmax: d.temperature_2m_max[i], roads };
+      });
+    }
     try {
-      const v = await Promise.race([api.verification().catch(() => null), new Promise((res) => setTimeout(() => res(null), 3000))]);
-      const [h, map] = await Promise.all([api.forecast(r, 30, skillWeights(v?.skill, r.id).weights, biasFactor(v?.correction, r.id)), api.mapData(r).catch(() => ({ runs: [] }))]);
-      const today = todayAt(h), up = days(h).filter((d) => d >= today).slice(0, 5), summit = dailySnow(h, r.summit), q = snowQuality(h, r.summit);
-      const runs = map.runs.length ? map.runs : virtualRuns(r);
-      const best = runs.map((run) => ({ run, st: simulateSegments(run, r, h).mid[today]?.am })).filter((x) => x.st && x.st.surface !== "closed").sort((a, b) => b.st.score - a.st.score).slice(0, 3);
-      const s0 = summit[today], rg = snowRange(s0);
-      el.innerHTML = `<h2>${esc(r.name)}</h2><div class="small muted">Summit forecast · ${dayLabel(today)}</div>
-        <div class="big">${F.cm(s0.snow)}</div><div class="small">${rg && rg.p90 >= 1 ? `range ${F.cm(rg.p10)}–${F.cm(rg.p90)} · ` : ""}${q[today]?.snow >= 2 ? q[today].label.toLowerCase() + " · " : ""}${F.deg(s0.Tmin)} to ${F.deg(s0.Tmax)}</div>
-        <div style="margin-top:8px">${up.slice(1).map((d) => `<div class="row"><span>${dayLabel(d)}</span><b>${F.cm(summit[d].snow)}</b></div>`).join("")}</div>
-        ${best.length ? `<div style="margin-top:8px" class="small"><b>Best runs this morning</b>${best.map((b) => `<div class="row"><span>${esc(b.run.name)}</span><span class="pill" style="background:${SURFACES[b.st.surface].color}">${SURFACES[b.st.surface].label}</span></div>`).join("")}</div>` : ""}
-        <a class="by" href="https://alexchouck-hash.github.io/ski-conditions/#r=${r.id}" target="_blank" rel="noopener"><img src="../bluebird/assets/logo.svg" alt="">Run-by-run forecast by <b>Bluebird Snow</b></a>`;
+      const v = showResort ? await Promise.race([api.verification().catch(() => null), new Promise((res) => setTimeout(() => res(null), 3000))]) : null;
+      const [loc, h, map] = await Promise.all([
+        place ? local() : null,
+        showResort ? api.forecast(r, 30, skillWeights(v?.skill, r.id).weights, biasFactor(v?.correction, r.id)) : null,
+        showResort ? api.mapData(r).catch(() => ({ runs: [] })) : null,
+      ]);
+      let html = "";
+      if (place) {
+        const l0 = loc[0], warn = loc.find((x) => x.roads);
+        html += `<h2>${esc(place.name)}</h2><div class="small muted">Snow at your stay · ${dayLabel(l0.date)}</div>
+          <div class="big">${F.cm(l0.snow)}</div><div class="small">${F.deg(l0.tmin)} to ${F.deg(l0.tmax)}</div>
+          ${warn ? `<div class="small" style="margin-top:4px">🚗 <b>${esc(warn.roads)}</b> ${warn.date === l0.date ? "today" : dayLabel(warn.date)}</div>` : ""}
+          <div style="margin-top:6px">${loc.slice(1).map((x) => `<div class="row"><span>${dayLabel(x.date)}</span><b>${F.cm(x.snow)}</b></div>`).join("")}</div>`;
+      }
+      if (showResort) {
+        const today = todayAt(h), up = days(h).filter((d) => d >= today).slice(0, 5), summit = dailySnow(h, r.summit), q = snowQuality(h, r.summit);
+        const runs = map.runs.length ? map.runs : virtualRuns(r);
+        const best = runs.map((run) => ({ run, st: simulateSegments(run, r, h).mid[today]?.am })).filter((x) => x.st && x.st.surface !== "closed").sort((a, b) => b.st.score - a.st.score).slice(0, 3);
+        const s0 = summit[today], rg = snowRange(s0);
+        html += place
+          ? `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px"><b>${esc(r.name)}</b> <span class="small muted">${Math.round(nearest.km)} km away · summit</span>
+              <div class="small">${up.map((d) => `${dayLabel(d).split(",")[0]} <b>${F.cm(summit[d].snow)}</b>`).join(" · ")}</div></div>`
+          : `<h2>${esc(r.name)}</h2><div class="small muted">Summit forecast · ${dayLabel(today)}</div>
+             <div class="big">${F.cm(s0.snow)}</div><div class="small">${rg && rg.p90 >= 1 ? `range ${F.cm(rg.p10)}–${F.cm(rg.p90)} · ` : ""}${q[today]?.snow >= 2 ? q[today].label.toLowerCase() + " · " : ""}${F.deg(s0.Tmin)} to ${F.deg(s0.Tmax)}</div>
+             <div style="margin-top:8px">${up.slice(1).map((d) => `<div class="row"><span>${dayLabel(d)}</span><b>${F.cm(summit[d].snow)}</b></div>`).join("")}</div>`;
+        if (best.length) html += `<div style="margin-top:8px" class="small"><b>Best runs this morning${place ? ` at ${esc(r.name)}` : ""}</b>${best.map((b) => `<div class="row"><span>${esc(b.run.name)}</span><span class="pill" style="background:${SURFACES[b.st.surface].color}">${SURFACES[b.st.surface].label}</span></div>`).join("")}</div>`;
+      }
+      html += `<a class="by" href="${showResort ? link : "https://alexchouck-hash.github.io/bluebird/"}" target="_blank" rel="noopener"><img src="../bluebird/assets/logo.svg" alt="">Forecast by <b>Bluebird Snow</b></a>`;
+      el.innerHTML = html;
     } catch (e) { el.textContent = "Forecast unavailable right now."; }
   </script>
 </body>
