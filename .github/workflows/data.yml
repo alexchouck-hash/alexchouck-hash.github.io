@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: "17 */6 * * *" # every 6 hours (Open-Meteo free-tier budget for 440+ resorts)
   workflow_dispatch:
+    inputs:
+      normals_budget:
+        description: "Climate-normal cells to build this run (each is a ~6-year ERA5 pull, ~200+ Open-Meteo calls)"
+        default: "7"
   push:
     branches: [main]
     paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", "bluebird/scripts/**", "bluebird/events/catalog.js", ".github/workflows/data.yml"]
@@ -35,7 +39,10 @@ jobs:
         run: node scripts/build-data.mjs
         env:
           FEED_DIR: feed
-          NORMALS_BUDGET: "3"
+          # ~28 cells/day fills all 159 cells in ~4 days within Open-Meteo's
+          # free 10k calls/day; after that only 180-day-old cells are rebuilt.
+          NORMALS_BUDGET: ${{ inputs.normals_budget || '7' }}
+          NORMALS_PAUSE_MS: "20000"
       - name: Precompute ski trail maps
         run: node ski-conditions/scripts/build-runs.mjs
         continue-on-error: true
