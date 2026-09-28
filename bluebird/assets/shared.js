@@ -5,6 +5,7 @@ export const SITES = [
   { id: "foliage", name: "Foliage", icon: "🍁", href: "../foliage/", color: "#d4622a", blurb: "When fall color peaks at 40 famous leaf-peeping spots, from this year's weather." },
   { id: "rivers", name: "Rivers", icon: "🛶", href: "../rivers/", color: "#1f8f8a", blurb: "Live river levels for canoeing and kayaking, compared with what is normal for the day." },
   { id: "waterfalls", name: "Waterfalls", icon: "💧", href: "../waterfalls/", color: "#2d6fb8", blurb: "How hard 34 famous waterfalls are flowing now, from recent rain, snowmelt season and the forecast." },
+  { id: "events", name: "Events", icon: "📅", href: "../events/", color: "#7a4fd1", blurb: "Festivals, races, holidays and a daily demand outlook near any ski town or beach, for trips and rental pricing." },
   { id: "offshore", name: "Offshore", icon: "🎣", href: "../offshore/", color: "#27509b", blurb: "Go/no-go sea conditions, temperature breaks and moon for offshore fishing." },
   { id: "camp", name: "Camp", icon: "⛺", href: "../camp/", color: "#3e7d3a", blurb: "Night-by-night camping forecast: dry, calm, comfortable, bugs and stars." },
 ];
