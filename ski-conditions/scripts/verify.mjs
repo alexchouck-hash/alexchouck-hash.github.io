@@ -11,7 +11,7 @@
 
 import { mkdir, readFile, writeFile, readdir, rm } from "node:fs/promises";
 import { RESORTS } from "../js/resorts.js";
-import { dailySnow, distM, MODEL_LABEL, skillWeights } from "../js/model.js";
+import { dailySnow, distM, MODEL_LABEL, skillWeights, biasFactor } from "../js/model.js";
 import * as api from "../js/api.js";
 
 const root = new URL((process.env.FEED_DIR || "feed").replace(/\/?$/, "/") + "ski/", new URL("../../", import.meta.url));
@@ -60,14 +60,16 @@ async function snapshot(pairs) {
   const path = `forecasts/${TODAY}.json`;
   if (await readJSON(path)) return console.log(`snapshot ${TODAY} exists`);
   const out = { issued: new Date().toISOString(), resorts: {} };
-  const skill = (await readJSON("verification.json"))?.skill;
+  const prev = await readJSON("verification.json"), skill = prev?.skill;
   for (const r of RESORTS.filter((x) => pairs[x.id])) {
     try {
       // Same skill weighting the page uses, so the saved "blend" is what visitors saw.
-      const h = await api.forecast(r, 0, skillWeights(skill, r.id).weights);
+      // raw = before bias correction; the correction is always learned from raw forecasts.
+      const f = biasFactor(prev?.correction, r.id);
+      const h = await api.forecast(r, 0, skillWeights(skill, r.id).weights, f);
       const byDay = dailySnow(h, pairs[r.id].elevM);
       const days = {};
-      for (const [d, v] of Object.entries(byDay)) if (d >= TODAY) days[d] = { blend: +v.snow.toFixed(1), models: Object.fromEntries(Object.entries(v.perModel).map(([m, x]) => [m, +x.toFixed(1)])) };
+      for (const [d, v] of Object.entries(byDay)) if (d >= TODAY) days[d] = { blend: +v.snow.toFixed(1), raw: +(v.snow / f).toFixed(1), models: Object.fromEntries(Object.entries(v.perModel).map(([m, x]) => [m, +(x / f).toFixed(1)])) };
       out.resorts[r.id] = days;
     } catch (e) { console.warn(`forecast ${r.id}: ${e.message}`); }
     await new Promise((res) => setTimeout(res, 400));
@@ -106,7 +108,7 @@ const finish = (s) => ({ n: s.n, mae: s.n ? +(s.absErr / s.n).toFixed(2) : null,
 async function score(pairs, obs) {
   await mkdir(f("forecasts/"), { recursive: true });
   const files = (await readdir(f("forecasts/"))).filter((x) => /^\d{4}-\d{2}-\d{2}\.json$/.test(x)).sort();
-  const byLead = {}, byResort = {}, recent = {}, skillG = {}, skillR = {};
+  const byLead = {}, byResort = {}, recent = {}, skillG = {}, skillR = {}, totals = {};
   for (const file of files) {
     const issue = file.slice(0, 10);
     if (issue < addDays(TODAY, -KEEP_DAYS)) { await rm(f(`forecasts/${file}`)); continue; }
@@ -122,6 +124,7 @@ async function score(pairs, obs) {
           // Skill for blend weighting: short range (days 1–2), where weights matter most.
           if (lead <= 2) { add((skillG[m] ||= blank()), x, o[d]); add(((skillR[id] ||= {})[m] ||= blank()), x, o[d]); }
         }
+        if (lead <= 2) { const t = (totals[id] ||= { n: 0, raw: 0, obs: 0 }); t.n++; t.raw += v.raw ?? v.blend; t.obs += o[d]; }
         if (lead === 1) {
           add((byResort[id] ||= blank()), v.blend, o[d]);
           if (d >= addDays(TODAY, -14)) (recent[id] ||= []).push({ date: d, forecast: v.blend, observed: +o[d].toFixed(1) });
@@ -136,13 +139,32 @@ async function score(pairs, obs) {
     forecastDays: files.length, labels: MODEL_LABEL, stations: pairs,
     byLead: Object.fromEntries(Object.entries(byLead).map(([m, v]) => [m, map(v)])),
     byResort: map(byResort), recent,
+    correction: corrections(totals),
     skill: { leads: [1, 2], global: map(skillG), byResort: Object.fromEntries(Object.entries(skillR).map(([k, v]) => [k, map(v)])) },
   };
   await writeJSON("verification.json", out);
   console.log(`verification: ${files.length} forecast days, lead-1 blend n=${out.byLead.blend?.[1]?.n ?? 0}`);
 }
 
+// Per-resort snowfall bias correction from days 1–2. Observed depth gain
+// undercounts snowfall (settling), so observations are scaled up by UNDERCOUNT
+// before comparing. Shrunk toward 1 until there is plenty of data, and capped.
+export const CORRECTION = { minN: 20, minSnow: 20, undercount: 1.15, shrink: 40, min: 0.75, max: 1.3 };
+export function corrections(totals) {
+  const out = {};
+  for (const [id, t] of Object.entries(totals)) {
+    if (t.n < CORRECTION.minN || t.raw < CORRECTION.minSnow) continue;
+    const ratio = (t.obs * CORRECTION.undercount) / t.raw;
+    const factor = Math.min(CORRECTION.max, Math.max(CORRECTION.min, 1 + (ratio - 1) * (t.n / (t.n + CORRECTION.shrink))));
+    out[id] = { n: t.n, ratio: +ratio.toFixed(2), factor: +factor.toFixed(2) };
+  }
+  return out;
+}
+
+// VERIFY_NO_MAIN=1 lets tests import the helpers without running the job.
+if (process.env.VERIFY_NO_MAIN !== "1") {
 const pairs = await stations();
 console.log(`${Object.keys(pairs).length} resorts paired with SNOTEL stations`);
 await snapshot(pairs);
 try { await score(pairs, await observations(pairs)); } catch (e) { console.warn(`scoring skipped: ${e.message}`); }
+}

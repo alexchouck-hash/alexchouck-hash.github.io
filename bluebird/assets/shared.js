@@ -1,6 +1,6 @@
 // Bluebird shared helpers: partner-site nav, cached fetch, units, dates, scores, moon.
 export const SITES = [
-  { id: "snow", name: "Snow", icon: "❄️", href: "../../ski-conditions/", color: "#1f6feb", blurb: "Run-by-run snow conditions at 62 major ski resorts, verified against snow stations." },
+  { id: "snow", name: "Snow", icon: "❄️", href: "../../ski-conditions/", color: "#1f6feb", blurb: "Run-by-run snow conditions at 140+ major ski resorts, verified against snow stations." },
   { id: "beach", name: "Beach", icon: "🏝️", href: "../../", color: "#0d9bb5", blurb: "Sargassum, water, waves and crowds at 440+ Gulf and Caribbean resorts." },
   { id: "foliage", name: "Foliage", icon: "🍁", href: "../foliage/", color: "#d4622a", blurb: "When fall color peaks at 40 famous leaf-peeping spots, from this year's weather." },
   { id: "rivers", name: "Rivers", icon: "🛶", href: "../rivers/", color: "#1f8f8a", blurb: "Live river levels for canoeing and kayaking, compared with what is normal for the day." },
