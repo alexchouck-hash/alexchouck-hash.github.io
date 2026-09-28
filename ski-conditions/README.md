@@ -1,6 +1,6 @@
 # Run-by-Run Snow Forecast
 
-Static page (`/ski-conditions/`) forecasting snow surface conditions on every run at 62 major ski resorts worldwide, for the next 10 days. Everything is fetched live in the browser from key-less, free APIs.
+Static page (`/ski-conditions/`) forecasting snow surface conditions on every run at 140+ major ski resorts worldwide, for the next 10 days. Everything is fetched live in the browser from key-less, free APIs.
 
 - `js/resorts.js`: resort catalog (coordinates, base/summit elevation, treeline, run search radius). Values are approximate.
 - `js/api.js`: Open-Meteo hourly forecast from ECMWF, GFS, ICON and GEM (plus 7 past days), Open-Meteo elevation, OpenStreetMap runs via Overpass.

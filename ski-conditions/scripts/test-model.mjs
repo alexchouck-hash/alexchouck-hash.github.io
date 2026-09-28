@@ -10,7 +10,20 @@ const V = await import("./verify.mjs"), C = await import("./build-climate.mjs"),
 const ids = new Set();
 for (const r of RESORTS) {
   assert(!ids.has(r.id), `duplicate ${r.id}`); ids.add(r.id);
-  assert(r.summit > r.base && Math.abs(r.lat) < 70 && Math.abs(r.lon) <= 180, r.id);
+  assert(/^[a-z0-9-]+$/.test(r.id), `id format ${r.id}`);
+  assert(Math.abs(r.lat) < 70 && Math.abs(r.lon) <= 180 && !(r.lat === 0 && r.lon === 0), `coords ${r.id}`);
+  assert(r.summit - r.base >= 200 && r.summit - r.base <= 2800, `vertical ${r.id}: ${r.summit - r.base} m`);
+  assert(r.base >= 0 && r.summit <= 4500, `elevations ${r.id}`);
+  assert(r.treeline >= 300 && r.treeline <= 3900, `treeline ${r.id}`);
+  assert(r.r >= 1.5 && r.r <= 8, `radius ${r.id}`);
+  assert(r.name && r.country?.length === 2 && r.region, `names ${r.id}`);
+}
+// No two resorts at (nearly) the same point unless they are known neighbours.
+const NEIGHBOURS = new Set(["alta|snowbird", "brighton|solitude", "tignes|val-disere", "remarkables|coronet-peak", "deer-valley|park-city"]);
+for (let a = 0; a < RESORTS.length; a++) for (let b = a + 1; b < RESORTS.length; b++) {
+  const d = M.distM([RESORTS[a].lat, RESORTS[a].lon], [RESORTS[b].lat, RESORTS[b].lon]);
+  const key = [RESORTS[a].id, RESORTS[b].id].sort().join("|");
+  assert(d > 3000 || NEIGHBOURS.has(key), `too close: ${key} (${Math.round(d)} m)`);
 }
 
 // Synthetic 17-day hourly series: 3 dry cold days, a 24 h storm with NW wind, then sunny warm spring days.
@@ -123,6 +136,8 @@ assert.match(rep, /new snow forecast at the summit/); assert.match(rep, /Lift 9/
 const seg2 = M.simulateSegments({ top: 3500, bottom: 3000, aspect: 0, slope: 25, difficulty: "advanced", groomed: false }, res, h);
 assert.equal(seg2.hourly.mid.length, h.time.length);
 
+const cc = FB.catalogCheck([{ id: "ok", base: 1000, summit: 2000 }, { id: "typo", base: 1000, summit: 2000 }, { id: "nodata", base: 1, summit: 2 }], [1500, 120, null]);
+assert.deepEqual(cc.flagged.map((x) => x.id), ["typo"]);
 // ---------- phase 4: bias correction, climate, feed ----------
 const bj = { elevation: 3000, hourly: { time: ["t"], temperature_2m_gfs_seamless: [-5], precipitation_gfs_seamless: [2] } };
 const bc = M.blend(bj, null, {}, 1.25);

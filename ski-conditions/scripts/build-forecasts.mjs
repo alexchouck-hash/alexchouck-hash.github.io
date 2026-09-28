@@ -51,6 +51,18 @@ export function buildResort(r, h, runs, lifts, meta = {}) {
   };
 }
 
+// Resort point on a terrain model vs listed base/summit (±300 m slack: the point
+// may sit on a village, a valley or a ridge).
+export function catalogCheck(resorts, dem, slack = 300) {
+  const flagged = [];
+  resorts.forEach((r, k) => {
+    const z = dem[k];
+    if (z == null) return;
+    if (z < r.base - slack || z > r.summit + slack) flagged.push({ id: r.id, name: r.name, demM: Math.round(z), baseM: r.base, summitM: r.summit });
+  });
+  return { checked: resorts.length, flagged };
+}
+
 if (process.env.FORECASTS_NO_MAIN !== "1") {
   await mkdir(f("forecast/"), { recursive: true });
   const v = await readJSON("verification.json");
@@ -68,5 +80,14 @@ if (process.env.FORECASTS_NO_MAIN !== "1") {
     await sleep(500);
   }
   await writeFile(f("forecast/index.json"), JSON.stringify(index));
+  // Catalog check: the resort's map point should sit between its base and summit
+  // on a terrain model. Flags typos in coordinates or elevations.
+  try {
+    const dem = await api.elevations(RESORTS.map((r) => [r.lat, r.lon]));
+    const check = catalogCheck(RESORTS, dem);
+    await writeFile(f("catalog-check.json"), JSON.stringify({ updated: new Date().toISOString(), ...check }));
+    console.log(`catalog check: ${check.flagged.length} of ${RESORTS.length} resorts flagged`);
+    for (const x of check.flagged) console.warn(`  ${x.id}: terrain ${x.demM} m vs listed ${x.baseM}–${x.summitM} m`);
+  } catch (e) { console.warn(`catalog check skipped: ${e.message}`); }
   console.log(`forecast feed: ${index.resorts.length}/${RESORTS.length} resorts`);
 }
