@@ -1,5 +1,5 @@
 import { RESORTS } from "./resorts.js";
-import { SURFACES, simulateSegments, skillWeights, dailySnow, days, virtualRuns } from "./model.js";
+import { SURFACES, simulateSegments, skillWeights, biasFactor, dailySnow, days, virtualRuns } from "./model.js";
 import { snowRange, snowQuality, snowmakingNights, windHolds, groomingPriorities, alerts, draftReport, LIFT_TYPES } from "./ops.js";
 import { formatters, esc, dayLabel, todayAt } from "./fmt.js";
 import * as api from "./api.js";
@@ -23,7 +23,7 @@ async function go() {
   $("#status").textContent = `Loading ${r.name}…`; $("#board").innerHTML = "";
   try {
     const v = await Promise.race([api.verification().catch(() => null), new Promise((res) => setTimeout(() => res(null), 4000))]);
-    const [h, map] = await Promise.all([api.forecast(r, 30, skillWeights(v?.skill, r.id).weights), api.mapData(r).catch(() => ({ runs: [], lifts: [] }))]);
+    const [h, map] = await Promise.all([api.forecast(r, 30, skillWeights(v?.skill, r.id).weights, biasFactor(v?.correction, r.id)), api.mapData(r).catch(() => ({ runs: [], lifts: [] }))]);
     if (byId[id] !== r) return;
     const runs = map.runs.length ? map.runs : virtualRuns(r);
     const sim = runs.map((run) => { const seg = simulateSegments(run, r, h); return { run, byDay: seg.mid }; });

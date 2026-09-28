@@ -3,12 +3,27 @@ import assert from "node:assert/strict";
 import { RESORTS } from "../js/resorts.js";
 import * as M from "../js/model.js";
 import * as O from "../js/ops.js";
+process.env.VERIFY_NO_MAIN = process.env.CLIMATE_NO_MAIN = process.env.FORECASTS_NO_MAIN = "1";
+const V = await import("./verify.mjs"), C = await import("./build-climate.mjs"), FB = await import("./build-forecasts.mjs");
 
 // Resort catalog sanity
 const ids = new Set();
 for (const r of RESORTS) {
   assert(!ids.has(r.id), `duplicate ${r.id}`); ids.add(r.id);
-  assert(r.summit > r.base && Math.abs(r.lat) < 70 && Math.abs(r.lon) <= 180, r.id);
+  assert(/^[a-z0-9-]+$/.test(r.id), `id format ${r.id}`);
+  assert(Math.abs(r.lat) < 70 && Math.abs(r.lon) <= 180 && !(r.lat === 0 && r.lon === 0), `coords ${r.id}`);
+  assert(r.summit - r.base >= 200 && r.summit - r.base <= 2800, `vertical ${r.id}: ${r.summit - r.base} m`);
+  assert(r.base >= 0 && r.summit <= 4500, `elevations ${r.id}`);
+  assert(r.treeline >= 300 && r.treeline <= 3900, `treeline ${r.id}`);
+  assert(r.r >= 1.5 && r.r <= 8, `radius ${r.id}`);
+  assert(r.name && r.country?.length === 2 && r.region, `names ${r.id}`);
+}
+// No two resorts at (nearly) the same point unless they are known neighbours.
+const NEIGHBOURS = new Set(["alta|snowbird", "brighton|solitude", "tignes|val-disere", "remarkables|coronet-peak", "deer-valley|park-city"]);
+for (let a = 0; a < RESORTS.length; a++) for (let b = a + 1; b < RESORTS.length; b++) {
+  const d = M.distM([RESORTS[a].lat, RESORTS[a].lon], [RESORTS[b].lat, RESORTS[b].lon]);
+  const key = [RESORTS[a].id, RESORTS[b].id].sort().join("|");
+  assert(d > 3000 || NEIGHBOURS.has(key), `too close: ${key} (${Math.round(d)} m)`);
 }
 
 // Synthetic 17-day hourly series: 3 dry cold days, a 24 h storm with NW wind, then sunny warm spring days.
@@ -120,5 +135,28 @@ const rep = O.draftReport({ name: "Test" }, { date: d(3), snow: snowMap, range: 
 assert.match(rep, /new snow forecast at the summit/); assert.match(rep, /Lift 9/); assert.match(rep, /Snowmaking tonight/);
 const seg2 = M.simulateSegments({ top: 3500, bottom: 3000, aspect: 0, slope: 25, difficulty: "advanced", groomed: false }, res, h);
 assert.equal(seg2.hourly.mid.length, h.time.length);
+
+const cc = FB.catalogCheck([{ id: "ok", base: 1000, summit: 2000 }, { id: "typo", base: 1000, summit: 2000 }, { id: "nodata", base: 1, summit: 2 }], [1500, 120, null]);
+assert.deepEqual(cc.flagged.map((x) => x.id), ["typo"]);
+// ---------- phase 4: bias correction, climate, feed ----------
+const bj = { elevation: 3000, hourly: { time: ["t"], temperature_2m_gfs_seamless: [-5], precipitation_gfs_seamless: [2] } };
+const bc = M.blend(bj, null, {}, 1.25);
+assert.equal(bc.precipitation[0], 2.5); assert.equal(bc.perModel.gfs_seamless.P[0], 2.5); assert.equal(bc.correction, 1.25);
+assert.equal(M.blend(bj).precipitation[0], 2);
+assert.equal(M.biasFactor({ alta: { factor: 0.9 } }, "alta"), 0.9); assert.equal(M.biasFactor(null, "alta"), 1);
+const cr = V.corrections({ over: { n: 60, raw: 300, obs: 150 }, under: { n: 60, raw: 100, obs: 150 }, few: { n: 5, raw: 100, obs: 10 }, tiny: { n: 40, raw: 5, obs: 1 } });
+assert(cr.over.factor < 1 && cr.over.factor >= 0.75, JSON.stringify(cr.over));
+assert(cr.under.factor > 1 && cr.under.factor <= 1.3, JSON.stringify(cr.under));
+assert(!cr.few && !cr.tiny, "needs enough days and snow");
+const perfect = V.corrections({ ok: { n: 100, raw: 115, obs: 100 } }); assert.equal(perfect.ok.factor, 1);
+assert.equal(M.seasonStart(40, "2026-12-15"), "2026-10-01"); assert.equal(M.seasonStart(40, "2026-03-15"), "2025-10-01"); assert.equal(M.seasonStart(-33, "2026-08-01"), "2026-04-01");
+assert.equal(M.dailySnowFromMean(10, -8), 10 * M.slr(-8) / 10); assert.equal(M.dailySnowFromMean(10, 5), 0);
+const clim = []; for (const y of [2020, 2021]) for (let k = 0; k < 200; k++) clim.push([new Date(Date.UTC(y, 9, 1 + k, 12)).toISOString().slice(0, 10), k % 7 === 0 ? 14 : 0]);
+const nm = C.normalsFrom(45, clim);
+assert.equal(nm.seasons, 2); assert.equal(nm.weekly[0], 14); assert.equal(nm.cumulative[6], 14); assert.equal(nm.cumulative[7], 28);
+const doc = FB.buildResort({ id: "t", name: "Test", country: "US", region: "X", lat: 39.6, lon: -106.35, base: 3000, summit: 3500, treeline: 3200 }, { ...h, time: h.time.map((t, i) => new Date(Date.now() - 3 * 864e5 + i * 36e5).toISOString().slice(0, 13) + ":00"), utcOffset: 0, weights: { x: 1 }, correction: 1, relative_humidity_2m: T.map(() => 50) }, [{ id: "r1", name: "Run 1", top: 3500, bottom: 3000, aspect: 0, slope: 25, difficulty: "intermediate", groomed: true }], [{ name: "Lift A", type: "chair_lift", top: 3500 }]);
+assert.equal(doc.schema, 1); assert.equal(doc.days.length, 10); assert(doc.days[0].summit.hasOwnProperty("p90")); assert.equal(doc.runsToday.length, 1);
+assert(doc.days.every((x) => x.snowmakingHours && Array.isArray(x.liftWindHolds.likely)));
+JSON.parse(JSON.stringify(doc));
 
 console.log(`OK: ${RESORTS.length} resorts, model checks passed`);

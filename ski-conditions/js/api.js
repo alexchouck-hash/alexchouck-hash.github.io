@@ -27,13 +27,13 @@ async function getJSON(url, ttlMin, init) {
 // with 7 past days so the snowpack simulation has recent history.
 // High-res regional models come from a second, optional request so an
 // unavailable model can never break the main forecast.
-export async function forecast(resort, ttlMin = 30, weights = {}) {
+export async function forecast(resort, ttlMin = 30, weights = {}, factor = 1) {
   const mid = Math.round((resort.base + resort.summit) / 2);
   const u = (models) => `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lon}&elevation=${mid}` +
     `&hourly=${HOURLY_VARS.join(",")}&models=${models.join(",")}&past_days=7&forecast_days=10&timezone=auto`;
   const reg = regionalFor(resort);
   const [main, regional] = await Promise.all([getJSON(u(Object.keys(MODELS)), ttlMin), reg.length ? getJSON(u(reg), ttlMin).catch(() => null) : null]);
-  return blend(main, regional, weights);
+  return blend(main, regional, weights, factor);
 }
 
 export async function elevations(points) {
@@ -82,3 +82,6 @@ export async function leaderboard(resorts) {
 
 // Verification scores published by ski-conditions/scripts/verify.mjs on the data-feed branch.
 export const verification = () => getJSON(FEED_BASE + "ski/verification.json", 60);
+
+// Season context built by scripts/build-climate.mjs.
+export const climate = (id) => getJSON(`${FEED_BASE}ski/climate/${id}.json`, 60 * 6);

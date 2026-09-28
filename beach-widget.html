@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beach Conditions Widget</title>
+  <style>
+    :root { --bg: #fff; --ink: #14212b; --muted: #5d6b76; --line: #dde4ea; --accent: #0d9bb5; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #162129; --ink: #e6edf2; --muted: #93a3ae; --line: #26343e; --accent: #4cc3db; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+    .w { padding: 14px 16px; }
+    h2 { font-size: 17px; margin: 0; } .small { font-size: 12px; } .muted { color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .tile { border: 1px solid var(--line); border-radius: 10px; padding: 7px 9px; }
+    .tile b { display: block; font-size: 18px; } .tile span { font-size: 11px; color: var(--muted); }
+    .pill, .tile .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; color: #fff; font-size: 13px; white-space: nowrap; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding: 5px 0; font-size: 13px; }
+    .by { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 10px; text-decoration: none; }
+    .by img { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <div class="w" id="w">Loading beach conditions…</div>
+  <script type="module">
+    // Beach conditions widget for hotels, rentals and guidebooks.
+    // ?id=<resort id>  or  ?lat=&lon=&name=  (uses the nearest forecast point in the catalog)
+    // &u=us|metric. Data: the prebuilt beach feed (rebuilt every 6 hours).
+    import { RESORTS } from "./js/resorts.js";
+    import { FEED_BASE } from "./js/api.js";
+    const p = new URLSearchParams(location.search);
+    const lat = parseFloat(p.get("lat")), lon = parseFloat(p.get("lon"));
+    const km = (a, b) => { const R = Math.PI / 180, x = Math.sin(((b[0] - a[0]) * R) / 2) ** 2 + Math.cos(a[0] * R) * Math.cos(b[0] * R) * Math.sin(((b[1] - a[1]) * R) / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); };
+    const place = Number.isFinite(lat) && Number.isFinite(lon);
+    const near = place ? RESORTS.map((r) => ({ r, d: km([lat, lon], [r.lat, r.lon]) })).sort((a, b) => a.d - b.d)[0] : null;
+    const r = place ? near.r : RESORTS.find((x) => x.id === p.get("id")) || RESORTS[0];
+    const name = place ? (p.get("name") || r.name).slice(0, 60) : r.name;
+    const us = (p.get("u") || (/^en-US/.test(navigator.language) ? "us" : "metric")) === "us";
+    const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const t = (f) => (f == null ? "–" : us ? `${Math.round(f)}°F` : `${Math.round(((f - 32) * 5) / 9)}°C`);
+    const ft = (v) => (v == null ? "–" : us ? `${v} ft` : `${(v * 0.3048).toFixed(1)} m`);
+    const sargColor = (s) => (s == null ? "#8a96a3" : s < 10 ? "#1f9d63" : s < 25 ? "#7cb342" : s < 45 ? "#c99a1c" : s < 70 ? "#d9793a" : "#c9473a");
+    const ripColor = { Low: "#1f9d63", Moderate: "#c99a1c", High: "#c9473a" };
+    const day = (d) => new Date(d + "T12:00Z").toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" });
+    const el = document.getElementById("w");
+    try {
+      const j = await fetch(`${FEED_BASE}resorts/${r.id}.json`).then((x) => { if (!x.ok) throw new Error(x.status); return x.json(); });
+      const d0 = j.days[0], s0 = d0.sargassum, w = d0.weather, o = d0.ocean, sf = d0.safety || {};
+      el.innerHTML = `<h2>${esc(name)}</h2>
+        <div class="small muted">${place && near.d > 3 ? `Beach forecast near ${esc(r.name)} (${Math.round(near.d)} km)` : esc(j.resort?.city || r.city || "")} · today</div>
+        <div class="grid">
+          <div class="tile"><b><span class="pill" style="background:${sargColor(s0?.score)}">${esc(s0?.label || "–")}</span></b><span>Sargassum (seaweed)</span></div>
+          <div class="tile"><b>${t(o?.sstF)}</b><span>Water temperature</span></div>
+          <div class="tile"><b>${ft(o?.waveFt)}</b><span>Waves${o?.periodS ? ` · ${Math.round(o.periodS)} s` : ""}</span></div>
+          <div class="tile"><b>${t(w?.tmaxF)}</b><span>${esc(w?.summary || "High")}${w?.uv != null ? ` · UV ${Math.round(w.uv)}` : ""}</span></div>
+        </div>
+        ${sf.ripCurrent?.label ? `<div class="row"><span>Rip currents</span><span class="pill" style="background:${ripColor[sf.ripCurrent.label] || "#8a96a3"}">${esc(sf.ripCurrent.label)}</span></div>` : ""}
+        ${j.days.slice(1, 5).map((d) => `<div class="row"><span>${day(d.date)}</span><span class="small muted">${t(d.weather?.tmaxF)} · ${t(d.ocean?.sstF)} water</span><span class="pill" style="background:${sargColor(d.sargassum?.score)}">${esc(d.sargassum?.label || "–")}</span></div>`).join("")}
+        <a class="by" href="https://alexchouck-hash.github.io/#resort=${r.id}" target="_blank" rel="noopener"><img src="bluebird/assets/logo.svg" alt="">Beach forecast by <b>Bluebird Beach</b></a>`;
+    } catch (e) { el.textContent = "Beach conditions unavailable right now."; }
+  </script>
+</body>
+</html>

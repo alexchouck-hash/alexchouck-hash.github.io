@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluebird Events</title>
+  <meta name="description" content="Events, holidays and a daily demand outlook around any ski town or beach destination, for travelers and vacation-rental hosts." />
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="../assets/bluebird.css" />
+  <style>
+    .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal .h { font-size: 11px; color: var(--muted); text-align: center; }
+    .cal .d { min-height: 46px; border-radius: 6px; padding: 3px 4px; font-size: 11px; color: #fff; position: relative; cursor: default; }
+    .cal .d b { font-size: 12px; } .cal .d.blank { background: transparent; }
+    .cal .d .dot { position: absolute; right: 4px; top: 4px; width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+    .month { margin-bottom: 14px; } .month h3 { margin: 0 0 6px; }
+    .ev { border-left: 4px solid var(--accent); padding: 6px 10px; margin: 6px 0; background: var(--brand-2); border-radius: 6px; font-size: 13px; }
+    .legend span { margin-right: 10px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <section class="mapwrap"><div id="map" class="map" role="region" aria-label="Map: click to choose a location"></div><div class="note" id="where"></div></section>
+    <section class="panel">
+      <div class="controls">
+        <label>Place <select id="place"></select></label>
+        <label>Radius <select id="radius"><option value="40">40 km</option><option value="80" selected>80 km</option><option value="150">150 km</option></select></label>
+        <label>Country (holidays) <input id="country" maxlength="2" size="3" /></label>
+        <button id="ics">Download .ics</button>
+      </div>
+      <div id="status" class="status"></div>
+      <div class="card"><h2 id="title">Events & demand</h2>
+        <p class="small muted">Demand combines weekends, peak travel periods, the country's public holidays and nearby events: a guide to when stays book up and prices rise. Curated event dates are approximate; confirm with the organizer.</p>
+        <div class="legend" id="legend"></div>
+        <div id="cal"></div>
+      </div>
+      <div class="card"><h3>Upcoming events and holidays</h3><div id="list"></div></div>
+    </section>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
