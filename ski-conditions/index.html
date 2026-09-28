@@ -1,60 +1,11 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Run-by-Run Snow Forecast</title>
-  <meta name="description" content="Multi-model snow forecasts for major ski resorts worldwide, downscaled to every run by elevation, aspect, slope, wind, sun, grooming and skier traffic." />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-  <link rel="stylesheet" href="css/ski.css" />
+<meta charset="utf-8">
+<title>Moved to Bluebird</title>
+<link rel="canonical" href="https://alexchouck-hash.github.io/bluebird/ski-conditions/">
+<meta http-equiv="refresh" content="0; url=https://alexchouck-hash.github.io/bluebird/ski-conditions/">
+<script>location.replace("https://alexchouck-hash.github.io/bluebird/ski-conditions/" + location.search + location.hash);</script>
 </head>
-<body>
-  <header class="top">
-    <div class="brand">
-      <span class="logo" aria-hidden="true">❄️</span>
-      <div>
-        <h1>Run-by-Run Snow Forecast</h1>
-        <p class="sub">ECMWF · GFS · ICON · GEM blended, downscaled to every run · part of <a href="../bluebird/">Bluebird</a> · <a href="for-resorts.html">For resorts</a> · <a href="ops.html">Resort ops</a></p>
-      </div>
-    </div>
-    <div class="controls">
-      <label>Resort <select id="resort"></select></label>
-      <label>Day <select id="day"></select></label>
-      <label>Time <select id="tod"><option value="am">Morning</option><option value="pm">Afternoon</option></select></label>
-      <label>Units <select id="units"><option value="metric">cm / °C / m</option><option value="us">in / °F / ft</option></select></label>
-    </div>
-  </header>
-  <main class="layout">
-    <section class="mapwrap">
-      <div id="map" role="region" aria-label="Trail map colored by forecast snow surface"></div>
-      <div id="legend" class="legend"></div>
-    </section>
-    <section class="panel">
-      <div id="status" class="status"></div>
-      <div id="summary"></div>
-      <div id="sponsor"></div>
-      <div id="timeline"></div>
-      <div id="runs"></div>
-      <div id="lifts"></div>
-      <div id="accuracy"></div>
-      <details class="card" id="board-wrap"><summary><h3>Where it's snowing: next 7 days, all resorts</h3></summary><div id="board">Loading…</div></details>
-      <details class="card"><summary><h3>How this forecast works</h3></summary>
-        <ol class="small">
-          <li><b>Four global models</b> (ECMWF, GFS, ICON, GEM) are pulled hourly from Open-Meteo and blended. Their disagreement on summit snowfall sets the confidence level.</li>
-          <li><b>Every run is mapped</b> from OpenStreetMap, and its top, bottom, aspect and steepness come from a digital elevation model.</li>
-          <li><b>Elevation:</b> temperature follows a lapse rate fitted to the freezing level, so the rain/snow line lands on the right runs. Precipitation grows ~4% per 100 m, and colder snow is fluffier (Kuchera snow-to-liquid ratio).</li>
-          <li><b>Wind:</b> new snow is loaded onto lee slopes and scoured off windward ones, mostly above treeline.</li>
-          <li><b>Sun:</b> the real sun angle on each slope drives melt, crusts and spring corn cycles.</li>
-          <li><b>Segments:</b> every run is simulated at its top, middle and bottom, so a long run can show powder up high and crust or slush lower down.</li>
-          <li><b>High-resolution models</b> (HRRR, HRDPS, AROME, ICON-D2, JMA MSM) join the blend at double weight where they cover the resort.</li>
-          <li><b>Verified daily:</b> forecasts are saved every day and scored against SNOTEL snow stations near US resorts.</li>
-          <li><b>People:</b> groomed runs reset at 4 am; skier traffic tracks out powder and builds bumps through the day.</li>
-        </ol>
-        <p class="small muted">Early-stage model with approximate resort data. Resort and patrol reports always win: check them before committing to steep terrain, and read the local avalanche forecast before going off-piste.</p>
-      </details>
-    </section>
-  </main>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <script type="module" src="js/app.js"></script>
-</body>
+<body><p>This site moved to <a href="https://alexchouck-hash.github.io/bluebird/ski-conditions/">Bluebird</a>.</p></body>
 </html>
