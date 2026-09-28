@@ -9,7 +9,8 @@ const now = new Date();
 const TODAY = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12));
 const MAX = addDays(TODAY, 365);
 
-const state = { id: "lodge-gsp", date: iso(TODAY), tab: "overview", metric: "score", data: {}, index: null };
+const DEFAULT_ID = "me-cancun"; // Cancún Hotel Zone
+const state = { id: DEFAULT_ID, date: iso(TODAY), tab: "overview", metric: "score", data: {}, index: null };
 const cache = state.data;
 
 // ---------- URL state ----------
@@ -32,16 +33,7 @@ function setupControls() {
   }
   sel.value = state.id;
   sel.onchange = () => selectResort(sel.value, true);
-  const q = $("#search"), dl = $("#resortlist");
-  const label = (r) => `${r.name} (${r.city})`;
-  const byLabel = new Map(RESORTS.map((r) => [label(r).toLowerCase(), r.id]));
-  dl.innerHTML = RESORTS.map((r) => `<option value="${esc(label(r))}"></option>`).join("");
-  q.placeholder = `Search ${RESORTS.length} resorts…`;
-  q.onchange = () => {
-    const v = q.value.trim().toLowerCase();
-    const id = byLabel.get(v) ?? RESORTS.find((r) => label(r).toLowerCase().includes(v))?.id;
-    if (v && id) { q.value = ""; selectResort(id, true); }
-  };
+  setupSearch();
   const di = $("#date");
   di.min = iso(TODAY); di.max = iso(MAX); di.value = state.date;
   di.onchange = () => { if (di.value) setDate(di.value); };
@@ -49,6 +41,59 @@ function setupControls() {
   document.querySelectorAll(".tabs button").forEach((b) => (b.onclick = () => { state.tab = b.dataset.tab; render(); }));
   $("#mapmetric").onchange = (e) => { state.metric = e.target.value; paintMap(); };
 }
+// ---------- search dropdown ----------
+// Shown when the search box is empty: top picks, then popular spots by region.
+const TOP_PICKS = ["me-cancun", "secrets-maroma", "tulum", "beaches-turks-caicos", "bucuti-tara-aruba", "sandals-grande-st-lucian", "ritz-carlton-grand-cayman", "sanctuary-cap-cana"];
+const POPULAR = [
+  ["Mexico (Yucatán)", ["riu-peninsula", "excellence-playa-mujeres", "impression-isla", "holbox", "playa-del-carmen", "secrets-aura-cozumel", "bacalar"]],
+  ["Bahamas & Turks and Caicos", ["atlantis-paradise-island", "baha-mar-grand-hyatt", "sandals-emerald-bay", "coral-sands-harbour-island", "long-bay-providenciales"]],
+  ["Greater Antilles", ["sandals-montego-bay", "sandals-negril", "sandals-ochi", "hard-rock-punta-cana", "casa-de-campo", "condado-vanderbilt", "w-vieques", "varadero"]],
+  ["Lesser Antilles & ABC Islands", ["ritz-st-thomas", "westin-st-john", "rosewood-little-dix", "cap-juluca", "eden-rock-st-barths", "sandy-lane", "sugar-beach-viceroy", "ritz-aruba", "mambo-beach-curacao"]],
+  ["Central America & Colombia", ["victoria-house-ambergris", "grand-roatan-west-bay", "red-frog-bocas", "hyatt-regency-cartagena"]],
+  ["U.S. Gulf Coast & Keys", ["casa-marina", "siesta-key", "henderson", "hyatt-clearwater", "lodge-gsp"]],
+];
+function setupSearch() {
+  $("#resortcount").textContent = RESORTS.length.toLocaleString("en-US");
+  const q = $("#search"), box = $("#searchlist");
+  const label = (r) => `${r.name} (${r.city})`;
+  const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const hay = new Map(RESORTS.map((r) => [r.id, norm(`${r.name} ${r.city} ${REGIONS[r.region].name}`)]));
+  let items = [], active = -1;
+  const opt = (r, tag) => `<li role="option" id="so-${r.id}" data-id="${r.id}">${esc(r.id === DEFAULT_ID ? "Cancún (Hotel Zone)" : r.name)}<span>${esc(tag || r.city)}</span></li>`;
+  const group = (name, ids) => `<li class="grp" role="presentation">${esc(name)}</li>` + ids.filter((id) => byId[id]).map((id) => opt(byId[id])).join("");
+  function draw() {
+    const v = norm(q.value.trim());
+    if (!v) box.innerHTML = group("★ Top picks", TOP_PICKS) + POPULAR.map(([n, ids]) => group(n, ids)).join("");
+    else {
+      const words = v.split(/\s+/);
+      const hits = RESORTS.filter((r) => words.every((w) => hay.get(r.id).includes(w)))
+        .map((r) => [r, norm(r.city).startsWith(v) ? 0 : norm(r.name).startsWith(v) ? 1 : 2]).sort((a, b) => a[1] - b[1]).map(([r]) => r).slice(0, 50);
+      box.innerHTML = hits.length ? hits.map((r) => opt(r)).join("") : `<li class="grp" role="presentation">No matches</li>`;
+    }
+    items = [...box.querySelectorAll("[data-id]")]; active = -1;
+    box.hidden = false; q.setAttribute("aria-expanded", "true");
+  }
+  const close = () => { box.hidden = true; q.setAttribute("aria-expanded", "false"); q.removeAttribute("aria-activedescendant"); };
+  const pick = (id) => { q.value = ""; close(); q.blur(); selectResort(id, true); };
+  const move = (d) => {
+    if (!items.length) return;
+    items[active]?.classList.remove("on");
+    active = (active + d + items.length) % items.length;
+    items[active].classList.add("on"); items[active].scrollIntoView({ block: "nearest" });
+    q.setAttribute("aria-activedescendant", items[active].id);
+  };
+  q.placeholder = `Search ${RESORTS.length} resorts…`;
+  q.onfocus = q.oninput = draw;
+  q.onkeydown = (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); box.hidden ? draw() : move(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); move(-1); }
+    else if (e.key === "Enter") { e.preventDefault(); const it = items[active] || items[0]; if (it) pick(it.dataset.id); }
+    else if (e.key === "Escape") close();
+  };
+  box.onmousedown = (e) => { e.preventDefault(); const it = e.target.closest("[data-id]"); if (it) pick(it.dataset.id); };
+  q.onblur = close;
+}
+
 function setDate(d) {
   const t = parseISO(d);
   state.date = iso(t < TODAY ? TODAY : t > MAX ? MAX : t);
@@ -59,7 +104,8 @@ function setDate(d) {
 // ---------- map ----------
 let map, markers = {};
 function setupMap() {
-  map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([19.5, -76], 4);
+  // Frame the whole Caribbean and Gulf; the selected resort is ringed on top.
+  map = L.map("map", { zoomControl: true, preferCanvas: true }).fitBounds([[8.5, -98], [30, -59]]);
   const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
   const y = iso(addDays(TODAY, -1));
   const sat = L.tileLayer(`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${y}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`, { maxZoom: 9, attribution: "NASA GIBS / MODIS Terra" });
@@ -485,5 +531,6 @@ const loadIndex = () => api.getJSON(api.FEED_BASE + "index.json", 15)
   .then((j) => { state.index = Object.fromEntries(j.resorts.map((x) => [x.id, x])); state.indexStart = j.start; paintMap(); })
   .catch(() => {});
 loadIndex();
-selectResort(state.id, true);
+// Deep links zoom to their resort; the default (Cancún) keeps the Caribbean-wide view.
+selectResort(state.id, state.id !== DEFAULT_ID);
 setInterval(() => { loadResort(state.id, true); loadIndex(); }, 10 * 60 * 1000);

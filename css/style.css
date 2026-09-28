@@ -85,3 +85,11 @@ pre { background: var(--bg); padding: 10px; border-radius: 8px; overflow-x: auto
 .bar { display: grid; grid-template-columns: 130px 1fr 28px; align-items: center; gap: 8px; font-size: 13px; }
 .bar .meter { margin: 0; }
 .bar b { text-align: right; font-variant-numeric: tabular-nums; }
+
+.searchbox { position: relative; display: block; }
+.searchbox #search { width: 100%; }
+.searchlist { position: absolute; top: calc(100% + 4px); left: 0; z-index: 1100; width: max(100%, 320px); max-width: calc(100vw - 32px); max-height: min(420px, 60vh); overflow-y: auto; margin: 0; padding: 4px 0; list-style: none; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+.searchlist li { padding: 6px 12px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; gap: 10px; }
+.searchlist li span { color: var(--muted); font-size: 12px; text-align: right; }
+.searchlist li.on, .searchlist li[data-id]:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.searchlist li.grp { cursor: default; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 12px 3px; }

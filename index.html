@@ -14,13 +14,15 @@
       <span class="logo" aria-hidden="true">🌊</span>
       <div>
         <h1>Gulf &amp; Caribbean Resort Forecast</h1>
-        <p class="sub">Sargassum · weather · water · UV · crowds · safety, up to 365 days out · part of <a href="bluebird/">Bluebird</a></p>
+        <p class="sub">Sargassum · weather · water · UV · crowds · safety for <span id="resortcount">440+</span> resorts, up to 365 days out · part of <a href="bluebird/">Bluebird</a></p>
       </div>
     </div>
     <div class="controls">
       <label>Search
-        <input type="search" id="search" list="resortlist" autocomplete="off" />
-        <datalist id="resortlist"></datalist>
+        <span class="searchbox">
+          <input type="search" id="search" autocomplete="off" role="combobox" aria-controls="searchlist" aria-expanded="false" aria-autocomplete="list" />
+          <ul id="searchlist" class="searchlist" role="listbox" hidden></ul>
+        </span>
       </label>
       <label>Resort
         <select id="resort"></select>
