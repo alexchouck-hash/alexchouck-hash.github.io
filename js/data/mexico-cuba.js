@@ -127,6 +127,7 @@ export const RESORTS = [
   { id: "kempinski-cun", name: "Kempinski Hotel Cancún", city: "Cancún, MX", region: "mx_cun", lat: 21.1135, lon: -86.7555, facing: 100, exposure: 0.95, basin: "carib", airports: ["CUN"] },
   { id: "jw-marriott-cun", name: "JW Marriott Cancún Resort & Spa", city: "Cancún, MX", region: "mx_cun", lat: 21.1070, lon: -86.7595, facing: 100, exposure: 0.95, basin: "carib", airports: ["CUN"] },
   { id: "secrets-the-vine", name: "Secrets The Vine Cancún", city: "Cancún, MX", region: "mx_cun", lat: 21.1045, lon: -86.7610, facing: 100, exposure: 0.95, basin: "carib", airports: ["CUN"] },
+  { id: "cancun-hotel-zone", name: "Cancún Hotel Zone (Playa Delfines)", city: "Cancún, MX", region: "mx_cun", lat: 21.0600, lon: -86.7790, facing: 100, exposure: 0.95, basin: "carib", airports: ["CUN"] },
   { id: "paradisus-cun", name: "Paradisus Cancún", city: "Cancún, MX", region: "mx_cun", lat: 21.0985, lon: -86.7650, facing: 105, exposure: 0.95, basin: "carib", airports: ["CUN"] },
   { id: "grand-oasis-cun", name: "Grand Oasis Cancún", city: "Cancún, MX", region: "mx_cun", lat: 21.0880, lon: -86.7720, facing: 100, exposure: 0.95, basin: "carib", airports: ["CUN"] },
   { id: "hilton-mar-caribe", name: "Hilton Cancún Mar Caribe All-Inclusive", city: "Cancún, MX", region: "mx_cun", lat: 21.0820, lon: -86.7745, facing: 100, exposure: 0.95, basin: "carib", airports: ["CUN"] },

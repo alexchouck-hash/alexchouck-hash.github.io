@@ -11,6 +11,22 @@
   <link rel="preconnect" href="https://a.tile.openstreetmap.org" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="stylesheet" href="css/style.css" />
+  <!-- Start the feed downloads for the default view while the scripts load. -->
+  <link rel="preload" as="fetch" crossorigin="anonymous" href="https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/index.json" />
+  <link rel="preload" as="fetch" crossorigin="anonymous" href="https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/sargassum.json" />
+  <link rel="preload" as="fetch" crossorigin="anonymous" href="https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/resorts/cancun-hotel-zone.json" />
+  <link rel="preload" as="fetch" crossorigin="anonymous" href="https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/normals/21_-87.json" />
+  <!-- Fetch every module in parallel instead of discovering them import by import. -->
+  <link rel="modulepreload" href="js/app.js" />
+  <link rel="modulepreload" href="js/resorts.js" />
+  <link rel="modulepreload" href="js/model.js" />
+  <link rel="modulepreload" href="js/api.js" />
+  <link rel="modulepreload" href="js/sargassum/segments.js" />
+  <link rel="modulepreload" href="js/data/gulf-us.js" />
+  <link rel="modulepreload" href="js/data/mexico-cuba.js" />
+  <link rel="modulepreload" href="js/data/greater-antilles.js" />
+  <link rel="modulepreload" href="js/data/lesser-antilles.js" />
+  <link rel="modulepreload" href="js/data/central-america.js" />
 </head>
 <body>
   <header class="top">
