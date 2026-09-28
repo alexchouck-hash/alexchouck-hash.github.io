@@ -16,6 +16,7 @@ import * as api from "../js/api.js";
 
 const root = new URL((process.env.FEED_DIR || "feed").replace(/\/?$/, "/"), new URL("../", import.meta.url));
 const NORMALS_BUDGET = +(process.env.NORMALS_BUDGET ?? 3);
+const NORMALS_PAUSE_MS = +(process.env.NORMALS_PAUSE_MS ?? 3000);
 const NORMALS_MAX_AGE = 180 * 86400000;
 const BATCH = 50;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -82,7 +83,7 @@ async function loadNormals() {
       have.set(key, j);
       console.log(`normals ${key} built`);
     } catch (e) { console.warn(`normals ${key}: ${e.message.slice(0, 120)}`); }
-    await sleep(3000);
+    await sleep(NORMALS_PAUSE_MS);
   }
   const ready = [...have.values()].filter(Boolean).length;
   console.log(`normals: ${ready}/${cells.size} cells ready (${todo.length} attempted this run)`);
