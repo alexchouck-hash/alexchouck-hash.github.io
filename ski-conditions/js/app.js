@@ -1,12 +1,13 @@
 import { RESORTS } from "./resorts.js";
 import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, skillWeights, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
 import { snowRange, snowQuality, windHolds, LIFT_TYPES } from "./ops.js";
+import { CATEGORIES, crowd, topRuns, webcamLinks } from "./picks.js";
 import * as api from "./api.js";
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const byId = Object.fromEntries(RESORTS.map((r) => [r.id, r]));
-const state = { id: [5, 6, 7, 8, 9].includes(new Date().getMonth()) ? "portillo" : "whistler", day: null, tod: "am", units: "metric", sort: "score", filter: "all", sel: null };
+const state = { id: [5, 6, 7, 8, 9].includes(new Date().getMonth()) ? "portillo" : "whistler", day: null, tod: "am", units: "metric", sort: "score", filter: "all", sel: null, cat: "all" };
 const cache = {};
 let map, layer;
 
@@ -31,10 +32,10 @@ function readHash() {
 const writeHash = () => history.replaceState(null, "", `#r=${state.id}&d=${state.day || ""}&t=${state.tod}&u=${state.units}`);
 
 // ---------- data ----------
-async function load(id) {
+async function load(id, quiet) {
   const r = byId[id], c = (cache[id] ||= {});
   if (c.ready || c.loading) return c.loading;
-  status("Loading multi-model forecast and trail map…");
+  if (!quiet) status("Loading multi-model forecast and trail map…");
   c.loading = (async () => {
     const runsP = api.mapData(r);
     c.skill = skillWeights((await getVerif())?.skill, r.id);
@@ -51,7 +52,7 @@ async function load(id) {
     c.holds = c.lifts.map((l) => ({ lift: l, days: windHolds(l, c.h) }));
     c.ready = true;
   })();
-  try { await c.loading; status(""); } catch (e) { c.loading = null; status(`Could not load forecast: ${e.message}`, true); }
+  try { await c.loading; if (!quiet) status(""); } catch (e) { c.loading = null; if (!quiet) status(`Could not load forecast: ${e.message}`, true); }
   return c.loading;
 }
 const status = (msg, err) => { const el = $("#status"); el.textContent = msg; el.classList.toggle("err", !!err); };
@@ -107,6 +108,7 @@ function summary(r, c) {
       <div class="kpi"><b>${m(sl)}</b><span>Snow line at noon</span></div>
       <div class="kpi"><b class="conf-${conf.level}">${conf.level}</b><span>Confidence (3-day summit snow)</span></div>
     </div>
+    <p class="small webcams"><b>Webcams:</b> ${webcamLinks(r.name, r.lat, r.lon).map((w) => `<a href="${esc(w.url)}" target="_blank" rel="noopener">${w.label}</a>`).join(" · ")}</p>
     ${best.length ? `<p class="small"><b>Best bets:</b> ${best.map((x) => `${esc(x.run.name)} (${SURFACES[x.st.surface].label.toLowerCase()}, ${x.st.score})`).join("; ")}</p>` : ""}
     ${storm3(c, keys)}
     <p class="small muted">${modelTotals ? `Model totals, next 3 days at summit: ${modelTotals}` : ""}</p>
@@ -122,6 +124,84 @@ function summary(r, c) {
     </table></div>
   </div>`;
   document.querySelectorAll("#summary tr[data-day]").forEach((tr) => tr.onclick = () => { state.day = tr.dataset.day; $("#day").value = state.day; update(); });
+}
+
+// Crowd for a loaded resort on a day, using mid-mountain new snow.
+const crowdFor = (r, c, d) => crowd(r, d, c.snow.mid[d]?.snow || 0);
+const catButtons = (sel, attr) => Object.entries(CATEGORIES).map(([k, v]) => `<button ${attr}="${k}" class="${sel === k ? "on" : ""}">${v.label}</button>`).join("");
+const pickRow = (x, extra = "") => {
+  const df = DIFFICULTY[x.run.difficulty] || DIFFICULTY.intermediate;
+  return `<tr ${extra}><td><span style="color:${df.color}" title="${df.label}">${df.sym}</span> ${esc(x.run.name)}${x.run.groomed ? ' <span class="muted small" title="Groomed overnight">≡</span>' : ""}</td><td class="num score">${x.pick}</td><td>${pill(x.st.surface)}</td><td class="num">${cm(x.rd.snow24)}</td><td class="num">${deg(x.st.T)}</td></tr>`;
+};
+
+// Top runs at this resort for the selected day, by terrain category and crowd.
+function picksCard(r, c) {
+  const d = state.day, cr = crowdFor(r, c, d);
+  const rows = topRuns(c.sim, d, state.tod, state.cat, cr, 6);
+  $("#picks").innerHTML = `<div class="card">
+    <h3>Top runs, ${state.tod === "am" ? "morning" : "afternoon"} of ${dayLabel(d)}</h3>
+    <p class="small">Expected crowd: <b class="crowd-${cr.level.toLowerCase()}">${cr.level}</b>${cr.reasons.length ? ` <span class="muted">(${esc(cr.reasons.join(", "))})</span>` : ""}. Pick a different day above to plan ahead.</p>
+    <div class="filters">${catButtons(state.cat, "data-cat")}</div>
+    ${rows.length ? `<div class="scroll"><table><thead><tr><th>Run</th><th class="num" title="Snow surface score adjusted for terrain type and expected crowd">Pick</th><th>Surface</th><th class="num">New snow</th><th class="num">Temp</th></tr></thead>
+      <tbody>${rows.map((x) => pickRow(x, `data-id="${esc(x.run.id)}"`)).join("")}</tbody></table></div>` : `<p class="small muted">No open ${esc(CATEGORIES[state.cat].label.toLowerCase())} runs match on this day.</p>`}
+    ${state.cat === "offpiste" ? `<p class="small muted">Off-piste picks rate snow quality only. Read the local avalanche forecast and go with proper gear and partners.</p>` : ""}
+  </div>`;
+  document.querySelectorAll("#picks [data-cat]").forEach((b) => b.onclick = () => { state.cat = b.dataset.cat; picksCard(r, c); });
+  document.querySelectorAll("#picks tr[data-id]").forEach((tr) => tr.onclick = () => { state.sel = tr.dataset.id; runsTable(c); timeline(c); drawMap(r, c, true); });
+}
+
+// Top runs across resorts: scans the snowiest resorts (or a region) for a date.
+const finder = { cat: "all", day: null, scope: "snowiest", tod: "am" };
+function finderForm() {
+  const today = new Date().toISOString().slice(0, 10);
+  const dates = Array.from({ length: 9 }, (_, k) => new Date(Date.parse(today) + k * 864e5).toISOString().slice(0, 10));
+  finder.day ||= dates[0];
+  const regions = [...new Set(RESORTS.map((r) => r.region))];
+  $("#finder").innerHTML = `<p class="small muted">Ranks runs by forecast snow surface, terrain type and modeled crowds (weekends, school holidays, powder days). Scans up to 8 resorts, so it takes a moment.</p>
+    <div class="finder-controls">
+      <label>Date <select id="f-day">${dates.map((d) => `<option value="${d}" ${d === finder.day ? "selected" : ""}>${d === today ? "Today" : dayLabel(d)}</option>`).join("")}</select></label>
+      <label>Time <select id="f-tod"><option value="am">Morning</option><option value="pm" ${finder.tod === "pm" ? "selected" : ""}>Afternoon</option></select></label>
+      <label>Where <select id="f-scope"><option value="snowiest">Snowiest resorts worldwide</option>${regions.map((g) => `<option value="${esc(g)}" ${finder.scope === g ? "selected" : ""}>${esc(g)}</option>`).join("")}</select></label>
+    </div>
+    <div class="filters">${catButtons(finder.cat, "data-fcat")}</div>
+    <button id="f-go" class="go">Find top runs</button>
+    <div id="f-out"></div>`;
+  $("#f-scope").value = finder.scope;
+  $("#f-day").onchange = (e) => finder.day = e.target.value;
+  $("#f-tod").onchange = (e) => finder.tod = e.target.value;
+  $("#f-scope").onchange = (e) => finder.scope = e.target.value;
+  document.querySelectorAll("#finder [data-fcat]").forEach((b) => b.onclick = () => { finder.cat = b.dataset.fcat; document.querySelectorAll("#finder [data-fcat]").forEach((x) => x.classList.toggle("on", x === b)); });
+  $("#f-go").onclick = findTopRuns;
+}
+async function findTopRuns() {
+  const out = $("#f-out"), { day, tod, cat, scope } = finder;
+  out.innerHTML = `<p class="small muted">Picking resorts…</p>`;
+  let pool = scope === "snowiest" ? RESORTS : RESORTS.filter((r) => r.region === scope);
+  if (pool.length > 8) {
+    try {
+      const lb = await api.leaderboard(RESORTS), snow = Object.fromEntries(lb.map((x) => [x.id, x.snow.reduce((a, v, k) => a + (x.days[k] <= day ? v || 0 : 0), 0)]));
+      pool = [...pool].sort((a, b) => (snow[b.id] || 0) - (snow[a.id] || 0));
+    } catch {}
+    pool = pool.slice(0, 8);
+  }
+  const results = [];
+  let done = 0;
+  const work = pool.map((r) => async () => {
+    try { await load(r.id, true); } catch {}
+    const c = cache[r.id];
+    if (c?.ready && c.days.includes(day)) {
+      const cr = crowdFor(r, c, day);
+      for (const x of topRuns(c.sim, day, tod, cat, cr, 4)) if (!x.run.virtual) results.push({ ...x, r, cr });
+    }
+    out.innerHTML = `<p class="small muted">Scanned ${++done} of ${pool.length} resorts…</p>`;
+  });
+  for (let k = 0; k < work.length; k += 2) await Promise.all(work.slice(k, k + 2).map((f) => f()));
+  results.sort((a, b) => b.pick - a.pick);
+  const top = results.slice(0, 15);
+  out.innerHTML = top.length ? `<div class="scroll"><table><thead><tr><th>Run</th><th>Resort</th><th class="num">Pick</th><th>Surface</th><th class="num">New snow</th><th>Crowd</th></tr></thead><tbody>${
+    top.map((x) => { const df = DIFFICULTY[x.run.difficulty] || DIFFICULTY.intermediate; return `<tr data-r="${x.r.id}" data-id="${esc(x.run.id)}"><td><span style="color:${df.color}">${df.sym}</span> ${esc(x.run.name)}</td><td class="small">${esc(x.r.name)}</td><td class="num score">${x.pick}</td><td>${pill(x.st.surface)}</td><td class="num">${cm(x.rd.snow24)}</td><td class="small crowd-${x.cr.level.toLowerCase()}">${x.cr.level}</td></tr>`; }).join("")}</tbody></table></div>`
+    : `<p class="small muted">No open runs found for that date and terrain. Resorts may be out of season.</p>`;
+  document.querySelectorAll("#f-out tr[data-r]").forEach((tr) => tr.onclick = async () => { state.day = day; state.tod = tod; $("#tod").value = tod; state.cat = cat; await select(tr.dataset.r); state.sel = tr.dataset.id; const c = cache[state.id]; if (c?.ready) { runsTable(c); timeline(c); drawMap(byId[state.id], c, true); } });
 }
 
 // Next-3-day summit total as a range, from the per-day model spread.
@@ -268,9 +348,9 @@ async function sponsor(r) {
 function update() {
   const r = byId[state.id], c = cache[state.id];
   writeHash();
-  if (!c?.ready) { drawMap(r, null); $("#summary").innerHTML = ""; $("#runs").innerHTML = ""; return; }
+  if (!c?.ready) { drawMap(r, null); $("#summary").innerHTML = ""; $("#picks").innerHTML = ""; $("#runs").innerHTML = ""; return; }
   fillDays(c); writeHash();
-  summary(r, c); timeline(c); runsTable(c); liftsCard(c); drawMap(r, c); accuracy(r); sponsor(r);
+  summary(r, c); picksCard(r, c); timeline(c); runsTable(c); liftsCard(c); drawMap(r, c); accuracy(r); sponsor(r);
 }
 async function select(id) {
   state.id = id; state.sel = null; $("#resort").value = id;
@@ -286,4 +366,5 @@ $("#day").onchange = (e) => { state.day = e.target.value; update(); };
 $("#tod").onchange = (e) => { state.tod = e.target.value; update(); };
 $("#units").onchange = (e) => { state.units = e.target.value; update(); if ($("#board").querySelector("table")) leaderboard(); };
 $("#board-wrap").addEventListener("toggle", (e) => { if (e.target.open && !$("#board").querySelector("table")) leaderboard(); });
+finderForm();
 select(state.id);

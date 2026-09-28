@@ -180,11 +180,19 @@ const compass = (deg) => deg == null ? "" : ["N", "NNE", "NE", "ENE", "E", "ESE"
 const fmtDate = (d) => d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 const srcNote = (rec) => rec.source === "forecast" ? `<span class="chip soft">Forecast · ${rec.daysOut} day${rec.daysOut === 1 ? "" : "s"} out</span>` : `<span class="chip soft">Climate outlook${rec.source === "regional-climate" ? " (regional)" : ""} · ${rec.daysOut} days out</span>`;
 
+// Webcam link-outs: public webcam map around the resort and a live-stream search.
+function webcams(r) {
+  const q = encodeURIComponent(`${r.name} ${r.city} beach webcam live`);
+  return [["Webcam map", `https://www.windy.com/-Webcams/webcams?${r.lat.toFixed(3)},${r.lon.toFixed(3)},12`], ["Live streams", `https://www.youtube.com/results?search_query=${q}&sp=EgJAAQ%253D%253D`], ["Search", `https://www.google.com/search?q=${q}`]]
+    .map(([l, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join(" · ");
+}
+
 function render() {
   writeHash();
   const r = byId[state.id], d = parseISO(state.date), c = cache[r.id] || {}, rec = day(r, d);
   document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === state.tab));
   $("#head").innerHTML = `<h2>${esc(r.name)}</h2><div class="muted">${esc(r.city)} · ${esc(REGIONS[r.region].name)} · Airports: ${r.airports.join(", ")}</div>
+    <div class="small" style="margin-top:4px">Webcams: ${webcams(r)}</div>
     <div style="margin-top:6px">${fmtDate(d)} ${srcNote(rec)} ${rec.holidays.map((h) => `<span class="chip soft">${esc(h)}</span>`).join(" ")}</div>`;
   $("#now").innerHTML = renderNow(r, c);
   $("#tab").innerHTML = (TABS[state.tab] || TABS.overview)(r, d, rec, c);

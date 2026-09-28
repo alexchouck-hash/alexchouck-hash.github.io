@@ -6,11 +6,12 @@ Static page (`/ski-conditions/`) forecasting snow surface conditions on every ru
 - `js/api.js`: Open-Meteo hourly forecast from ECMWF, GFS, ICON and GEM (plus 7 past days), Open-Meteo elevation, OpenStreetMap runs via Overpass.
 - `js/model.js`: the snow model (pure functions).
 - `js/ops.js`: deeper products (pure functions): snowfall ranges and powder-day chance from model spread, snow quality from snow-to-liquid ratio, snowmaking windows from wet-bulb temperature, lift wind holds (OSM aerialways), grooming priorities, alerts and a drafted snow report.
+- `js/picks.js`: top-run picks (pure functions): calendar crowd model (weekends, school and public holidays by hemisphere and country, powder days), terrain categories (groomers, off-piste, family, fun, expert), crowd-adjusted ranking, webcam links.
 - `ops.html` + `js/ops-board.js`: Resort Ops Board for resort teams (printable).
 - `embed.html`: embeddable widget for resort websites (`?r=<resort id>&u=us|metric`).
 - `for-resorts.html`: product, plans and advertising page. Contact goes through GitHub issues until an inbox exists.
 - `sponsors.json`: direct-sold sponsor slots, shown on resort pages. Entries: `{ name, text, url, image?, resorts?: [ids], regions?: [names], active? }`. Empty = house ad.
-- `js/app.js`: map, resort summary, per-run table, global snowfall leaderboard.
+- `js/app.js`: map, resort summary, top runs per resort, cross-resort top-run finder, per-run table, global snowfall leaderboard.
 - `scripts/verify.mjs`: daily verification against SNOTEL stations, run by `.github/workflows/data.yml`; publishes `ski/verification.json` and `ski/forecasts/` on the `data-feed` branch.
 - `scripts/build-runs.mjs`: precomputes each resort's runs weekly (up to 15 resorts per feed run) into `ski/runs/<id>.json` on `data-feed`; the page falls back to live OpenStreetMap when a file is missing.
 - `scripts/test-model.mjs`: offline physics and parsing checks (`node ski-conditions/scripts/test-model.mjs`).
