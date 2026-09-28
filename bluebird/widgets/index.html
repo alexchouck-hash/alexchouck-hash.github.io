@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bluebird Widgets</title>
+  <meta name="description" content="Free snow and beach conditions widgets for resorts, hotels, vacation rentals and guidebooks. Pick a location, preview and copy the code." />
+  <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="../assets/bluebird.css" />
+  <style>
+    .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .tabs button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .preview { display: flex; justify-content: center; background: var(--brand-2); border-radius: 12px; padding: 14px; }
+    .preview iframe { border: 0; border-radius: 12px; box-shadow: var(--shadow); background: var(--card); max-width: 100%; }
+    textarea { width: 100%; min-height: 84px; font: 13px ui-monospace, monospace; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+    .controls input[type=text] { min-width: 220px; }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <section class="mapwrap"><div id="map" class="map" role="region" aria-label="Map: click to place your property"></div><div class="note" id="where">Click the map to place your property, or pick a resort.</div></section>
+    <section class="panel">
+      <div class="card">
+        <h2>Free conditions widgets</h2>
+        <p class="small">For resorts, hotels, vacation rentals and digital guidebooks. Put live snow or beach conditions on your own website (Lodgify, Hostaway, Guesty, OwnerRez, WordPress, Squarespace…). Airbnb and VRBO listings don't allow embeds, so there, share the <b>link</b> version in your house manual or check-in message instead.</p>
+        <div class="tabs"><button data-k="snow" class="on">❄️ Snow</button><button data-k="beach">🏝️ Beach</button><button data-k="events">📅 What's on</button></div>
+        <div class="controls">
+          <label>Name shown <input type="text" id="name" placeholder="e.g. Aspen Hideaway Cabin" maxlength="60" /></label>
+          <label>Or a resort <select id="resort"></select></label>
+          <label>Units <select id="units"><option value="us">°F / in / ft</option><option value="metric">°C / cm / m</option></select></label>
+        </div>
+      </div>
+      <div class="card"><h3>Preview</h3><div class="preview"><iframe id="frame" width="340" height="440" title="Widget preview"></iframe></div></div>
+      <div class="card"><h3>Embed code</h3><textarea id="code" readonly></textarea><p><button class="primary" id="copy">Copy code</button> <a id="open" target="_blank" rel="noopener">Open as a link</a></p>
+        <p class="note">Free with the "Bluebird" credit link. Updates itself; no account needed. Snow data: multi-model forecast and run-by-run conditions. Beach data: sargassum, water temperature, waves, UV and rip currents.</p></div>
+    </section>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script type="module">
+    import { header, $, esc, baseMap } from "../assets/shared.js";
+    import { RESORTS as SKI } from "../../ski-conditions/js/resorts.js";
+    import { RESORTS as BEACH } from "../../js/resorts.js";
+    header(null, "..");
+    const SITE = "https://alexchouck-hash.github.io";
+    const KIND = {
+      snow: { list: SKI, path: "ski-conditions/embed.html", idParam: "r", center: [42, -100], zoom: 3, height: 440 },
+      beach: { list: BEACH, path: "beach-widget.html", idParam: "id", center: [20, -80], zoom: 4, height: 400 },
+      // Events work by location only; picking a resort just places the point.
+      events: { list: SKI, path: "bluebird/events/embed.html", idParam: null, center: [42, -100], zoom: 3, height: 460 },
+    };
+    const st = { kind: "snow", pt: null, id: "", units: /^en-US/.test(navigator.language) ? "us" : "metric" };
+    const map = baseMap("map", KIND.snow.center, KIND.snow.zoom);
+    let marker = null;
+    $("#units").value = st.units;
+
+    function fillResorts() {
+      $("#resort").innerHTML = `<option value="">(use the map point)</option>` + KIND[st.kind].list.map((r) => `<option value="${r.id}">${esc(r.name)}</option>`).join("");
+      $("#resort").value = st.id;
+    }
+    function url(absolute) {
+      const k = KIND[st.kind], q = new URLSearchParams();
+      if (st.id && k.idParam) q.set(k.idParam, st.id);
+      else if (st.id) { const r = k.list.find((x) => x.id === st.id); q.set("lat", r.lat.toFixed(4)); q.set("lon", r.lon.toFixed(4)); if (r.country) q.set("cc", r.country); }
+      else if (st.pt) { q.set("lat", st.pt[0].toFixed(4)); q.set("lon", st.pt[1].toFixed(4)); }
+      const name = $("#name").value.trim();
+      if (name && (!st.id || !k.idParam)) q.set("name", name);
+      q.set("u", st.units);
+      return `${absolute ? SITE + "/" : "../../"}${k.path}?${q}`;
+    }
+    function update() {
+      if (!st.id && !st.pt) { $("#code").value = "Click the map or pick a resort first."; return; }
+      const k = KIND[st.kind];
+      $("#frame").height = k.height; $("#frame").src = url(false);
+      const title = esc(((st.id && k.list.find((r) => r.id === st.id)?.name) || $("#name").value.trim() || "Local") + ({ snow: " snow forecast", beach: " beach conditions", events: " events" }[st.kind]));
+      $("#code").value = `<iframe src="${url(true)}" width="340" height="${k.height}" style="border:0;border-radius:12px" title="${title}" loading="lazy"></iframe>`;
+      $("#open").href = url(true);
+    }
+    map.on("click", (e) => { st.pt = [e.latlng.lat, e.latlng.lng]; st.id = ""; $("#resort").value = ""; (marker ||= L.marker(st.pt).addTo(map)).setLatLng(st.pt); $("#where").textContent = `Property at ${st.pt[0].toFixed(3)}, ${st.pt[1].toFixed(3)}`; update(); });
+    $("#resort").onchange = (e) => { st.id = e.target.value; const r = KIND[st.kind].list.find((x) => x.id === st.id); if (r) map.setView([r.lat, r.lon], 9); update(); };
+    $("#units").onchange = (e) => { st.units = e.target.value; update(); };
+    $("#name").oninput = () => { clearTimeout(st.t); st.t = setTimeout(update, 500); };
+    document.querySelectorAll(".tabs button").forEach((b) => (b.onclick = () => {
+      document.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("on", x === b));
+      st.kind = b.dataset.k; st.id = ""; fillResorts(); map.setView(KIND[st.kind].center, KIND[st.kind].zoom); update();
+    }));
+    $("#copy").onclick = async () => { try { await navigator.clipboard.writeText($("#code").value); $("#copy").textContent = "Copied"; } catch { $("#code").select(); } };
+    fillResorts(); update();
+  </script>
+</body>
+</html>

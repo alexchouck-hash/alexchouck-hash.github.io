@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What's On Widget</title>
+  <style>
+    :root { --bg: #fff; --ink: #14212b; --muted: #5d6b76; --line: #dde4ea; --accent: #7a4fd1; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #162129; --ink: #e6edf2; --muted: #93a3ae; --line: #26343e; --accent: #a585f0; } }
+    body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+    .w { padding: 14px 16px; } h2 { font-size: 17px; margin: 0; } .small { font-size: 12px; } .muted { color: var(--muted); }
+    .ev { border-left: 3px solid var(--accent); padding: 4px 8px; margin: 7px 0; } .ev.h { border-color: var(--line); }
+    .by { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 10px; text-decoration: none; } .by img { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <div class="w" id="w">Loading events…</div>
+  <script type="module">
+    // "What's on during your stay": ?lat=&lon=&name=[&cc=US][&days=45][&km=80]
+    import { EVENTS } from "./catalog.js";
+    import { eventsNear } from "./model.js";
+    const p = new URLSearchParams(location.search);
+    const lat = parseFloat(p.get("lat")), lon = parseFloat(p.get("lon")), name = (p.get("name") || "Your stay").slice(0, 60);
+    const days = Math.min(120, +p.get("days") || 45), km = Math.min(200, +p.get("km") || 80), cc = (p.get("cc") || "").toUpperCase();
+    const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const iso = (d) => d.toISOString().slice(0, 10), today = iso(new Date()), end = iso(new Date(Date.now() + days * 864e5));
+    const lab = (d) => new Date(d + "T12:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+    const el = document.getElementById("w");
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) el.textContent = "Add ?lat=…&lon=… to the widget address.";
+    else {
+      const [live, hol] = await Promise.all([
+        fetch("https://raw.githubusercontent.com/alexchouck-hash/alexchouck-hash.github.io/data-feed/events/live.json").then((r) => (r.ok ? r.json() : {})).then((j) => j.events || []).catch(() => []),
+        /^[A-Z]{2}$/.test(cc) ? fetch(`https://date.nager.at/api/v3/PublicHolidays/${today.slice(0, 4)}/${cc}`).then((r) => (r.ok ? r.json() : [])).catch(() => []) : [],
+      ]);
+      const ev = eventsNear(EVENTS, live, [lat, lon], today, end, km).map((e) => ({ ...e, h: false }));
+      const hs = hol.filter((h) => h.date >= today && h.date <= end && h.global !== false).map((h) => ({ name: h.name, start: h.date, end: h.date, h: true }));
+      const all = [...ev, ...hs].sort((a, b) => (a.start < b.start ? -1 : 1)).slice(0, 8);
+      el.innerHTML = `<h2>What's on near ${esc(name)}</h2><div class="small muted">Next ${days} days</div>
+        ${all.length ? all.map((e) => `<div class="ev ${e.h ? "h" : ""}"><b>${esc(e.name)}</b><br><span class="small muted">${e.start === e.end ? lab(e.start) : `${lab(e.start)} – ${lab(e.end)}`}${e.h ? " · public holiday" : ` · ${esc(e.town || e.venue || "")}${e.approximate ? " · dates approx." : ""}`}</span></div>`).join("") : `<p class="small muted">No major events found nearby in the next ${days} days.</p>`}
+        <a class="by" href="https://alexchouck-hash.github.io/bluebird/events/#${lat.toFixed(4)},${lon.toFixed(4)}" target="_blank" rel="noopener"><img src="../assets/logo.svg" alt="">Events by <b>Bluebird</b></a>`;
+    }
+  </script>
+</body>
+</html>

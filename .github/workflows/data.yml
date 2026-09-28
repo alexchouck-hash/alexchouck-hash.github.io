@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", ".github/workflows/data.yml"]
+    paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", "bluebird/scripts/**", "bluebird/events/catalog.js", ".github/workflows/data.yml"]
 
 permissions:
   contents: write
@@ -46,6 +46,22 @@ jobs:
         continue-on-error: true
         env:
           FEED_DIR: feed
+      - name: Build ski season context
+        run: node ski-conditions/scripts/build-climate.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
+      - name: Build public ski forecast feed
+        run: node ski-conditions/scripts/build-forecasts.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
+      - name: Live events (optional, needs TICKETMASTER_API_KEY secret)
+        run: node bluebird/scripts/build-events.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
+          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
       - name: Publish to data-feed branch
         run: |
           cp data/README.md feed/README.md
