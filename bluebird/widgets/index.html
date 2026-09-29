@@ -87,5 +87,6 @@
     $("#copy").onclick = async () => { try { await navigator.clipboard.writeText($("#code").value); $("#copy").textContent = "Copied"; } catch { $("#code").select(); } };
     fillResorts(); update();
   </script>
+<script src="/js/consent.js" defer></script>
 </body>
 </html>
