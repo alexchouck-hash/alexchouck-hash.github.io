@@ -18,6 +18,12 @@
       </div>
     </div>
     <div class="controls">
+      <label>Search
+        <span class="searchbox">
+          <input type="search" id="search" autocomplete="off" role="combobox" aria-controls="searchlist" aria-expanded="false" aria-autocomplete="list" />
+          <ul id="searchlist" class="searchlist" role="listbox" hidden></ul>
+        </span>
+      </label>
       <label>Resort <select id="resort"></select></label>
       <label>Day <select id="day"></select></label>
       <label>Time <select id="tod"><option value="am">Morning</option><option value="pm">Afternoon</option></select></label>
@@ -26,11 +32,15 @@
   </header>
   <main class="layout">
     <section class="mapwrap">
-      <div id="map" role="region" aria-label="Trail map colored by forecast snow surface"></div>
-      <div id="legend" class="legend"></div>
+      <div id="map" role="application" aria-label="Map of ski resorts colored by forecast snowfall; zoom in for run-by-run snow surface"></div>
+      <div class="maplegend">
+        <div id="mlegend" class="legend"></div>
+        <div id="legend" class="legend"></div>
+      </div>
     </section>
     <section class="panel">
       <div id="status" class="status"></div>
+      <div id="now" class="card now"></div>
       <details class="card" id="finder-wrap" open><summary><h3>Find top runs anywhere</h3></summary><div id="finder"></div></details>
       <div id="summary"></div>
       <div id="picks"></div>

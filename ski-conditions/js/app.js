@@ -7,9 +7,9 @@ import * as api from "./api.js";
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const byId = Object.fromEntries(RESORTS.map((r) => [r.id, r]));
-const state = { id: [5, 6, 7, 8, 9].includes(new Date().getMonth()) ? "portillo" : "whistler", day: null, tod: "am", units: "metric", sort: "score", filter: "all", sel: null, cat: "all" };
+const state = { id: "breckenridge", day: null, tod: "am", units: "metric", sort: "score", filter: "all", sel: null, cat: "all" };
 const cache = {};
-let map, layer;
+let map, layer, markers = {}, snow7 = {};
 
 // ---------- units ----------
 const us = () => state.units === "us";
@@ -287,11 +287,112 @@ function runsTable(c) {
   document.querySelectorAll("#runs tr[data-id]").forEach((tr) => tr.onclick = () => { state.sel = tr.dataset.id; runsTable(c); timeline(c); drawMap(byId[state.id], c, true); });
 }
 
-function drawMap(r, c, focus) {
-  if (!map) {
-    map = L.map("map", { zoomControl: true });
-    L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", { maxZoom: 17, attribution: "© OpenStreetMap contributors, SRTM · © OpenTopoMap" }).addTo(map);
+// ---------- overview map ----------
+// Framed on the Rockies; every resort is a clickable dot colored by 7-day summit snow.
+// Zoom in (or pick a resort from search) to see its runs colored by snow surface.
+const SNOW_LEVELS = [[0, "#b8c2cc", "None", "None"], [1, "#9ec5f0", "Under 5 cm", "Under 2″"], [5, "#4a90e2", "5–15 cm", "2–6″"], [15, "#1f5fc4", "15–30 cm", "6–12″"], [30, "#7b3fc4", "30+ cm", "12+″"]];
+const snowColor = (v) => (v == null ? "#b8c2cc" : [...SNOW_LEVELS].reverse().find(([t]) => v >= t)[1]);
+function setupMap() {
+  map = L.map("map", { zoomControl: true, preferCanvas: true }).fitBounds([[34, -121], [52, -102]]);
+  L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", { maxZoom: 17, attribution: "© OpenStreetMap contributors, SRTM · © OpenTopoMap" }).addTo(map);
+  for (const r of RESORTS) {
+    markers[r.id] = L.circleMarker([r.lat, r.lon], { radius: 7, weight: 1.5, color: "#fff", fillOpacity: 0.95 })
+      .addTo(map).on("click", () => select(r.id, false));
   }
+  paintMarkers();
+  api.leaderboard(RESORTS).then((rows) => {
+    for (const x of rows) snow7[x.id] = x.snow.reduce((a, v) => a + (v || 0), 0);
+    paintMarkers();
+  }).catch(() => {});
+}
+function paintMarkers() {
+  $("#mlegend").innerHTML = `<b>Resorts, next 7 days of summit snow:</b> ` + SNOW_LEVELS.map(([, c, lm, lu]) => `<span><i class="sw dot" style="background:${c}"></i>${us() ? lu : lm}</span>`).join("");
+  for (const r of RESORTS) {
+    const on = r.id === state.id, v = snow7[r.id];
+    markers[r.id].setStyle({ fillColor: snowColor(v), color: on ? "#111" : "#fff", weight: on ? 3 : 1.5 }).setRadius(on ? 10 : 7)
+      .bindTooltip(`<b>${esc(r.name)}</b><br>${esc(r.region)}, ${esc(r.country)}${v != null ? `<br>${cm(v)} next 7 days` : ""}`);
+    if (on) markers[r.id].bringToFront();
+  }
+}
+
+// ---------- current conditions ----------
+const WMO = {
+  0: ["Clear", "☀️"], 1: ["Mostly clear", "🌤️"], 2: ["Partly cloudy", "⛅"], 3: ["Overcast", "☁️"], 45: ["Fog", "🌫️"], 48: ["Rime fog", "🌫️"],
+  51: ["Light drizzle", "🌦️"], 53: ["Drizzle", "🌦️"], 55: ["Heavy drizzle", "🌧️"], 56: ["Freezing drizzle", "🌧️"], 57: ["Freezing drizzle", "🌧️"], 61: ["Light rain", "🌦️"], 63: ["Rain", "🌧️"], 65: ["Heavy rain", "🌧️"],
+  66: ["Freezing rain", "🌧️"], 67: ["Freezing rain", "🌧️"], 71: ["Light snow", "🌨️"], 73: ["Snow", "🌨️"], 75: ["Heavy snow", "❄️"], 77: ["Snow grains", "🌨️"], 80: ["Showers", "🌦️"], 81: ["Showers", "🌧️"], 82: ["Violent showers", "⛈️"],
+  85: ["Snow showers", "🌨️"], 86: ["Heavy snow showers", "❄️"], 95: ["Thunderstorms", "⛈️"], 96: ["Thunderstorms w/ hail", "⛈️"], 99: ["Severe thunderstorms", "⛈️"],
+};
+const stat = (k, v, d = "") => `<div class="stat"><div class="k">${k}</div><div class="v">${v ?? "–"}</div><div class="d">${d}</div></div>`;
+const nowCache = {};
+async function renderNow(r) {
+  const el = $("#now");
+  const hit = nowCache[r.id];
+  if (!hit || Date.now() - hit.t > 10 * 60000) {
+    if (!hit) el.innerHTML = `<h3>Current conditions</h3><p class="muted small">Loading live conditions at ${esc(r.name)}…</p>`;
+    try { nowCache[r.id] = { t: Date.now(), v: await api.current(r) }; }
+    catch (e) { if (state.id === r.id && !hit) el.innerHTML = `<h3>Current conditions</h3><p class="muted small">Live data unavailable: ${esc(e.message)}</p>`; return; }
+  }
+  if (state.id !== r.id) return;
+  const { base: b, summit: s } = nowCache[r.id].v;
+  const [desc, icon] = WMO[s.weather_code] || ["", ""];
+  const depth = s.snow_depth != null ? s.snow_depth * 100 : null;
+  el.innerHTML = `<h3>Current conditions at ${esc(r.name)}</h3> <span class="muted small">· updated ${esc(s.time.replace("T", " "))} local · refreshes every 10 min</span>
+    <div class="row"><span class="big">${icon} ${deg(s.temperature_2m)}</span><span>${esc(desc)} at the summit · feels ${deg(s.apparent_temperature)} · base ${deg(b.temperature_2m)}</span></div>
+    <div class="grid">
+      ${stat("Summit wind", kmh(s.wind_speed_10m), `${compass(s.wind_direction_10m)}, gusts ${kmh(s.wind_gusts_10m)}`)}
+      ${stat("Snowing now", s.snowfall > 0 ? cm(s.snowfall) : "No", s.snowfall > 0 ? "last hour, summit" : b.precipitation > 0 ? "rain at base" : "dry last hour")}
+      ${stat("Snow depth", depth != null ? cm(depth) : "–", "modeled, summit")}
+      ${stat("Cloud cover", `${s.cloud_cover}%`, `humidity ${s.relative_humidity_2m}%`)}
+      ${stat("Base", `${deg(b.temperature_2m)}`, `wind ${kmh(b.wind_speed_10m)} · ${m(r.base)}`)}
+    </div>`;
+}
+setInterval(() => renderNow(byId[state.id]), 10 * 60000);
+
+// ---------- search ----------
+const TOP_PICKS = ["breckenridge", "vail", "aspen-snowmass", "jackson-hole", "park-city", "alta", "big-sky", "whistler"];
+function setupSearch() {
+  const q = $("#search"), box = $("#searchlist");
+  const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const hay = new Map(RESORTS.map((r) => [r.id, norm(`${r.name} ${r.region} ${r.country}`)]));
+  const regions = [...new Set(RESORTS.map((r) => r.region))];
+  let items = [], active = -1;
+  const opt = (r) => `<li role="option" id="so-${r.id}" data-id="${r.id}">${esc(r.name)}<span>${esc(r.region)}, ${esc(r.country)}</span></li>`;
+  const group = (name, rs) => `<li class="grp" role="presentation">${esc(name)}</li>` + rs.map(opt).join("");
+  function draw() {
+    const v = norm(q.value.trim());
+    if (!v) box.innerHTML = group("★ Top picks", TOP_PICKS.filter((id) => byId[id]).map((id) => byId[id])) + regions.map((g) => group(g, RESORTS.filter((r) => r.region === g))).join("");
+    else {
+      const words = v.split(/\s+/);
+      const hits = RESORTS.filter((r) => words.every((w) => hay.get(r.id).includes(w)))
+        .map((r) => [r, norm(r.name).startsWith(v) ? 0 : norm(r.region).startsWith(v) ? 1 : 2]).sort((a, b) => a[1] - b[1]).map(([r]) => r).slice(0, 50);
+      box.innerHTML = hits.length ? hits.map(opt).join("") : `<li class="grp" role="presentation">No matches</li>`;
+    }
+    items = [...box.querySelectorAll("[data-id]")]; active = -1;
+    box.hidden = false; q.setAttribute("aria-expanded", "true");
+  }
+  const close = () => { box.hidden = true; q.setAttribute("aria-expanded", "false"); q.removeAttribute("aria-activedescendant"); };
+  const pick = (id) => { q.value = ""; close(); q.blur(); select(id, true); };
+  const move = (d) => {
+    if (!items.length) return;
+    items[active]?.classList.remove("on");
+    active = (active + d + items.length) % items.length;
+    items[active].classList.add("on"); items[active].scrollIntoView({ block: "nearest" });
+    q.setAttribute("aria-activedescendant", items[active].id);
+  };
+  q.placeholder = `Search ${RESORTS.length} resorts…`;
+  q.onfocus = q.oninput = draw;
+  q.onkeydown = (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); box.hidden ? draw() : move(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); move(-1); }
+    else if (e.key === "Enter") { e.preventDefault(); const it = items[active] || items[0]; if (it) pick(it.dataset.id); }
+    else if (e.key === "Escape") close();
+  };
+  box.onmousedown = (e) => { e.preventDefault(); const it = e.target.closest("[data-id]"); if (it) pick(it.dataset.id); };
+  q.onblur = close;
+}
+
+// ---------- trail map ----------
+function drawMap(r, c, focus) {
   if (layer) layer.remove();
   layer = L.layerGroup().addTo(map);
   const lines = [];
@@ -308,9 +409,11 @@ function drawMap(r, c, focus) {
     }
   }
   for (const l of c?.lifts || []) L.polyline(l.line, { color: "#222", weight: 2, dashArray: "4 4", opacity: 0.8 }).bindTooltip(`${esc(l.name)} (${LIFT_TYPES[l.type]?.label || l.type})`).addTo(layer);
-  if (!focus) {
-    if (lines.length && !c.fitted) { map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [20, 20] }); c.fitted = true; }
-    else if (!lines.length) map.setView([r.lat, r.lon], 13);
+  // Only jump to the resort's trails when asked (search, dropdown, board); a map click keeps the view.
+  if (!focus && state.pan) {
+    if (lines.length) map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [20, 20] });
+    else if (!c) map.setView([r.lat, r.lon], 13);
+    if (c) state.pan = false;
   }
 }
 
@@ -359,14 +462,14 @@ async function sponsor(r) {
 
 function update() {
   const r = byId[state.id], c = cache[state.id];
-  writeHash();
+  writeHash(); paintMarkers();
   if (!c?.ready) { drawMap(r, null); $("#summary").innerHTML = ""; $("#picks").innerHTML = ""; $("#runs").innerHTML = ""; return; }
   fillDays(c); writeHash();
   summary(r, c); picksCard(r, c); timeline(c); runsTable(c); liftsCard(c); drawMap(r, c); accuracy(r); sponsor(r);
 }
-async function select(id) {
-  state.id = id; state.sel = null; $("#resort").value = id;
-  update();
+async function select(id, pan = true) {
+  state.id = id; state.sel = null; state.pan = pan; $("#resort").value = id;
+  update(); renderNow(byId[id]);
   await load(id);
   if (state.id === id) update();
 }
@@ -376,7 +479,9 @@ fillControls();
 $("#resort").onchange = (e) => select(e.target.value);
 $("#day").onchange = (e) => { state.day = e.target.value; update(); };
 $("#tod").onchange = (e) => { state.tod = e.target.value; update(); };
-$("#units").onchange = (e) => { state.units = e.target.value; update(); if ($("#board").querySelector("table")) leaderboard(); };
+$("#units").onchange = (e) => { state.units = e.target.value; update(); renderNow(byId[state.id]); if ($("#board").querySelector("table")) leaderboard(); };
 $("#board-wrap").addEventListener("toggle", (e) => { if (e.target.open && !$("#board").querySelector("table")) leaderboard(); });
 finderForm();
-select(state.id);
+setupMap();
+setupSearch();
+select(state.id, false);
