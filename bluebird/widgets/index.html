@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bluebird Widgets</title>
   <meta name="description" content="Free snow and beach conditions widgets for resorts, hotels, vacation rentals and guidebooks. Pick a location, preview and copy the code." />
+  <link rel="canonical" href="https://alexchouck-hash.github.io/bluebird/widgets/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Bluebird Widgets" />
+  <meta property="og:description" content="Free snow and beach conditions widgets for resorts, hotels, vacation rentals and guidebooks. Pick a location, preview and copy the code." />
+  <meta property="og:url" content="https://alexchouck-hash.github.io/bluebird/widgets/" />
+  <meta name="twitter:card" content="summary" />
   <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="stylesheet" href="../assets/bluebird.css" />
@@ -87,5 +93,6 @@
     $("#copy").onclick = async () => { try { await navigator.clipboard.writeText($("#code").value); $("#copy").textContent = "Copied"; } catch { $("#code").select(); } };
     fillResorts(); update();
   </script>
+<p class="legal-links" style="text-align:center;font-size:13px;margin:16px 0"><a href="../../terms.html">Terms</a> · <a href="../../disclaimer.html">Disclaimer</a> · <a href="../../disclosure.html">Affiliate disclosure</a></p>
 </body>
 </html>
