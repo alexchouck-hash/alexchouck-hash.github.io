@@ -46,18 +46,25 @@ const pts = (list) => `latitude=${list.map((p) => p[1]).join(",")}&longitude=${l
 const many = (j) => (Array.isArray(j) ? j : [j]);
 const best = (arr, k = "score") => arr.filter((x) => x && x[k] != null).sort((a, b) => b[k] - a[k])[0];
 
-// Each reading resolves to { score?, text, sub? }. `score` uses the shared 0–100 scale.
+// Map dot for one sample spot.
+const spot = (x, score, detail) => (x.lat == null || x.lon == null ? null : { name: x.name, lat: +x.lat, lon: +x.lon, score, detail });
+// Best entry per place name (for multi-day readings).
+export const bestEach = (arr) => Object.values(arr.reduce((m, x) => ((m[x.name] = !m[x.name] || x.score > m[x.name].score ? x : m[x.name]), m), {}));
+
+// Each reading resolves to { score?, text, sub?, spots? }; `spots` feed the hub map. `score` uses the shared 0–100 scale.
 export const READINGS = {
   async snow() {
     const j = many(await getJSON(`https://api.open-meteo.com/v1/forecast?${pts(SNOW)}&daily=snowfall_sum&forecast_days=7&timezone=auto`, 60));
-    return snowReading(j.map((r, i) => ({ name: SNOW[i][0], cm: (r.daily?.snowfall_sum || []).reduce((a, v) => a + (v || 0), 0) })));
+    const rows = j.map((r, i) => ({ name: SNOW[i][0], lat: SNOW[i][1], lon: SNOW[i][2], cm: (r.daily?.snowfall_sum || []).reduce((a, v) => a + (v || 0), 0) }));
+    return { ...snowReading(rows), spots: rows.map((r) => spot(r, snowScore(r.cm), `${snowAmt(r.cm)} new snow, next 7 days`)) };
   },
   async beach() {
     const j = many(await getJSON(`https://api.open-meteo.com/v1/forecast?${pts(BEACH)}&daily=temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,uv_index_max&forecast_days=2&timezone=auto`, 60));
-    const r = best(j.map((x, i) => beachDay(BEACH[i][0], x.daily, 1)));
-    return r && { score: r.score, place: r.name, when: "Tomorrow", text: `Best tomorrow: ${r.name}`, sub: `${temp(r.tmax)}, ${r.pop}% chance of rain` };
+    const all = j.map((x, i) => { const b = beachDay(BEACH[i][0], x.daily, 1); return b && { ...b, lat: BEACH[i][1], lon: BEACH[i][2] }; });
+    const r = best(all);
+    return r && { spots: all.filter(Boolean).map((x) => spot(x, x.score, `Tomorrow: ${temp(x.tmax)}, ${x.pop}% rain`)), score: r.score, place: r.name, when: "Tomorrow", text: `Best tomorrow: ${r.name}`, sub: `${temp(r.tmax)}, ${r.pop}% chance of rain` };
   },
-  async foliage() { return foliageReading(isoDay()); },
+  async foliage() { return { ...foliageReading(isoDay()), spots: foliageSpots(isoDay()) }; },
   async events() { return eventsReading(isoDay()); },
   async waterfalls() {
     const d = isoDay(), f = best(FALLS.map((x) => ({ name: x.name, score: Math.round(seasonal(x, d)) })));
@@ -68,7 +75,8 @@ export const READINGS = {
     const now = new Date();
     const st = parseStats(await getText(`https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites=${GAUGES.join(",")}&statReportType=daily&statTypeCd=p10,p25,p50,p75,p90&parameterCd=00060`, 60 * 24), now.getMonth() + 1, now.getDate());
     const g = best(Object.values(iv).map((x) => ({ ...x, rating: rate(percentile(x.flow, st[x.site]), x.flow, x.flowPrev) })).map((x) => ({ ...x, score: RATINGS[x.rating].score })));
-    return g && { score: g.score, place: g.name, when: "Today", text: g.name, sub: `${Math.round(g.flow).toLocaleString()} cfs · ${RATINGS[g.rating].label}` };
+    const all = Object.values(iv).map((x) => ({ ...x, rating: rate(percentile(x.flow, st[x.site]), x.flow, x.flowPrev) }));
+    return g && { spots: all.map((x) => spot(x, RATINGS[x.rating].score, `${Math.round(x.flow).toLocaleString()} cfs · ${RATINGS[x.rating].label}`)), score: g.score, place: g.name, when: "Today", text: g.name, sub: `${Math.round(g.flow).toLocaleString()} cfs · ${RATINGS[g.rating].label}` };
   },
   async offshore() {
     const [m, w] = await Promise.all([
@@ -76,18 +84,20 @@ export const READINGS = {
       getJSON(`https://api.open-meteo.com/v1/forecast?${pts(SEA)}&hourly=wind_speed_10m,wind_gusts_10m,precipitation_probability,cape&forecast_days=4&timezone=auto`, 60),
     ]);
     const W = many(w);
-    const r = best(many(m).flatMap((x, i) => {
+    const days = many(m).flatMap((x, i) => {
       const h = x.hourly, v = W[i]?.hourly; if (!h || !v) return [];
-      return seaDays("mid", { time: h.time, wave: h.wave_height, period: h.wave_period, sst: h.sea_surface_temperature, wind: v.wind_speed_10m, gust: v.wind_gusts_10m, pop: v.precipitation_probability, cape: v.cape }).map((d) => ({ ...d, name: SEA[i][0] }));
-    }));
-    return r && { score: r.score, place: r.name, when: dayName(r.date), text: `Calmest run: ${r.name}, ${dayName(r.date)}`, sub: `Seas to ${len(r.maxWave)} · 25–35 ft boat` };
+      return seaDays("mid", { time: h.time, wave: h.wave_height, period: h.wave_period, sst: h.sea_surface_temperature, wind: v.wind_speed_10m, gust: v.wind_gusts_10m, pop: v.precipitation_probability, cape: v.cape }).map((d) => ({ ...d, name: SEA[i][0], lat: SEA[i][1], lon: SEA[i][2] }));
+    });
+    const r = best(days);
+    return r && { spots: bestEach(days).map((x) => spot(x, x.score, `Best: ${dayName(x.date)}, seas to ${len(x.maxWave)}`)), score: r.score, place: r.name, when: dayName(r.date), text: `Calmest run: ${r.name}, ${dayName(r.date)}`, sub: `Seas to ${len(r.maxWave)} · 25–35 ft boat` };
   },
   async camp() {
     const j = many(await getJSON(`https://api.open-meteo.com/v1/forecast?${pts(CAMP)}&hourly=temperature_2m,dew_point_2m,relative_humidity_2m,precipitation,precipitation_probability,wind_speed_10m,wind_gusts_10m,cloud_cover,cape&forecast_days=5&timezone=auto`, 60));
     const illum = (d) => moon(new Date(d + "T04:00Z")).illum;
-    const r = best(j.flatMap((x, i) => { const h = x.hourly; if (!h) return [];
-      return nights({ time: h.time, temp: h.temperature_2m, dew: h.dew_point_2m, rh: h.relative_humidity_2m, precip: h.precipitation, pop: h.precipitation_probability, wind: h.wind_speed_10m, gust: h.wind_gusts_10m, cloud: h.cloud_cover, cape: h.cape }, illum).map((n) => ({ ...n, name: CAMP[i][0] })); }));
-    return r && { score: r.score, place: r.name, when: `${dayName(r.date)} night`, text: `Best night: ${r.name}, ${dayName(r.date)}`, sub: `Low ${temp(r.low)} · stars ${r.stars}/100` };
+    const all = j.flatMap((x, i) => { const h = x.hourly; if (!h) return [];
+      return nights({ time: h.time, temp: h.temperature_2m, dew: h.dew_point_2m, rh: h.relative_humidity_2m, precip: h.precipitation, pop: h.precipitation_probability, wind: h.wind_speed_10m, gust: h.wind_gusts_10m, cloud: h.cloud_cover, cape: h.cape }, illum).map((n) => ({ ...n, name: CAMP[i][0], lat: CAMP[i][1], lon: CAMP[i][2] })); });
+    const r = best(all);
+    return r && { spots: bestEach(all).map((x) => spot(x, x.score, `Best night: ${dayName(x.date)}, low ${temp(x.low)}`)), score: r.score, place: r.name, when: `${dayName(r.date)} night`, text: `Best night: ${r.name}, ${dayName(r.date)}`, sub: `Low ${temp(r.low)} · stars ${r.stars}/100` };
   },
 };
 
@@ -108,10 +118,12 @@ export function eventsReading(today, catalog = EVENTS) {
   const { e, r } = up[0], d = (x) => new Date(x + "T12:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
   return { text: `${r.start <= today ? "On now" : "Coming up"}: ${e.name}`, sub: `${e.town} · ${d(r.start)}${r.end !== r.start ? `–${r.end.slice(0, 7) === r.start.slice(0, 7) ? +r.end.slice(8) : d(r.end)}` : ""} (approx.)${up.length > 1 ? ` · +${up.length - 1} more this month` : ""}` };
 }
+export const snowScore = (cm) => Math.round(clamp(cm * 2.5, 0, 100));
+const snowAmt = (cm) => (units.us ? `${Math.round(cm / 2.54)}″` : `${Math.round(cm)} cm`);
 export function snowReading(rows) {
   const r = rows.slice().sort((a, b) => b.cm - a.cm)[0];
   if (!r || r.cm < 1) return { text: "Quiet week: no real snow in the forecast", sub: "Across 8 sample resorts worldwide" };
-  return { score: Math.round(clamp(r.cm * 2.5, 0, 100)), place: r.name, when: "Next 7 days", text: `Most new snow: ${r.name}`, sub: `${units.us ? `${Math.round(r.cm / 2.54)}″` : `${Math.round(r.cm)} cm`} in the next 7 days` };
+  return { score: snowScore(r.cm), place: r.name, when: "Next 7 days", text: `Most new snow: ${r.name}`, sub: `${snowAmt(r.cm)} in the next 7 days` };
 }
 export function beachDay(name, d, i) {
   if (!d?.temperature_2m_max) return null;
@@ -125,4 +137,10 @@ export function foliageReading(today) {
   if (Math.abs(near.d) > 21) return { text: "Off season", sub: "Color starts in the far north in mid September" };
   const st = F.stage(near.d);
   return { score: F.colorPct(near.d), place: near.s.name, when: "This week", text: `${st.label} around now: ${near.s.name}`, sub: `${near.s.region} · typical peak ${new Date(`2000-${near.s.peak}T12:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" })}` };
+}
+// Every foliage spot within three weeks of its typical peak, scored by share of color.
+export function foliageSpots(today) {
+  const n = doy(today);
+  return SPOTS.map((s) => ({ s, d: n - F.doyOf(`${today.slice(0, 4)}-${s.peak}`) })).filter(({ d }) => Math.abs(d) <= 21)
+    .map(({ s, d }) => spot(s, F.colorPct(d), `${F.stage(d).label} (typical timing)`));
 }

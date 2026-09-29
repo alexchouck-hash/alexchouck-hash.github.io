@@ -132,6 +132,10 @@ assert.equal(er.text, "Coming up: Big"); assert.match(er.sub, /\+1 more/); asser
 assert.equal(P.eventsReading("2026-10-21", cat1).text, "On now: Big");
 assert.match(P.eventsReading("2026-06-01", cat1).text, /quiet/);
 assert(P.eventsReading("2026-09-29").text, "real catalog resolves");
+const HM = await import("../assets/hubmap.js");
+assert(HM.inNorthAmerica({ lat: 40.59, lon: -111.64 }) && HM.inNorthAmerica({ lat: 12.55, lon: -70.05 }) && !HM.inNorthAmerica({ lat: 45.98, lon: 7.73 }));
+assert.equal(P.bestEach([{ name: "A", score: 10 }, { name: "A", score: 80 }, { name: "B", score: 5 }]).map((x) => x.score).join(), "80,5");
+assert(P.foliageSpots("2026-10-05").length > 5 && P.foliageSpots("2026-10-05").every((d) => d.lat && d.score >= 0)); assert.equal(P.foliageSpots("2026-06-15").length, 0);
 const tp = P.topPicks([null, { score: 90, place: "A" }, { score: 50, place: "B" }, { score: 70, place: "C" }, { score: 99 }, { score: 80, place: "D" }, { score: 66, place: "E" }]);
 assert.deepEqual(tp.map((x) => x.place), ["A", "D", "C", "E"], "picks: Good or better, placed, best first, max 4");
 
