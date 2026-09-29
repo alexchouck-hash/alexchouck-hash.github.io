@@ -301,3 +301,19 @@ export const WEBCAMS = {
   "sunday-river": "https://www.sundayriver.com/mountain-report",
   "sugarbush": "https://www.sugarbush.com/mountain/webcams",
 };
+
+// Third-party webcam pages for resorts with no official one.
+export const WEBCAMS_OTHER = {
+  "gulmarg": "https://opensnow.com/location/gulmarg/cams",
+  "mt-baker": "https://opensnow.com/location/mtbaker/cams",
+  "jay-peak": "https://www.onthesnow.com/vermont/jay-peak/webcams",
+  "rosa-khutor": "https://www.geocam.ru/en/online/roza-khutor-tv/",
+  "furano": "https://www.onthesnow.com/hokkaido/furano-ski-resort/webcams",
+  "myoko": "https://myoko.jp/myoko-webcams/",
+  "zao": "https://www.skiresort.info/ski-holiday-in/zaoo-onsen-2799/webcams/",
+  "appi": "https://www.skiresort.info/ski-resort/appi-kogen/webcams/",
+  "high1": "https://worldcam.eu/webcams/asia/south-korea/36715-gohan-eup-high1-ski-resort",
+  "yabuli": "https://www.webcamgalore.com/webcam/China/Yabulizhen/11051.html",
+  "chongli": "https://www.skylinewebcams.com/en/webcam/china/hebei/zhangjiakou/ski-area.html",
+  "afriski": "https://www.skiresort.info/ski-resort/afriski-mountain-resort/webcams/",
+};
