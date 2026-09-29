@@ -1,6 +1,6 @@
 // Hub "pulse": one live reading per partner site, season-aware card order and
 // time-of-day sky. Readings reuse each site's own model on a few sample spots.
-import { getJSON, getText, temp, units, len, isoDay, doy, moon, clamp } from "./shared.js";
+import { getJSON, getText, temp, units, len, isoDay, addDays, doy, moon, clamp } from "./shared.js";
 import { SPOTS } from "../foliage/spots.js";
 import * as F from "../foliage/model.js";
 import { FALLS } from "../waterfalls/spots.js";
@@ -8,6 +8,8 @@ import { seasonal, flowClass } from "../waterfalls/model.js";
 import { parseIV, parseStats, percentile, rate, RATINGS } from "../rivers/model.js";
 import { days as seaDays } from "../offshore/model.js";
 import { nights } from "../camp/model.js";
+import { EVENTS } from "../events/catalog.js";
+import { resolve as eventDates } from "../events/model.js";
 
 // How much each site matters this month (Jan..Dec, 0–3). Northern-hemisphere seasons.
 const SEASON = {
@@ -56,6 +58,7 @@ export const READINGS = {
     return r && { score: r.score, place: r.name, when: "Tomorrow", text: `Best tomorrow: ${r.name}`, sub: `${temp(r.tmax)}, ${r.pop}% chance of rain` };
   },
   async foliage() { return foliageReading(isoDay()); },
+  async events() { return eventsReading(isoDay()); },
   async waterfalls() {
     const d = isoDay(), f = best(FALLS.map((x) => ({ name: x.name, score: Math.round(seasonal(x, d)) })));
     return { text: `Flowing hardest this time of year: ${f.name}`, sub: `${flowClass(f.score).label} in a typical year; the site adds recent rain.` };
@@ -95,6 +98,16 @@ export const topPicks = (readings, n = 4) =>
   readings.filter((r) => r?.score != null && r.score >= 65 && r.place).sort((a, b) => b.score - a.score).slice(0, n);
 
 // Pure helpers (tested).
+// Next big event (biggest draw first, then soonest) starting or running within 30 days. Catalog dates are rule-based and approximate.
+export function eventsReading(today, catalog = EVENTS) {
+  const to = addDays(today, 30), y = +today.slice(0, 4);
+  const up = catalog.flatMap((e) => [y - 1, y, y + 1].map((yr) => ({ e, r: eventDates(e.rule, yr) })))
+    .filter(({ r }) => r && r.end >= today && r.start <= to)
+    .sort((a, b) => b.e.impact - a.e.impact || a.r.start.localeCompare(b.r.start));
+  if (!up.length) return { text: "A quiet month for big events", sub: "Check any town for holidays and local demand" };
+  const { e, r } = up[0], d = (x) => new Date(x + "T12:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+  return { text: `${r.start <= today ? "On now" : "Coming up"}: ${e.name}`, sub: `${e.town} · ${d(r.start)}${r.end !== r.start ? `–${r.end.slice(0, 7) === r.start.slice(0, 7) ? +r.end.slice(8) : d(r.end)}` : ""} (approx.)${up.length > 1 ? ` · +${up.length - 1} more this month` : ""}` };
+}
 export function snowReading(rows) {
   const r = rows.slice().sort((a, b) => b.cm - a.cm)[0];
   if (!r || r.cm < 1) return { text: "Quiet week: no real snow in the forecast", sub: "Across 8 sample resorts worldwide" };

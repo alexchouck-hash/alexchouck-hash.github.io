@@ -126,6 +126,12 @@ assert.deepEqual([4, 7, 12, 19, 23].map(P.sky), ["night", "dawn", "day", "dusk",
 assert.match(P.foliageReading("2026-09-28").text, /peak|Turning/i); assert.equal(P.foliageReading("2026-06-15").text, "Off season");
 assert.equal(P.snowReading([{ name: "A", cm: 0 }]).score, undefined); assert.equal(P.snowReading([{ name: "A", cm: 5 }, { name: "B", cm: 30 }]).text, "Most new snow: B");
 assert(P.beachDay("x", { temperature_2m_max: [0, 29], precipitation_probability_max: [0, 0], wind_speed_10m_max: [0, 10] }, 1).score === 100);
+const cat1 = [{ name: "Small", town: "A", impact: 1, rule: { fixed: ["10-01", 2] } }, { name: "Big", town: "B", impact: 3, rule: { fixed: ["10-20", 3] } }, { name: "Later", town: "C", impact: 3, rule: { fixed: ["12-01", 1] } }];
+const er = P.eventsReading("2026-09-29", cat1);
+assert.equal(er.text, "Coming up: Big"); assert.match(er.sub, /\+1 more/); assert.equal(er.score, undefined, "events are info, not a bluebird score");
+assert.equal(P.eventsReading("2026-10-21", cat1).text, "On now: Big");
+assert.match(P.eventsReading("2026-06-01", cat1).text, /quiet/);
+assert(P.eventsReading("2026-09-29").text, "real catalog resolves");
 const tp = P.topPicks([null, { score: 90, place: "A" }, { score: 50, place: "B" }, { score: 70, place: "C" }, { score: 99 }, { score: 80, place: "D" }, { score: 66, place: "E" }]);
 assert.deepEqual(tp.map((x) => x.place), ["A", "D", "C", "E"], "picks: Good or better, placed, best first, max 4");
 
