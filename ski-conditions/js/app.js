@@ -1,4 +1,4 @@
-import { RESORTS, WEBCAMS } from "./resorts.js";
+import { RESORTS, WEBCAMS, WEBCAMS_OTHER } from "./resorts.js";
 import { SURFACES, DIFFICULTY, MODEL_LABEL, simulateSegments, skillWeights, biasFactor, dailySnow, days, confidence, snowLine, virtualRuns, compass } from "./model.js";
 import { snowRange, snowQuality, windHolds, LIFT_TYPES } from "./ops.js";
 import { CATEGORIES, crowd, topRuns, webcamLinks } from "./picks.js";
@@ -113,7 +113,7 @@ function summary(r, c) {
       <div class="kpi"><b>${m(sl)}</b><span>Snow line at noon</span></div>
       <div class="kpi"><b class="conf-${conf.level}">${conf.level}</b><span>Confidence (3-day summit snow)</span></div>
     </div>
-    <p class="small webcams"><b>Webcams:</b> ${webcamLinks(r.name, r.lat, r.lon, "ski resort", WEBCAMS[r.id]).map((w) => `<a href="${esc(w.url)}" target="_blank" rel="noopener">${w.label}</a>`).join(" · ")}</p>
+    <p class="small webcams"><b>Webcams:</b> ${webcamLinks(r.name, r.lat, r.lon, "ski resort", WEBCAMS[r.id], WEBCAMS_OTHER[r.id]).map((w) => `<a href="${esc(w.url)}" target="_blank" rel="noopener">${w.label}</a>`).join(" · ")}</p>
     ${best.length ? `<p class="small"><b>Best bets:</b> ${best.map((x) => `${esc(x.run.name)} (${SURFACES[x.st.surface].label.toLowerCase()}, ${x.st.score})`).join("; ")}</p>` : ""}
     ${storm3(c, keys)}
     <p class="small muted">${modelTotals ? `Model totals, next 3 days at summit: ${modelTotals}` : ""}</p>
