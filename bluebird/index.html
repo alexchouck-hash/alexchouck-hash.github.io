@@ -30,6 +30,12 @@
     .pick .n { font-size: 26px; font-weight: 700; color: var(--g); min-width: 38px; text-align: center; line-height: 1; }
     .pick .n small { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 3px; }
     .pick b { display: block; } .pick span { font-size: 13px; color: var(--muted); }
+    .hubmap { margin-top: 28px; } .hubmap[hidden] { display: none; }
+    .hubmap .frame { height: 440px; border-radius: 12px; border: 1px solid var(--line); background: var(--brand-2); display: grid; place-items: center; color: var(--muted); font-size: 13px; overflow: hidden; }
+    .hubmap .frame.leaflet-container { display: block; }
+    .hubmap .key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+    .hubmap .key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+    @media (max-width: 600px) { .hubmap .frame { height: 340px; } }
     .site .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--c); margin-left: 6px; }
     .hero h1 { font-size: 40px; letter-spacing: -.02em; margin: 8px 0 6px; }
     .hero p { font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 auto; }
@@ -57,6 +63,12 @@
     </section>
     <div class="grid" id="sites"></div>
     <div class="card" style="margin-top:20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:240px"><h2 style="margin:0">Free widgets for your website</h2><p class="small muted" style="margin:4px 0 0">Resorts, hotels, vacation rentals and guidebooks: live snow or beach conditions for your exact location.</p></div><a class="primary" href="widgets/" style="text-decoration:none;padding:9px 16px;border-radius:10px;background:var(--accent);color:#fff;font-weight:600">Get a widget</a></div>
+    <section class="hubmap" id="hubmap" hidden>
+      <h2>Every spot we checked</h2>
+      <p class="small muted" style="margin:0 0 10px">Sample spots behind the readings above, including a few overseas ski resorts (zoom out). Dot color is the score and the ring is the site. Tap a dot to open that site.</p>
+      <div class="frame" id="mapframe">Map loads after the page…</div>
+      <div class="key" id="mapkey"></div>
+    </section>
     <h2 style="margin-top:28px">How Bluebird forecasts</h2>
     <div class="how">
       <div class="card"><h3>Live, open data</h3><p class="small muted">Global weather models (ECMWF, GFS, ICON and more), marine forecasts, USGS river gauges and satellite ocean data, fetched fresh in your browser.</p></div>
@@ -68,6 +80,7 @@
   <script type="module">
     import { SITES, header, esc, gradePill, grade } from "./assets/shared.js";
     import { seasonOrder, inSeason, sky, READINGS, topPicks } from "./assets/pulse.js";
+    import { whenReady, loadLeaflet, drawMap } from "./assets/hubmap.js";
     header(null, ".");
     const hero = document.querySelector(".hero");
     const setSky = () => (hero.dataset.sky = sky(new Date().getHours()));
@@ -87,6 +100,7 @@
       }).catch(() => { el.remove(); return null; });
     });
     Promise.all(jobs).then((rs) => {
+      showMap(rs.filter(Boolean).flatMap((r) => (r.spots || []).filter((d) => d && d.score != null).map((d) => ({ ...d, site: { ...r.site, href: href(r.site) } }))));
       const picks = topPicks(rs);
       if (!picks.length) return;
       document.getElementById("picklist").innerHTML = picks.map((p) => `<li><a class="card pick" style="--c:${p.site.color};--g:${grade(p.score).color}" href="${href(p.site)}">
@@ -94,6 +108,18 @@
         <div><b>${p.site.icon} ${esc(p.place)}</b><span>${esc(p.site.name)} · ${esc(p.when)}</span></div></a></li>`).join("");
       document.getElementById("picks").hidden = false;
     });
+
+    // The map is last: it waits for readings, the full page load, the section scrolling near view, and an idle moment.
+    async function showMap(dots) {
+      if (dots.length < 3) return;
+      const sec = document.getElementById("hubmap"), frame = document.getElementById("mapframe");
+      sec.hidden = false;
+      document.getElementById("mapkey").innerHTML = [90, 70, 50, 30, 10].map((v) => `<span><i style="background:${grade(v).color}"></i>${grade(v).label}</span>`).join("");
+      try {
+        await whenReady(sec); await loadLeaflet();
+        frame.textContent = ""; drawMap(frame, dots);
+      } catch { sec.hidden = true; }
+    }
   </script>
 </body>
 </html>
