@@ -85,3 +85,11 @@ export const verification = () => getJSON(FEED_BASE + "ski/verification.json", 6
 
 // Season context built by scripts/build-climate.mjs.
 export const climate = (id) => getJSON(`${FEED_BASE}ski/climate/${id}.json`, 60 * 6);
+
+// Current conditions at the base and summit (metric), refreshed every 10 minutes.
+export async function current(r) {
+  const vars = "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,snowfall,precipitation,snow_depth";
+  const u = `https://api.open-meteo.com/v1/forecast?latitude=${r.lat},${r.lat}&longitude=${r.lon},${r.lon}&elevation=${r.base},${r.summit}&current=${vars}&timezone=auto`;
+  const [base, summit] = await getJSON(u, 10);
+  return { base: base.current, summit: summit.current };
+}
