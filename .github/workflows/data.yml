@@ -11,7 +11,7 @@ on:
     inputs:
       normals_budget:
         description: "Climate-normal cells to build this run (each is a ~6-year ERA5 pull, ~200+ Open-Meteo calls)"
-        default: "20"
+        default: "3"
   push:
     branches: [main]
     paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", "bluebird/scripts/**", "bluebird/events/catalog.js", ".github/workflows/data.yml"]
@@ -39,9 +39,9 @@ jobs:
         run: node scripts/build-data.mjs
         env:
           FEED_DIR: feed
-          # ~80 cells/day fills the remaining cells in ~2 days; this can exceed Open-Meteo's
-          # free 10k calls/day while backfilling. After that only 180-day-old cells are rebuilt.
-          NORMALS_BUDGET: ${{ inputs.normals_budget || '20' }}
+          # All 159 cells are built; this only rebuilds cells older than 180 days.
+          # Raise it (e.g. via the manual-run input) after adding many new resorts.
+          NORMALS_BUDGET: ${{ inputs.normals_budget || '3' }}
           NORMALS_PAUSE_MS: "20000"
       - name: Precompute ski trail maps
         run: node ski-conditions/scripts/build-runs.mjs
