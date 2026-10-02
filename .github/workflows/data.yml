@@ -14,7 +14,7 @@ on:
         default: "3"
   push:
     branches: [main]
-    paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", "bluebird/scripts/**", "bluebird/events/catalog.js", ".github/workflows/data.yml"]
+    paths: ["js/**", "scripts/**", "ski-conditions/js/**", "ski-conditions/scripts/**", "bluebird/scripts/**", "bluebird/events/catalog.js", "fantasy/model.js", "fantasy/scripts/**", ".github/workflows/data.yml"]
 
 permissions:
   contents: write
@@ -69,6 +69,11 @@ jobs:
         env:
           FEED_DIR: feed
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+      - name: Fantasy projections (nflverse + Kalshi)
+        run: node fantasy/scripts/build-fantasy.mjs
+        continue-on-error: true
+        env:
+          FEED_DIR: feed
       - name: Publish to data-feed branch
         run: |
           cp data/README.md feed/README.md

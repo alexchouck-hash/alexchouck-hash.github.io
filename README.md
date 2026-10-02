@@ -3,6 +3,7 @@
 Static site (GitHub Pages) with sargassum, weather, water temperature, waves, UV, crowd, safety and tourism forecasts for 440+ resorts across the Gulf of Mexico, the Caribbean (east to Barbados) and Caribbean Central America (south to Panama and Colombia), up to 365 days out.
 
 - `ski-conditions/`: run-by-run snow forecast for 140+ major ski resorts worldwide (see `ski-conditions/README.md`).
+- `fantasy/`: weekly fantasy football projections (nflverse usage x Kalshi/sportsbook game environment). See `fantasy/README.md`.
 - `beach-widget.html`: embeddable beach conditions widget (`?id=<resort>` or `?lat=&lon=&name=`), built from the data feed. Builder at `bluebird/widgets/`.
 - `index.html`, `css/`, `js/app.js`: map + per-resort dashboard (live data fetched in the browser).
 - `js/resorts.js` + `js/data/*.js`: resorts, regions (climate, crowds, cleanup, safety, tourism) and airports.
