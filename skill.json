@@ -1,0 +1,167 @@
+{
+ "status": "ok",
+ "trainedAt": "2026-10-02T13:18:10.209Z",
+ "tau": 0.0016,
+ "eventQuantile": 0.8,
+ "trainYears": [
+  2016,
+  2017,
+  2018,
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024
+ ],
+ "testYears": [
+  2025,
+  2026
+ ],
+ "nTrain": 58442,
+ "nTest": 11484,
+ "testEventRate": 0.412,
+ "segments": 150,
+ "labelQuantiles": {
+  "0.5": -0.000136,
+  "0.8": 0.0016,
+  "0.9": 0.0028,
+  "0.95": 0.004,
+  "0.99": 0.004
+ },
+ "results": [
+  {
+   "name": "model",
+   "auc": 0.788,
+   "brier": 0.2255
+  },
+  {
+   "name": "climatology",
+   "auc": 0.764,
+   "brier": 0.2347
+  },
+  {
+   "name": "persistence",
+   "auc": 0.727,
+   "brier": 0.2199
+  },
+  {
+   "name": "legacy-seasonal",
+   "auc": 0.554,
+   "brier": 0.2953
+  }
+ ],
+ "byBasin": {
+  "gulf_e": {
+   "n": 875,
+   "eventRate": 0.333,
+   "model": {
+    "name": "model",
+    "auc": 0.698,
+    "brier": 0.2627
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.645,
+    "brier": 0.2683
+   }
+  },
+  "gulf_n": {
+   "n": 1137,
+   "eventRate": 0.369,
+   "model": {
+    "name": "model",
+    "auc": 0.718,
+    "brier": 0.2899
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.666,
+    "brier": 0.3038
+   }
+  },
+  "carib": {
+   "n": 3420,
+   "eventRate": 0.517,
+   "model": {
+    "name": "model",
+    "auc": 0.783,
+    "brier": 0.2383
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.761,
+    "brier": 0.2561
+   }
+  },
+  "gulf_s": {
+   "n": 176,
+   "eventRate": 0.165,
+   "model": {
+    "name": "model",
+    "auc": 0.868,
+    "brier": 0.1267
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.763,
+    "brier": 0.1345
+   }
+  },
+  "atl_n": {
+   "n": 1051,
+   "eventRate": 0.156,
+   "model": {
+    "name": "model",
+    "auc": 0.786,
+    "brier": 0.1311
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.761,
+    "brier": 0.1323
+   }
+  },
+  "carib_e": {
+   "n": 3841,
+   "eventRate": 0.481,
+   "model": {
+    "name": "model",
+    "auc": 0.772,
+    "brier": 0.2327
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.762,
+    "brier": 0.2379
+   }
+  },
+  "carib_s": {
+   "n": 984,
+   "eventRate": 0.211,
+   "model": {
+    "name": "model",
+    "auc": 0.74,
+    "brier": 0.1641
+   },
+   "climatology": {
+    "name": "climatology",
+    "auc": 0.723,
+    "brier": 0.165
+   }
+  }
+ },
+ "weights": {
+  "near": 0.24483,
+  "nearValid": 0.02527,
+  "mass1": 0.06593,
+  "mass2": -0.01203,
+  "inflow1": 0.00253,
+  "inflow2": 0.11148,
+  "onshoreWind": -0.0341,
+  "drift": 0.02703,
+  "clim": 1.21605,
+  "seasonSin": -0.05269,
+  "seasonCos": 0.01777
+ }
+}
