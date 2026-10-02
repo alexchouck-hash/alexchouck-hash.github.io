@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fantasy Projections</title>
+<style>
+:root { --bg:#f7f7f5; --card:#fff; --ink:#1c1d1f; --muted:#6b6f76; --line:#e3e4e6; --up:#1a7f4b; --down:#b3261e; --accent:#2457c5; }
+@media (prefers-color-scheme: dark) { :root { --bg:#121314; --card:#1b1c1e; --ink:#e8e9eb; --muted:#9a9ea5; --line:#2c2e31; --up:#4cc38a; --down:#f2847b; --accent:#7aa2ff; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; }
+main { max-width:1100px; margin:0 auto; padding:20px 16px 48px; }
+h1 { font-size:24px; margin:0 0 4px; } h2 { font-size:17px; margin:28px 0 10px; }
+.sub { color:var(--muted); margin:0 0 18px; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+select, input { font:inherit; padding:7px 10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+input { flex:1; min-width:160px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+th, td { padding:8px 10px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap; }
+th { font-size:12px; color:var(--muted); font-weight:600; cursor:pointer; user-select:none; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align:left; }
+tr:last-child td { border-bottom:0; }
+.name { font-weight:600; } .pos { color:var(--muted); font-size:12px; margin-left:6px; }
+.pts { font-weight:700; } .up { color:var(--up); } .down { color:var(--down); } .muted { color:var(--muted); }
+.games { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:10px; }
+.game { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:14px; }
+.game b { font-variant-numeric:tabular-nums; } .src { font-size:12px; color:var(--muted); margin-top:4px; }
+details { margin-top:28px; color:var(--muted); } details p { margin:6px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fantasy Projections</h1>
+  <p class="sub" id="meta">Loading…</p>
+  <div class="controls">
+    <select id="fmt"><option value="half">Half PPR</option><option value="ppr">PPR</option><option value="standard">Standard</option></select>
+    <select id="pos"><option value="">All positions</option><option>QB</option><option>RB</option><option>WR</option><option>TE</option><option value="FLEX">FLEX (RB/WR/TE)</option></select>
+    <input id="q" type="search" placeholder="Search player or team">
+  </div>
+  <div class="card"><table><thead><tr>
+    <th data-k="name">Player</th><th data-k="matchup">Matchup</th><th data-k="pts">Proj</th><th data-k="floor">Floor</th><th data-k="ceil">Ceiling</th>
+    <th data-k="env" title="Market-implied team points vs. the team's recent scoring">Env</th><th data-k="implied">Team impl.</th><th data-k="opp" title="Targets or carries+targets per game in the projection">Opps</th>
+  </tr></thead><tbody id="rows"></tbody></table></div>
+  <h2>Game environment</h2>
+  <div class="games" id="games"></div>
+  <details><summary>How this works</summary>
+    <p><b>Usage baseline.</b> Each player's stat line (attempts, carries, targets, yards, TDs) is a recency-weighted average of this season's games, each older game worth 75% of the next, blended with last season's per-game line counted as three games.</p>
+    <p><b>Game environment.</b> Implied team points come from the spread and total (sportsbook consensus via nflverse, averaged with Kalshi's game-winner and total markets when available). The baseline is scaled by implied points over the team's recent scoring, and favorites tilt slightly toward rushing, underdogs toward passing.</p>
+    <p><b>Range.</b> Floor and ceiling are roughly the 10th and 90th percentile, from each player's own week-to-week spread.</p>
+    <p>Not yet included: injuries, depth-chart changes, weather, and analyst consensus.</p>
+  </details>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
